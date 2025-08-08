@@ -64,11 +64,16 @@ export const Navigation = () => {
                 
                 {/* Admin features */}
                 {isAdmin() && (
-                  <Button variant="outline" asChild>
-                    <Link to="/admin">Admin Dashboard</Link>
-                  </Button>
+                  <>
+                    <Button variant="outline" asChild>
+                      <Link to="/admin">Admin Dashboard</Link>
+                    </Button>
+                    <Button variant="outline" asChild>
+                      <Link to="/admin/overview">Project Overview</Link>
+                    </Button>
+                  </>
                 )}
-                
+
                 <RealTimeNotifications />
                 
                 <DropdownMenu>
@@ -114,14 +119,22 @@ export const Navigation = () => {
                     
                     {/* Admin specific options */}
                     {isAdmin() && (
-                      <DropdownMenuItem asChild>
-                        <Link to="/admin" className="flex items-center">
-                          <Shield className="w-4 h-4 mr-2" />
-                          Admin Dashboard
-                        </Link>
-                      </DropdownMenuItem>
+                      <>
+                        <DropdownMenuItem asChild>
+                          <Link to="/admin" className="flex items-center">
+                            <Shield className="w-4 h-4 mr-2" />
+                            Admin Dashboard
+                          </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem asChild>
+                          <Link to="/admin/overview" className="flex items-center">
+                            <Shield className="w-4 h-4 mr-2" />
+                            Project Overview
+                          </Link>
+                        </DropdownMenuItem>
+                      </>
                     )}
-                    
+
                     {/* Broadcaster specific options */}
                     {isBroadcaster() && !isScreenOwner() && !isAdmin() && (
                       <DropdownMenuItem asChild>
@@ -200,11 +213,16 @@ export const Navigation = () => {
                 
                 {/* Admin features */}
                 {isAdmin() && (
-                  <Button variant="outline" asChild className="w-full justify-start">
-                    <Link to="/admin">Admin Dashboard</Link>
-                  </Button>
+                  <>
+                    <Button variant="outline" asChild className="w-full justify-start">
+                      <Link to="/admin">Admin Dashboard</Link>
+                    </Button>
+                    <Button variant="outline" asChild className="w-full justify-start">
+                      <Link to="/admin/overview">Project Overview</Link>
+                    </Button>
+                  </>
                 )}
-                
+
                 <Button variant="outline" asChild className="w-full justify-start">
                   <Link to="/profile">Profile Settings</Link>
                 </Button>

@@ -23,6 +23,7 @@ import Payment from "./pages/Payment";
 import Confirmation from "./pages/Confirmation";
 import HowItWorksDetailed from "./pages/HowItWorksDetailed";
 import ProductionPlan from "./pages/ProductionPlan";
+import AdminProjectOverview from "./pages/AdminProjectOverview";
 
 const queryClient = new QueryClient();
 
@@ -38,6 +39,7 @@ const App = () => (
             <Route path="/auth" element={<Auth />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/admin" element={<AdminDashboard />} />
+            <Route path="/admin/overview" element={<AdminProjectOverview />} />
             <Route path="/my-campaigns" element={<BroadcasterDashboard />} />
             <Route path="/my-screens" element={<ScreenOwnerDashboard />} />
             <Route path="/profile" element={<Profile />} />
