@@ -26,26 +26,6 @@ const Index = () => {
     window.location.href = "mailto:founders@redsquare.app?subject=Red%20Square%20Early%20Access";
   };
 
-  useEffect(() => {
-    document.title = "Broadcast to Any Screen | Red Square";
-    const desc =
-      "Broadcast to any screen with Red Square. Public screen advertising for everyone: book slots, upload media, and engage audiences.";
-    let meta = document.querySelector('meta[name="description"]') as HTMLMetaElement | null;
-    if (!meta) {
-      meta = document.createElement('meta');
-      meta.name = 'description';
-      document.head.appendChild(meta);
-    }
-    meta.setAttribute('content', desc);
-    let canonical = document.querySelector('link[rel="canonical"]') as HTMLLinkElement | null;
-    if (!canonical) {
-      canonical = document.createElement('link');
-      canonical.setAttribute('rel', 'canonical');
-      document.head.appendChild(canonical);
-    }
-    canonical.setAttribute('href', window.location.href);
-  }, []);
-
   const structuredData = {
     "@context": "https://schema.org",
     "@type": "Organization",
@@ -72,10 +52,10 @@ const Index = () => {
           <div className="container grid gap-10 py-20 md:py-28 lg:grid-cols-2 items-center">
             <article>
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold leading-tight tracking-tight">
-                Broadcast to Any Screen
+                Public screen advertising, for everyone
               </h1>
               <p className="mt-4 text-lg text-muted-foreground max-w-prose">
-                Public screen advertising, for everyone. Red Square lets anyone book a time slot and broadcast ready-made media to a specific screen. Upload from mobile or desktop. Owners earn while audiences engage.
+                Red Square lets anyone book a time slot and broadcast ready-made media to a specific screen. Upload from mobile or desktop. Owners earn while audiences engage.
               </p>
               <div className="mt-8 flex flex-wrap items-center gap-3">
                 <Button variant="hero" size="lg" onClick={handlePrimaryCTA}>Start broadcasting</Button>
