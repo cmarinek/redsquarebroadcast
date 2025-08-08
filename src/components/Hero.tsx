@@ -17,7 +17,7 @@ export const Hero = () => {
           {/* Left Column - Content */}
           <div className="text-center lg:text-left">
             <h1 className="text-5xl lg:text-7xl font-bold mb-6 leading-tight">
-              <span className="text-foreground">Public advertising,</span>
+              <span className="text-foreground block w-full">Public advertising,</span>
               <br />
               <span className="bg-gradient-primary bg-clip-text text-transparent">for everyone</span>
             </h1>
