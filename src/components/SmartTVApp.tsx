@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tv, Wifi, Settings, Download, QrCode, Play, Pause } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import Hls from 'hls.js';
 
 interface TVAppState {
   isConnected: boolean;
@@ -30,6 +31,7 @@ export function SmartTVApp() {
 
   const [pairingCode, setPairingCode] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
 
   useEffect(() => {
     // Check if TV is already paired
@@ -102,6 +104,26 @@ export function SmartTVApp() {
     }
   };
 
+  // HLS playback for .m3u8 streams
+  useEffect(() => {
+    if (!tvState.currentContent || !tvState.currentContent.endsWith('.m3u8')) return;
+    const video = videoRef.current;
+    if (!video) return;
+    let hls: Hls | null = null;
+    if (Hls.isSupported()) {
+      hls = new Hls();
+      hls.loadSource(tvState.currentContent);
+      hls.attachMedia(video);
+    } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+      video.src = tvState.currentContent;
+    }
+    return () => {
+      if (hls) {
+        hls.destroy();
+      }
+    };
+  }, [tvState.currentContent]);
+ 
   const handlePairing = async () => {
     if (!pairingCode.trim()) {
       toast.error('Please enter a pairing code');
@@ -225,7 +247,15 @@ export function SmartTVApp() {
         <div className="absolute inset-0 flex items-center justify-center">
           {tvState.currentContent ? (
             <div className="relative w-full h-full">
-              {tvState.currentContent.endsWith('.mp4') ? (
+              {tvState.currentContent.endsWith('.m3u8') ? (
+                <video
+                  ref={videoRef}
+                  className="w-full h-full object-cover"
+                  autoPlay={tvState.isPlaying}
+                  controls={false}
+                  muted
+                />
+              ) : tvState.currentContent.endsWith('.mp4') ? (
                 <video
                   src={tvState.currentContent}
                   className="w-full h-full object-cover"

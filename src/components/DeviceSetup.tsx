@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import QRCode from 'react-qr-code';
 
 interface SetupStep {
   id: string;
@@ -319,6 +320,12 @@ export function DeviceSetup() {
                   <QrCode className="w-8 h-8 text-blue-500 mx-auto mb-2" />
                   <p className="text-sm text-blue-600">
                     Share this code with your Smart TV app: <strong>{pairingCode}</strong>
+                  </p>
+                  <div className="mt-3 flex items-center justify-center">
+                    <QRCode value={`${window.location.origin}/smart-tv?pair=${pairingCode}`} size={128} />
+                  </div>
+                  <p className="text-xs text-blue-600 mt-2">
+                    Or scan to open: {`${window.location.origin}/smart-tv?pair=${pairingCode}`}
                   </p>
                 </div>
               )}
