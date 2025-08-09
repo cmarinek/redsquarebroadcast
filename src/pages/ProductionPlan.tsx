@@ -92,16 +92,16 @@ const ProductionPlan = () => {
           estimated: "4-5 weeks"
         },
         {
-          category: "Smart TV Apps",
+          category: "TV Platform Readiness",
           icon: Smartphone,
           tasks: [
-            "Develop Samsung Tizen app",
-            "Create LG webOS application",
-            "Build Android TV native app",
-            "Implement Apple TV app",
-            "Add cross-platform content delivery"
+            "Shared Player SDK (TypeScript) for all TV platforms",
+            "Pairing/device-code flow + QR deep link",
+            "HLS/DASH manifest ingestion and playback",
+            "Remote control protocol (play/pause/volume/swap)",
+            "Web TV Player v1 (browser-based TV client)"
           ],
-          estimated: "3-4 weeks"
+          estimated: "2-3 weeks"
         },
         {
           category: "Device Management",
@@ -118,7 +118,52 @@ const ProductionPlan = () => {
       ]
     },
     {
-      phase: "Phase 3: Scalability & Performance",
+      phase: "Phase 3: Native TV Apps",
+      duration: "4-6 weeks",
+      priority: "High",
+      status: "Planning",
+      progress: 0,
+      items: [
+        {
+          category: "Native Apps Delivery",
+          icon: Smartphone,
+          tasks: [
+            "Samsung Tizen (.wgt) app",
+            "LG webOS (.ipk) app",
+            "Android TV app (Capacitor/Native)",
+            "Apple tvOS app (Swift/TVMLKit)",
+            "Shared settings & analytics"
+          ],
+          estimated: "3-4 weeks"
+        },
+        {
+          category: "Store & Certification",
+          icon: Globe,
+          tasks: [
+            "Samsung Seller Office listing & certification",
+            "LG Seller Lounge packaging & QA",
+            "Google Play (Android TV) requirements",
+            "Apple App Store (tvOS) guidelines",
+            "Device-specific QA and publishing"
+          ],
+          estimated: "2-3 weeks"
+        },
+        {
+          category: "Remote Control & Updates",
+          icon: Wifi,
+          tasks: [
+            "Bind remote commands to Player SDK",
+            "In-app updates/OTA hooks where supported",
+            "Crash reporting and telemetry",
+            "A/B slot test hooks",
+            "Playback health metrics"
+          ],
+          estimated: "2-3 weeks"
+        }
+      ]
+    },
+    {
+      phase: "Phase 4: Scalability & Performance",
       duration: "4-6 weeks",
       priority: "High",
       status: "Planning",
@@ -163,7 +208,7 @@ const ProductionPlan = () => {
       ]
     },
     {
-      phase: "Phase 4: Monitoring & Operations",
+      phase: "Phase 5: Monitoring & Operations",
       duration: "3-4 weeks",
       priority: "Medium",
       status: "Planning",
@@ -332,7 +377,7 @@ const ProductionPlan = () => {
             <Card className="text-center">
               <CardContent className="p-6">
                 <Rocket className="w-8 h-8 text-primary mx-auto mb-2" />
-                <div className="text-2xl font-bold">4 phases</div>
+                <div className="text-2xl font-bold">5 phases</div>
                 <div className="text-sm text-muted-foreground">Implementation</div>
               </CardContent>
             </Card>
