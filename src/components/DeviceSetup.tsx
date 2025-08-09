@@ -89,13 +89,11 @@ export function DeviceSetup() {
     try {
       const code = Math.random().toString(36).substring(2, 8).toUpperCase();
 
-      // Ensure user is logged in
       const { data: userData } = await supabase.auth.getUser();
       if (!userData?.user) {
-        throw new Error('You must be signed in to generate a code');
+        throw new Error('You must be signed in to create or update a screen');
       }
 
-      // Create or update the screen row for this owner
       const { error } = await supabase
         .from('screens')
         .upsert({
@@ -103,7 +101,6 @@ export function DeviceSetup() {
           owner_user_id: userData.user.id,
           screen_name: screenId,
           pairing_code: code,
-          status: 'active'
         } as any, { onConflict: 'id' });
 
       if (error) throw error;

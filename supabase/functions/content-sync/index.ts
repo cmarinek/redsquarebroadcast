@@ -1,5 +1,7 @@
-// Content Sync Edge Function
-// Returns schedule and minimal screen/device info for a given device or screen
+// Supabase Edge Function: content-sync
+// Returns the upcoming schedule and minimal screen/device info for a device or screen
+// CORS enabled, no JWT required (devices call this directly)
+
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
@@ -14,107 +16,105 @@ serve(async (req) => {
   }
 
   try {
-    const supabaseUrl = Deno.env.get("SUPABASE_URL");
-    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    const { device_id, provisioning_token, screen_id } = await req.json();
 
-    if (!supabaseUrl || !serviceRoleKey) {
-      return new Response(
-        JSON.stringify({ error: "Missing Supabase environment variables" }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+    if (!device_id && !screen_id) {
+      return new Response(JSON.stringify({ error: "device_id or screen_id is required" }), {
+        status: 400,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
     }
 
-    const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey, {
-      auth: { persistSession: false },
-    });
+    const supabaseUrl = Deno.env.get("SUPABASE_URL");
+    const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    if (!supabaseUrl || !serviceKey) {
+      return new Response(JSON.stringify({ error: "Missing Supabase environment configuration" }), {
+        status: 500,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
+    }
 
-    const body = await req.json().catch(() => ({}));
-    const { device_id, provisioning_token, screen_id } = body as {
-      device_id?: string;
-      provisioning_token?: string;
-      screen_id?: string;
-    };
+    const supabase = createClient(supabaseUrl, serviceKey);
 
     let resolvedScreenId: string | null = null;
+    let deviceInfo: any = null;
 
-    if (screen_id) {
-      resolvedScreenId = String(screen_id);
-    } else if (device_id && provisioning_token) {
-      // Validate device using provisioning token
-      const { data: device, error: deviceError } = await supabaseAdmin
+    if (device_id) {
+      const { data: device, error: devErr } = await supabase
         .from("devices")
-        .select("device_id, screen_id, provisioning_token, status")
+        .select("device_id, screen_id, status, screen_name, owner_user_id, provisioning_token")
         .eq("device_id", device_id)
         .maybeSingle();
 
-      if (deviceError) {
-        console.error("content-sync: device fetch error", deviceError);
-        return new Response(JSON.stringify({ error: "Device lookup failed" }), {
-          status: 500,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
+      if (devErr) throw devErr;
+      if (!device) {
+        return new Response(JSON.stringify({ error: "Device not found" }), {
+          status: 404,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
         });
       }
 
-      if (!device || device.provisioning_token !== provisioning_token) {
-        return new Response(JSON.stringify({ error: "Invalid device or token" }), {
+      // If provisioning_token provided, validate it
+      if (provisioning_token && device.provisioning_token !== provisioning_token) {
+        return new Response(JSON.stringify({ error: "Invalid provisioning token" }), {
           status: 401,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          headers: { "Content-Type": "application/json", ...corsHeaders },
         });
       }
 
       resolvedScreenId = device.screen_id ?? null;
-    } else {
-      return new Response(
-        JSON.stringify({ error: "Provide screen_id or (device_id + provisioning_token)" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      deviceInfo = {
+        device_id: device.device_id,
+        status: device.status,
+        screen_id: device.screen_id,
+        screen_name: device.screen_name ?? null,
+      };
     }
 
-    // Fetch minimal screen info
+    // If screen_id was provided directly use it
+    if (!resolvedScreenId && screen_id) {
+      resolvedScreenId = screen_id;
+    }
+
     let screen: any = null;
     if (resolvedScreenId) {
-      const { data: s, error: sErr } = await supabaseAdmin
+      const { data: screenRow, error: screenErr } = await supabase
         .from("screens")
         .select("id, screen_name, status")
         .eq("id", resolvedScreenId)
         .maybeSingle();
-      if (sErr) {
-        console.error("content-sync: screen fetch error", sErr);
-      }
-      screen = s ?? null;
+      if (screenErr) throw screenErr;
+      screen = screenRow;
     }
 
     // Fetch upcoming schedule (next 20 items)
-    const nowIso = new Date().toISOString();
-    const { data: schedule, error: schedErr } = await supabaseAdmin
-      .from("content_schedule")
-      .select("id, screen_id, content_url, scheduled_time, duration_seconds, status")
-      .eq("screen_id", resolvedScreenId)
-      .gte("scheduled_time", nowIso)
-      .order("scheduled_time", { ascending: true })
-      .limit(20);
-
-    if (schedErr) {
-      console.error("content-sync: schedule fetch error", schedErr);
-      return new Response(JSON.stringify({ error: "Schedule fetch failed" }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+    let schedule: any[] = [];
+    if (resolvedScreenId) {
+      const { data: schedRows, error: schedErr } = await supabase
+        .from("content_schedule")
+        .select("content_url, scheduled_time, duration_seconds, status")
+        .eq("screen_id", resolvedScreenId)
+        .gte("scheduled_time", new Date().toISOString())
+        .order("scheduled_time", { ascending: true })
+        .limit(20);
+      if (schedErr) throw schedErr;
+      schedule = schedRows ?? [];
     }
 
     return new Response(
       JSON.stringify({
+        device: deviceInfo,
         screen,
-        schedule: schedule ?? [],
-        generated_at: new Date().toISOString(),
+        schedule,
+        server_time: new Date().toISOString(),
       }),
-      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } }
     );
-  } catch (e) {
-    console.error("content-sync: unexpected error", e);
-    return new Response(JSON.stringify({ error: "Unexpected error" }), {
+  } catch (err) {
+    console.error("content-sync error", err);
+    return new Response(JSON.stringify({ error: String(err) }), {
       status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", ...corsHeaders },
     });
   }
 });
