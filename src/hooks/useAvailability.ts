@@ -115,6 +115,29 @@ export const useAvailability = (screenId: string | undefined, selectedDate: Date
     }
   }, [screenId, selectedDate, screen]);
 
+  // Realtime: listen to bookings changes for this screen and refetch availability
+  useEffect(() => {
+    if (!screenId || !screen) return;
+    const channel = supabase
+      .channel(`availability-${screenId}`)
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'bookings',
+        filter: `screen_id=eq.${screenId}`,
+      }, () => {
+        // Debounce rapid updates lightly
+        setTimeout(() => {
+          fetchAvailability();
+        }, 50);
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [screenId, selectedDate, screen]);
+
   return {
     availability,
     loading,

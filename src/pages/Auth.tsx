@@ -137,6 +137,60 @@ const Auth = () => {
     }
   };
 
+
+  const signInWithApple = async () => {
+    setLoading(true);
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'apple',
+        options: { redirectTo: `${window.location.origin}/` }
+      });
+      if (error) setError(error.message);
+    } catch (err) {
+      setError("Apple sign-in failed. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const signInWithFacebook = async () => {
+    setLoading(true);
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'facebook',
+        options: { redirectTo: `${window.location.origin}/` }
+      });
+      if (error) setError(error.message);
+    } catch (err) {
+      setError("Facebook sign-in failed. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleResetPassword = async () => {
+    if (!email) {
+      setError("Please enter your email above, then click Forgot password.");
+      return;
+    }
+    setLoading(true);
+    setError("");
+    try {
+      const redirectUrl = `${window.location.origin}/auth`;
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: redirectUrl,
+      });
+      if (error) setError(error.message);
+      else {
+        toast({ title: "Reset email sent", description: "Check your inbox to continue." });
+      }
+    } catch (err) {
+      setError("Password reset failed. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
@@ -215,6 +269,9 @@ const Auth = () => {
                       {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                       Sign In
                     </Button>
+                    <Button type="button" variant="ghost" className="w-full justify-center" onClick={handleResetPassword} disabled={loading}>
+                      Forgot password?
+                    </Button>
                   </form>
 
                   <div className="relative">
@@ -226,16 +283,36 @@ const Auth = () => {
                     </div>
                   </div>
 
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="w-full"
-                    onClick={signInWithGoogle}
-                    disabled={loading}
-                  >
-                    {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    Continue with Google
-                  </Button>
+                  <div className="space-y-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="w-full"
+                      onClick={signInWithGoogle}
+                      disabled={loading}
+                    >
+                      {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                      Continue with Google
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="w-full"
+                      onClick={signInWithApple}
+                      disabled={loading}
+                    >
+                      Continue with Apple
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="w-full"
+                      onClick={signInWithFacebook}
+                      disabled={loading}
+                    >
+                      Continue with Facebook
+                    </Button>
+                  </div>
                 </TabsContent>
 
                 <TabsContent value="signup" className="space-y-4">
@@ -344,16 +421,36 @@ const Auth = () => {
                     </div>
                   </div>
 
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="w-full"
-                    onClick={signInWithGoogle}
-                    disabled={loading}
-                  >
-                    {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    Continue with Google
-                  </Button>
+                  <div className="space-y-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="w-full"
+                      onClick={signInWithGoogle}
+                      disabled={loading}
+                    >
+                      {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                      Continue with Google
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="w-full"
+                      onClick={signInWithApple}
+                      disabled={loading}
+                    >
+                      Continue with Apple
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="w-full"
+                      onClick={signInWithFacebook}
+                      disabled={loading}
+                    >
+                      Continue with Facebook
+                    </Button>
+                  </div>
                 </TabsContent>
               </Tabs>
             </CardContent>

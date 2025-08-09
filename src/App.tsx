@@ -24,6 +24,7 @@ import Confirmation from "./pages/Confirmation";
 import HowItWorksDetailed from "./pages/HowItWorksDetailed";
 import ProductionPlan from "./pages/ProductionPlan";
 import AdminProjectOverview from "./pages/AdminProjectOverview";
+import Subscription from "./pages/Subscription";
 
 const queryClient = new QueryClient();
 
@@ -54,6 +55,7 @@ const App = () => (
             <Route path="/confirmation/:bookingId" element={<Confirmation />} />
             <Route path="/device-setup" element={<DeviceSetup />} />
             <Route path="/smart-tv" element={<SmartTVApp />} />
+            <Route path="/subscription" element={<Subscription />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
