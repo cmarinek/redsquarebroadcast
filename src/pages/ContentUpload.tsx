@@ -94,8 +94,7 @@ export default function ContentUpload() {
         return;
       }
 
-      const fileExt = uploadedFile.file.name.split('.').pop();
-      const fileName = `${user.id}/${Date.now()}.${fileExt}`;
+      // Using signed upload URLs; server will generate the final file path
 
       // Simulate upload progress
       const progressInterval = setInterval(() => {
@@ -108,14 +107,27 @@ export default function ContentUpload() {
         });
       }, 200);
 
-      const { data: uploadData, error: uploadError } = await supabase.storage
-        .from('content')
-        .upload(fileName, uploadedFile.file);
+      const { data: signed, error: fnError } = await supabase.functions.invoke('create-signed-upload', {
+        body: {
+          bucket: 'content',
+          file_name: uploadedFile.file.name,
+          content_type: uploadedFile.file.type,
+        },
+      });
+
+      if (fnError || !signed) throw (fnError || new Error('Failed to get signed upload URL'));
+
+      await fetch((signed as any).signedUrl, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': uploadedFile.file.type,
+          'x-upsert': 'false',
+        },
+        body: uploadedFile.file,
+      });
 
       clearInterval(progressInterval);
       setUploadProgress(100);
-
-      if (uploadError) throw uploadError;
 
       // Save content metadata to database
       const { data: contentData, error: contentError } = await supabase
@@ -124,7 +136,7 @@ export default function ContentUpload() {
           user_id: user.id,
           screen_id: screenId,
           file_name: uploadedFile.file.name,
-          file_path: uploadData.path,
+          file_path: (signed as any).path,
           file_type: uploadedFile.type,
           file_size: uploadedFile.file.size
         })

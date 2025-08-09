@@ -17,3 +17,6 @@ verify_jwt = false
 
 [functions.device-bind-screen]
 verify_jwt = true
+
+[functions.create-signed-upload]
+verify_jwt = true
