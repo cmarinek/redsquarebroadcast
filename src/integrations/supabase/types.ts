@@ -14,6 +14,72 @@ export type Database = {
   }
   public: {
     Tables: {
+      device_pairings: {
+        Row: {
+          device_id: string
+          id: string
+          ip: string | null
+          method: string | null
+          paired_at: string
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          device_id: string
+          id?: string
+          ip?: string | null
+          method?: string | null
+          paired_at?: string
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          device_id?: string
+          id?: string
+          ip?: string | null
+          method?: string | null
+          paired_at?: string
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      devices: {
+        Row: {
+          created_at: string
+          device_id: string
+          id: string
+          last_seen: string | null
+          owner_user_id: string | null
+          provisioning_token: string
+          screen_name: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          device_id: string
+          id?: string
+          last_seen?: string | null
+          owner_user_id?: string | null
+          provisioning_token: string
+          screen_name?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          device_id?: string
+          id?: string
+          last_seen?: string | null
+          owner_user_id?: string | null
+          provisioning_token?: string
+          screen_name?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
