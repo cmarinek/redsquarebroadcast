@@ -31,7 +31,10 @@ export function SmartTVApp() {
 
   const [pairingCode, setPairingCode] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  
   const videoRef = useRef<HTMLVideoElement | null>(null);
+  const settingsBtnRef = useRef<HTMLButtonElement | null>(null);
+  const playBtnRef = useRef<HTMLButtonElement | null>(null);
 
   useEffect(() => {
     // Check if TV is already paired
@@ -357,10 +360,19 @@ export function SmartTVApp() {
             Screen ID: {tvState.screenId.slice(0, 8)}
           </Badge>
           <Button
+            ref={settingsBtnRef}
+            tabIndex={0}
+            aria-label="Settings"
             size="sm"
             variant="secondary"
-            className="bg-black/50 text-white hover:bg-black/70"
+            className="bg-black/50 text-white hover:bg-black/70 focus:outline-none focus:ring-2 focus:ring-primary/80"
             onClick={handleDisconnect}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                handleDisconnect();
+              }
+            }}
           >
             <Settings className="w-4 h-4" />
           </Button>
@@ -370,10 +382,19 @@ export function SmartTVApp() {
         {tvState.currentContent && (
           <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2">
             <Button
+              ref={playBtnRef}
+              tabIndex={0}
+              aria-label={tvState.isPlaying ? 'Pause' : 'Play'}
               size="lg"
               variant="secondary"
-              className="bg-black/50 text-white hover:bg-black/70"
+              className="bg-black/50 text-white hover:bg-black/70 focus:outline-none focus:ring-2 focus:ring-primary/80"
               onClick={togglePlayback}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  togglePlayback();
+                }
+              }}
             >
               {tvState.isPlaying ? (
                 <Pause className="w-6 h-6" />
