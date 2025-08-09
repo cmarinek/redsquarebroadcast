@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { ChevronLeft, ChevronRight, X } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface OnboardingStep {
@@ -52,17 +52,9 @@ export const OnboardingModal = ({
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
       <DialogContent className="max-w-2xl">
         <DialogHeader className="relative">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="absolute right-0 top-0"
-            onClick={onClose}
-          >
-            <X className="h-4 w-4" />
-          </Button>
           <DialogTitle className="text-center pr-8">{title}</DialogTitle>
           <div className="mt-4">
             <Progress value={progress} className="h-2" />
