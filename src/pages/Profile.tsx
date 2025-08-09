@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { User, Mail, Phone, Calendar, CreditCard, Settings, Camera } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -38,6 +38,47 @@ const Profile = () => {
     bio: '',
     phone: ''
   });
+
+  const avatarInputRef = useRef<HTMLInputElement>(null);
+
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      toast({ title: 'Invalid file type', description: 'Please upload an image.', variant: 'destructive' });
+      return;
+    }
+
+    try {
+      const { data: { user: authUser } } = await supabase.auth.getUser();
+      if (!authUser) {
+        toast({ title: 'Not signed in', description: 'Please log in.', variant: 'destructive' });
+        return;
+      }
+      const ext = file.name.split('.').pop();
+      const path = `${authUser.id}/avatar-${Date.now()}.${ext}`;
+      const { error: uploadErr } = await supabase.storage.from('avatars').upload(path, file);
+      if (uploadErr) throw uploadErr;
+
+      const { data: pub } = supabase.storage.from('avatars').getPublicUrl(path);
+      const publicUrl = pub.publicUrl;
+
+      const { error: updateErr } = await supabase
+        .from('profiles')
+        .update({ avatar_url: publicUrl, updated_at: new Date().toISOString() })
+        .eq('user_id', authUser.id);
+      if (updateErr) throw updateErr;
+
+      setProfile(prev => prev ? { ...prev, avatar_url: publicUrl } : prev);
+      toast({ title: 'Avatar updated', description: 'Your profile picture has been updated.' });
+    } catch (err: any) {
+      console.error('Avatar upload failed:', err);
+      toast({ title: 'Upload failed', description: 'Please try again.', variant: 'destructive' });
+    } finally {
+      if (avatarInputRef.current) avatarInputRef.current.value = '';
+    }
+  };
 
   useEffect(() => {
     if (!user) {
@@ -169,10 +210,17 @@ const Profile = () => {
                     size="sm" 
                     variant="outline" 
                     className="absolute -bottom-2 -right-2 p-2 h-auto"
-                    disabled
+                    onClick={() => avatarInputRef.current?.click()}
                   >
                     <Camera className="h-3 w-3" />
                   </Button>
+                  <input
+                    ref={avatarInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleAvatarUpload}
+                    className="hidden"
+                  />
                 </div>
                 <div>
                   <p className="font-medium">Profile Picture</p>

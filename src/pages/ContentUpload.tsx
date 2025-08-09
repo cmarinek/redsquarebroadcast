@@ -7,7 +7,7 @@ import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Navigation } from "@/components/Navigation";
+import { Layout } from "@/components/Layout";
 
 interface UploadedFile {
   file: File;
@@ -122,8 +122,9 @@ export default function ContentUpload() {
         .from('content_uploads')
         .insert({
           user_id: user.id,
+          screen_id: screenId,
           file_name: uploadedFile.file.name,
-          file_url: uploadData.path,
+          file_path: uploadData.path,
           file_type: uploadedFile.type,
           file_size: uploadedFile.file.size
         })
@@ -155,9 +156,7 @@ export default function ContentUpload() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <Navigation />
-      
+    <Layout>
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-2xl mx-auto">
           <div className="mb-8">
@@ -332,6 +331,6 @@ export default function ContentUpload() {
           )}
         </div>
       </div>
-    </div>
+    </Layout>
   );
 }
