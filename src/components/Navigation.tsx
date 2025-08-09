@@ -282,13 +282,13 @@ export const Navigation = () => {
     {/* Onboarding Modals */}
     <BroadcasterOnboarding
       isOpen={showBroadcasterOnboarding || shouldShowBroadcasterOnboarding()}
-      onClose={() => setShowBroadcasterOnboarding(false)}
+      onClose={() => { setShowBroadcasterOnboarding(false); markBroadcasterOnboardingComplete(); }}
       onComplete={markBroadcasterOnboardingComplete}
     />
     
     <ScreenOwnerOnboarding
       isOpen={showScreenOwnerOnboarding || shouldShowScreenOwnerOnboarding()}
-      onClose={() => setShowScreenOwnerOnboarding(false)}
+      onClose={() => { setShowScreenOwnerOnboarding(false); markScreenOwnerOnboardingComplete(); }}
       onComplete={markScreenOwnerOnboardingComplete}
     />
   </>;
