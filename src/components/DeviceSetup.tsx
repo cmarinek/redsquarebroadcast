@@ -88,11 +88,23 @@ export function DeviceSetup() {
     setIsLoading(true);
     try {
       const code = Math.random().toString(36).substring(2, 8).toUpperCase();
-      
+
+      // Ensure user is logged in
+      const { data: userData } = await supabase.auth.getUser();
+      if (!userData?.user) {
+        throw new Error('You must be signed in to generate a code');
+      }
+
+      // Create or update the screen row for this owner
       const { error } = await supabase
         .from('screens')
-        .update({ pairing_code: code } as any)
-        .eq('id', screenId);
+        .upsert({
+          id: screenId,
+          owner_user_id: userData.user.id,
+          screen_name: screenId,
+          pairing_code: code,
+          status: 'active'
+        } as any, { onConflict: 'id' });
 
       if (error) throw error;
 

@@ -14,6 +14,39 @@ export type Database = {
   }
   public: {
     Tables: {
+      content_schedule: {
+        Row: {
+          content_url: string
+          created_at: string
+          duration_seconds: number | null
+          id: string
+          scheduled_time: string
+          screen_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          content_url: string
+          created_at?: string
+          duration_seconds?: number | null
+          id?: string
+          scheduled_time: string
+          screen_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          content_url?: string
+          created_at?: string
+          duration_seconds?: number | null
+          id?: string
+          scheduled_time?: string
+          screen_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       device_pairings: {
         Row: {
           device_id: string
@@ -52,6 +85,7 @@ export type Database = {
           last_seen: string | null
           owner_user_id: string | null
           provisioning_token: string
+          screen_id: string | null
           screen_name: string | null
           status: string
           updated_at: string
@@ -63,6 +97,7 @@ export type Database = {
           last_seen?: string | null
           owner_user_id?: string | null
           provisioning_token: string
+          screen_id?: string | null
           screen_name?: string | null
           status?: string
           updated_at?: string
@@ -74,6 +109,7 @@ export type Database = {
           last_seen?: string | null
           owner_user_id?: string | null
           provisioning_token?: string
+          screen_id?: string | null
           screen_name?: string | null
           status?: string
           updated_at?: string
@@ -110,6 +146,45 @@ export type Database = {
           role?: string
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      screens: {
+        Row: {
+          created_at: string
+          currency: string | null
+          id: string
+          location: string | null
+          owner_user_id: string
+          pairing_code: string | null
+          pricing_cents: number | null
+          screen_name: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          currency?: string | null
+          id: string
+          location?: string | null
+          owner_user_id: string
+          pairing_code?: string | null
+          pricing_cents?: number | null
+          screen_name?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          currency?: string | null
+          id?: string
+          location?: string | null
+          owner_user_id?: string
+          pairing_code?: string | null
+          pricing_cents?: number | null
+          screen_name?: string | null
+          status?: string
+          updated_at?: string
         }
         Relationships: []
       }

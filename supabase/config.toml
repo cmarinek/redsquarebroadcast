@@ -11,3 +11,9 @@ verify_jwt = false
 
 [functions.device-pair]
 verify_jwt = true
+
+[functions.content-sync]
+verify_jwt = false
+
+[functions.device-bind-screen]
+verify_jwt = true
