@@ -45,6 +45,22 @@ export function SmartTVApp() {
     generateConnectionCode();
   }, []);
 
+  // Set basic SEO for this page and auto-pair via deep link
+  useEffect(() => {
+    document.title = 'Red Square Smart TV | HLS Player & Pairing';
+  }, []);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const p = params.get('pair');
+    if (p && !tvState.isConnected) {
+      const normalized = p.toUpperCase();
+      setPairingCode(normalized);
+      toast.info('Attempting to pair via deep link...');
+      handlePairing(normalized);
+    }
+  }, [tvState.isConnected]);
+
   const generateConnectionCode = () => {
     const code = Math.random().toString(36).substring(2, 8).toUpperCase();
     setTvState(prev => ({ ...prev, connectionCode: code }));
@@ -123,10 +139,50 @@ export function SmartTVApp() {
       }
     };
   }, [tvState.currentContent]);
+
+  // Polling fallback to fetch the latest scheduled content for this screen
+  useEffect(() => {
+    if (!tvState.isConnected || !tvState.screenId) return;
+    let canceled = false;
+
+    const fetchCurrent = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('content_schedule')
+          .select('content_url, scheduled_time')
+          .eq('screen_id', tvState.screenId)
+          .lte('scheduled_time', new Date().toISOString())
+          .order('scheduled_time', { ascending: false })
+          .limit(1);
+
+        if (!error && data && data[0] && !canceled) {
+          setTvState(prev => ({
+            ...prev,
+            currentContent: data[0].content_url,
+            isPlaying: true,
+          }));
+        }
+      } catch (e) {
+        console.error('schedule fetch error', e);
+      }
+    };
+
+    fetchCurrent();
+    const id = setInterval(fetchCurrent, 30000);
+    return () => {
+      canceled = true;
+      clearInterval(id);
+    };
+  }, [tvState.isConnected, tvState.screenId]);
  
-  const handlePairing = async () => {
-    if (!pairingCode.trim()) {
+  const handlePairing = async (code?: string) => {
+    const codeToUse = (code ?? pairingCode).trim().toUpperCase();
+    if (!codeToUse) {
       toast.error('Please enter a pairing code');
+      return;
+    }
+    if (!/^[A-Z0-9]{4,12}$/.test(codeToUse)) {
+      toast.error('Invalid code format');
       return;
     }
 
@@ -135,7 +191,7 @@ export function SmartTVApp() {
       const { data, error } = await supabase
         .from('screens')
         .select('id, screen_name')
-        .eq('pairing_code', pairingCode.toUpperCase())
+        .eq('pairing_code', codeToUse)
         .single();
 
       if (error || !data) {
@@ -178,7 +234,16 @@ export function SmartTVApp() {
   };
 
   const togglePlayback = () => {
-    setTvState(prev => ({ ...prev, isPlaying: !prev.isPlaying }));
+    setTvState(prev => {
+      const next = !prev.isPlaying;
+      // Control the video element if available
+      const v = videoRef.current;
+      if (v) {
+        if (next) v.play().catch(() => {});
+        else v.pause();
+      }
+      return { ...prev, isPlaying: next };
+    });
   };
 
   if (!tvState.isConnected) {
@@ -220,7 +285,7 @@ export function SmartTVApp() {
                 />
               </div>
               <Button 
-                onClick={handlePairing} 
+                onClick={() => handlePairing()} 
                 className="w-full"
                 disabled={isLoading}
               >
