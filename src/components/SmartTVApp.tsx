@@ -31,6 +31,7 @@ export function SmartTVApp() {
 
   const [pairingCode, setPairingCode] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [focusIdx, setFocusIdx] = useState(0);
   
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const settingsBtnRef = useRef<HTMLButtonElement | null>(null);
@@ -177,7 +178,51 @@ export function SmartTVApp() {
       clearInterval(id);
     };
   }, [tvState.isConnected, tvState.screenId]);
- 
+  
+  // TV remote focus management for Android TV remotes (D-pad)
+  useEffect(() => {
+    if (!tvState.isConnected) return;
+    const items = [
+      settingsBtnRef,
+      tvState.currentContent ? playBtnRef : null,
+    ].filter(Boolean) as Array<{ current: HTMLButtonElement | null }>;
+
+    const initialIdx = tvState.currentContent ? Math.min(1, items.length - 1) : 0;
+    setFocusIdx(initialIdx);
+    items[initialIdx]?.current?.focus();
+  }, [tvState.isConnected, tvState.currentContent]);
+
+  useEffect(() => {
+    if (!tvState.isConnected) return;
+    const handler = (e: KeyboardEvent) => {
+      const items = [
+        settingsBtnRef,
+        tvState.currentContent ? playBtnRef : null,
+      ].filter(Boolean) as Array<{ current: HTMLButtonElement | null }>;
+      if (items.length === 0) return;
+      const max = items.length - 1;
+
+      if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+        e.preventDefault();
+        const dir = e.key === 'ArrowRight' ? 1 : -1;
+        let next = focusIdx + dir;
+        if (next < 0) next = max;
+        if (next > max) next = 0;
+        setFocusIdx(next);
+        items[next]?.current?.focus();
+      } else if (e.key === 'MediaPlayPause') {
+        e.preventDefault();
+        togglePlayback();
+      } else if (e.key === 'Backspace' || e.key === 'Escape') {
+        e.preventDefault();
+        settingsBtnRef.current?.focus();
+        setFocusIdx(0);
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [tvState.isConnected, tvState.currentContent, focusIdx]);
+
   const handlePairing = async (code?: string) => {
     const codeToUse = (code ?? pairingCode).trim().toUpperCase();
     if (!codeToUse) {
