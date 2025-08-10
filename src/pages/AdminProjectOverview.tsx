@@ -1,10 +1,14 @@
-import { useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Layout } from "@/components/Layout";
 import { useAuth } from "@/context/AuthContext";
 import { useUserRoles } from "@/hooks/useUserRoles";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { phases, getCurrentPhase, getRemainingTasks } from "@/data/productionPlan";
 import { Badge } from "@/components/ui/badge";
 
 const setMetaTag = (name: string, content: string) => {
@@ -52,6 +56,20 @@ const AdminProjectOverview = () => {
     setCanonical('/admin/overview');
   }, []);
 
+  const currentPhase = useMemo(() => getCurrentPhase(phases), []);
+  const remainingTasks = useMemo(() => getRemainingTasks(currentPhase, 6), [currentPhase]);
+  const [notes, setNotes] = useState("");
+  const notesKey = "admin_production_notes";
+
+  useEffect(() => {
+    const saved = localStorage.getItem(notesKey);
+    if (saved !== null) setNotes(saved);
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem(notesKey, notes);
+  }, [notes]);
+
   if (!user || (!rolesLoading && !isAdmin())) {
     return null;
   }
@@ -66,6 +84,66 @@ const AdminProjectOverview = () => {
       </header>
 
       <main className="container mx-auto px-4 py-8 space-y-8">
+        <section>
+          <Card className="border-0 shadow-lg">
+            <CardHeader>
+              <CardTitle className="text-2xl">Production Status</CardTitle>
+              <CardDescription>Current phase progress and remaining tasks</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid lg:grid-cols-3 gap-6">
+                <div className="lg:col-span-2 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="text-sm text-muted-foreground">Current Phase</div>
+                      <div className="font-semibold">{currentPhase.phase}</div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-sm text-muted-foreground mb-1">Progress</div>
+                      <Progress value={currentPhase.progress} className="w-48" />
+                      <div className="text-sm font-medium mt-1">{currentPhase.progress}%</div>
+                    </div>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold mb-2">Remaining Tasks</h4>
+                    <ul className="list-disc pl-5 space-y-1 text-sm text-muted-foreground">
+                      {remainingTasks.map((t, i) => (
+                        <li key={i}>{t}</li>
+                      ))}
+                    </ul>
+                  </div>
+                  <div>
+                    <Link to="/production-plan">
+                      <Button size="sm" variant="secondary">View full Production Plan</Button>
+                    </Link>
+                  </div>
+                </div>
+                <aside className="space-y-2">
+                  <h4 className="font-semibold">Notes</h4>
+                  <Textarea
+                    placeholder="Internal notes (saved locally)"
+                    value={notes}
+                    onChange={(e) => setNotes(e.target.value)}
+                    className="min-h-[140px]"
+                  />
+                  <div className="flex justify-end">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setNotes("");
+                        localStorage.removeItem(notesKey);
+                      }}
+                    >
+                      Clear notes
+                    </Button>
+                  </div>
+                </aside>
+              </div>
+            </CardContent>
+          </Card>
+        </section>
+
         <section>
           <Card className="border-0 shadow-lg">
             <CardHeader>
