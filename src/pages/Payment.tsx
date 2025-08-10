@@ -114,8 +114,8 @@ export default function Payment() {
       if (error) throw error;
 
       if (data?.url) {
-        // Redirect to Stripe Checkout
-        window.location.href = data.url;
+        // Open Stripe Checkout in a new tab (recommended)
+        window.open(data.url, '_blank');
       } else {
         throw new Error("No checkout URL received");
       }

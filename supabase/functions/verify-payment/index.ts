@@ -98,14 +98,15 @@ serve(async (req) => {
     if (paymentStatus === 'completed') {
       const { data: booking } = await supabaseService
         .from('bookings')
-        .select('screen_id, content_upload_id')
+        .select('id, screen_id, content_upload_id, start_time, duration_minutes, amount_cents')
         .eq('stripe_session_id', sessionId)
         .maybeSingle();
 
+      // Notify screen owner via in-app notification
       if (booking?.screen_id) {
         const { data: screen } = await supabaseService
           .from('screens')
-          .select('owner_user_id')
+          .select('owner_user_id, screen_name')
           .eq('id', booking.screen_id)
           .maybeSingle();
 
@@ -118,6 +119,53 @@ serve(async (req) => {
               message: 'A new broadcast has been confirmed for your screen.',
               type: 'booking'
             });
+        }
+
+        // Send email receipt/confirmation to purchaser (if email available)
+        try {
+          const payerEmail = (session as any)?.customer_details?.email || (session as any)?.customer_email;
+          if (payerEmail) {
+            // Fetch content name for nicer email
+            const { data: content } = await supabaseService
+              .from('content_uploads')
+              .select('file_name')
+              .eq('id', booking.content_upload_id)
+              .maybeSingle();
+
+            const start = new Date(booking.start_time);
+            const end = new Date(start.getTime() + (booking.duration_minutes || 0) * 60000);
+
+            // Fire-and-forget email notifications
+            await supabaseService.functions.invoke('send-email-notifications', {
+              body: {
+                type: 'payment_success',
+                to: payerEmail,
+                data: {
+                  userName: 'there',
+                  amount: booking.amount_cents || 0,
+                  bookingId: booking.id,
+                }
+              }
+            });
+
+            await supabaseService.functions.invoke('send-email-notifications', {
+              body: {
+                type: 'booking_confirmed',
+                to: payerEmail,
+                data: {
+                  userName: 'there',
+                  screenName: screen?.screen_name || 'Digital Screen',
+                  date: start.toLocaleDateString(),
+                  startTime: start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                  endTime: end.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                  contentName: content?.file_name || 'Your Content',
+                  amount: booking.amount_cents || 0,
+                }
+              }
+            });
+          }
+        } catch (emailErr) {
+          console.error('Email notification error:', emailErr);
         }
       }
     }
