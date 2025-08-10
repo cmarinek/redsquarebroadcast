@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useUserRoles } from "./useUserRoles";
@@ -19,7 +20,7 @@ interface OnboardingStatus {
 
 export const useOnboarding = () => {
   const { user } = useAuth();
-  const { profile, loading: profileLoading } = useUserRoles();
+  const { profile, roles, loading: profileLoading, isBroadcaster, isScreenOwner } = useUserRoles();
   const [onboardingStatus, setOnboardingStatus] = useState<OnboardingStatus | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -84,13 +85,13 @@ export const useOnboarding = () => {
       has_completed_broadcaster_onboarding: true
     } : { has_completed_broadcaster_onboarding: true, has_completed_screen_owner_onboarding: false });
     
+    // Persist to profile without touching role (multi-role now lives in user_roles)
     try {
       const { error } = await supabase
         .from('profiles')
         .upsert({
           user_id: user.id,
           has_completed_broadcaster_onboarding: true,
-          role: profile?.role || 'broadcaster'
         });
 
       if (error) throw error;
@@ -110,13 +111,13 @@ export const useOnboarding = () => {
       has_completed_screen_owner_onboarding: true
     } : { has_completed_broadcaster_onboarding: false, has_completed_screen_owner_onboarding: true });
     
+    // Persist to profile without touching role
     try {
       const { error } = await supabase
         .from('profiles')
         .upsert({
           user_id: user.id,
           has_completed_screen_owner_onboarding: true,
-          role: profile?.role || 'screen_owner'
         });
 
       if (error) throw error;
@@ -132,7 +133,7 @@ export const useOnboarding = () => {
     return (
       onboardingStatus &&
       !onboardingStatus.has_completed_broadcaster_onboarding &&
-      (profile?.role === 'broadcaster' || !profile?.role)
+      (isBroadcaster() || (roles?.length ?? 0) === 0)
     );
   };
 
@@ -143,7 +144,7 @@ export const useOnboarding = () => {
     return (
       onboardingStatus &&
       !onboardingStatus.has_completed_screen_owner_onboarding &&
-      profile?.role === 'screen_owner'
+      isScreenOwner()
     );
   };
 
