@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { phases, getCurrentPhase, getRemainingTasks } from "@/data/productionPlan";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 
 const setMetaTag = (name: string, content: string) => {
   let tag = document.querySelector<HTMLMetaElement>(`meta[name="${name}"]`);
@@ -58,17 +59,64 @@ const AdminProjectOverview = () => {
 
   const currentPhase = useMemo(() => getCurrentPhase(phases), []);
   const remainingTasks = useMemo(() => getRemainingTasks(currentPhase, 6), [currentPhase]);
+
+  // Local task tracking (client-only)
+  const TASKS_KEY = "admin_production_tasks_v1";
+  const [doneMap, setDoneMap] = useState<Record<string, boolean>>({});
+  const [showAll, setShowAll] = useState(false);
+
+  const makeKey = (phase: string, category: string, task: string) => `${phase}::${category}::${task}`;
+  const isDone = (phase: string, category: string, task: string) => !!doneMap[makeKey(phase, category, task)];
+  const toggleTask = (phase: string, category: string, task: string) => {
+    const key = makeKey(phase, category, task);
+    setDoneMap((prev) => ({ ...prev, [key]: !prev[key] }));
+  };
+
+  const totalTasks = useMemo(
+    () => currentPhase.items.reduce((acc, item) => acc + item.tasks.length, 0),
+    [currentPhase]
+  );
+  const doneCount = useMemo(() => {
+    return currentPhase.items.reduce((count, item) => {
+      return count + item.tasks.filter((t) => isDone(currentPhase.phase, item.category, t)).length;
+    }, 0);
+  }, [currentPhase, doneMap]);
+  const hasLocalForPhase = useMemo(
+    () => Object.keys(doneMap).some((k) => k.startsWith(`${currentPhase.phase}::`)),
+    [doneMap, currentPhase]
+  );
+  const derivedProgress = useMemo(
+    () => (totalTasks > 0 ? Math.round((doneCount / totalTasks) * 100) : 0),
+    [doneCount, totalTasks]
+  );
+  const progressToShow = hasLocalForPhase ? derivedProgress : currentPhase.progress;
+
+  const findCategoryForTask = (task: string): string | undefined => {
+    const found = currentPhase.items.find((i) => i.tasks.includes(task));
+    return found?.category;
+  };
+
   const [notes, setNotes] = useState("");
   const notesKey = "admin_production_notes";
 
   useEffect(() => {
     const saved = localStorage.getItem(notesKey);
     if (saved !== null) setNotes(saved);
+    try {
+      const raw = localStorage.getItem(TASKS_KEY);
+      if (raw) setDoneMap(JSON.parse(raw));
+    } catch {}
   }, []);
 
   useEffect(() => {
     localStorage.setItem(notesKey, notes);
   }, [notes]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(TASKS_KEY, JSON.stringify(doneMap));
+    } catch {}
+  }, [doneMap]);
 
   if (!user || (!rolesLoading && !isAdmin())) {
     return null;
@@ -100,22 +148,76 @@ const AdminProjectOverview = () => {
                     </div>
                     <div className="text-right">
                       <div className="text-sm text-muted-foreground mb-1">Progress</div>
-                      <Progress value={currentPhase.progress} className="w-48" />
-                      <div className="text-sm font-medium mt-1">{currentPhase.progress}%</div>
+                      <Progress value={progressToShow} className="w-48" />
+                      <div className="text-sm font-medium mt-1">{progressToShow}%</div>
                     </div>
                   </div>
                   <div>
                     <h4 className="font-semibold mb-2">Remaining Tasks</h4>
-                    <ul className="list-disc pl-5 space-y-1 text-sm text-muted-foreground">
-                      {remainingTasks.map((t, i) => (
-                        <li key={i}>{t}</li>
-                      ))}
+                    <ul className="space-y-2">
+                      {remainingTasks.map((t, i) => {
+                        const cat = findCategoryForTask(t) || "General";
+                        const done = isDone(currentPhase.phase, cat, t);
+                        return (
+                          <li key={i} className="flex items-center gap-3">
+                            <Checkbox
+                              checked={done}
+                              onCheckedChange={() => toggleTask(currentPhase.phase, cat, t)}
+                              aria-label={`Mark ${t} as done`}
+                            />
+                            <span className={`text-sm ${done ? "line-through text-muted-foreground" : ""}`}>{t}</span>
+                          </li>
+                        );
+                      })}
                     </ul>
+                    <div className="mt-2">
+                      <Button variant="ghost" size="sm" onClick={() => setShowAll((s) => !s)}>
+                        {showAll ? "Hide all tasks" : "Show all tasks"}
+                      </Button>
+                    </div>
+                    {showAll && (
+                      <div className="mt-4 space-y-4">
+                        {currentPhase.items.map((item, idx) => (
+                          <div key={idx}>
+                            <div className="font-medium mb-2">{item.category}</div>
+                            <ul className="space-y-2">
+                              {item.tasks.map((task, j) => {
+                                const done = isDone(currentPhase.phase, item.category, task);
+                                return (
+                                  <li key={j} className="flex items-center gap-3">
+                                    <Checkbox
+                                      checked={done}
+                                      onCheckedChange={() => toggleTask(currentPhase.phase, item.category, task)}
+                                      aria-label={`Mark ${task} as done`}
+                                    />
+                                    <span className={`text-sm ${done ? "line-through text-muted-foreground" : ""}`}>{task}</span>
+                                  </li>
+                                );
+                              })}
+                            </ul>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                   <div>
-                    <Link to="/production-plan">
-                      <Button size="sm" variant="secondary">View full Production Plan</Button>
-                    </Link>
+                    <div className="flex items-center gap-2">
+                      <Link to="/production-plan">
+                        <Button size="sm" variant="secondary">View full Production Plan</Button>
+                      </Link>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => {
+                          setDoneMap({});
+                          try {
+                            localStorage.removeItem(TASKS_KEY);
+                          } catch {}
+                        }}
+                      >
+                        Reset task status
+                      </Button>
+                    </div>
                   </div>
                 </div>
                 <aside className="space-y-2">
