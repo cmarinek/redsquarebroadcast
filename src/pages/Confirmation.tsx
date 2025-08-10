@@ -164,7 +164,9 @@ export default function Confirmation() {
   }
 
   const shareBooking = () => {
-    const shareText = `I've booked a screen broadcast on Red Square! 🎬\n\nScreen: ${booking.screen.screen_name}\nDate: ${format(new Date(booking.scheduled_date), 'EEEE, MMMM d, yyyy')}\nTime: ${booking.scheduled_start_time} - ${booking.scheduled_end_time}`;
+    const start = new Date(booking!.start_time);
+    const end = new Date(start.getTime() + (booking!.duration_minutes || 0) * 60000);
+    const shareText = `I've booked a screen broadcast on Red Square! 🎬\n\nScreen: ${booking!.screen?.screen_name}\nDate: ${format(start, 'EEEE, MMMM d, yyyy')}\nTime: ${start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - ${end.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
     
     if (navigator.share) {
       navigator.share({
