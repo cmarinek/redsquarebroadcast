@@ -18,7 +18,6 @@ type ProfileRow = {
   user_id: string;
   display_name: string | null;
   avatar_url: string | null;
-  role: UserRole; // legacy single role on profiles; not used for logic anymore
   created_at?: string;
 };
 
@@ -58,7 +57,7 @@ export function AdminRoleManager() {
       console.log("[AdminRoleManager] fetching profiles");
       const { data, error } = await supabase
         .from("profiles")
-        .select("user_id, display_name, avatar_url, role, created_at")
+        .select("user_id, display_name, avatar_url, created_at")
         .order("created_at", { ascending: false });
       if (error) throw error;
       return (data ?? []) as ProfileRow[];
