@@ -167,6 +167,48 @@ export type Database = {
         }
         Relationships: []
       }
+      device_commands: {
+        Row: {
+          command: string
+          created_at: string
+          device_id: string
+          executed_at: string | null
+          id: string
+          owner_user_id: string
+          payload: Json | null
+          result: Json | null
+          screen_id: string | null
+          sent_at: string | null
+          status: string
+        }
+        Insert: {
+          command: string
+          created_at?: string
+          device_id: string
+          executed_at?: string | null
+          id?: string
+          owner_user_id: string
+          payload?: Json | null
+          result?: Json | null
+          screen_id?: string | null
+          sent_at?: string | null
+          status?: string
+        }
+        Update: {
+          command?: string
+          created_at?: string
+          device_id?: string
+          executed_at?: string | null
+          id?: string
+          owner_user_id?: string
+          payload?: Json | null
+          result?: Json | null
+          screen_id?: string | null
+          sent_at?: string | null
+          status?: string
+        }
+        Relationships: []
+      }
       device_metrics: {
         Row: {
           bandwidth_kbps: number | null
@@ -236,6 +278,27 @@ export type Database = {
           paired_at?: string
           user_agent?: string | null
           user_id?: string
+        }
+        Relationships: []
+      }
+      device_settings: {
+        Row: {
+          device_id: string
+          owner_user_id: string
+          settings: Json
+          updated_at: string
+        }
+        Insert: {
+          device_id: string
+          owner_user_id: string
+          settings?: Json
+          updated_at?: string
+        }
+        Update: {
+          device_id?: string
+          owner_user_id?: string
+          settings?: Json
+          updated_at?: string
         }
         Relationships: []
       }
@@ -732,6 +795,39 @@ export type Database = {
           subscription_tier?: string | null
           updated_at?: string
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      tv_crashes: {
+        Row: {
+          app_version: string | null
+          created_at: string
+          device_id: string
+          extra: Json | null
+          id: string
+          message: string | null
+          screen_id: string | null
+          stack: string | null
+        }
+        Insert: {
+          app_version?: string | null
+          created_at?: string
+          device_id: string
+          extra?: Json | null
+          id?: string
+          message?: string | null
+          screen_id?: string | null
+          stack?: string | null
+        }
+        Update: {
+          app_version?: string | null
+          created_at?: string
+          device_id?: string
+          extra?: Json | null
+          id?: string
+          message?: string | null
+          screen_id?: string | null
+          stack?: string | null
         }
         Relationships: []
       }
