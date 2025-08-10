@@ -721,9 +721,12 @@ export type Database = {
           location: string | null
           owner_user_id: string
           pairing_code: string | null
+          platform_fee_percent: number | null
+          price_per_10s_cents: number | null
           pricing_cents: number | null
           screen_name: string | null
           status: string
+          unit_rounding_threshold_seconds: number
           updated_at: string
         }
         Insert: {
@@ -734,9 +737,12 @@ export type Database = {
           location?: string | null
           owner_user_id: string
           pairing_code?: string | null
+          platform_fee_percent?: number | null
+          price_per_10s_cents?: number | null
           pricing_cents?: number | null
           screen_name?: string | null
           status?: string
+          unit_rounding_threshold_seconds?: number
           updated_at?: string
         }
         Update: {
@@ -747,9 +753,12 @@ export type Database = {
           location?: string | null
           owner_user_id?: string
           pairing_code?: string | null
+          platform_fee_percent?: number | null
+          price_per_10s_cents?: number | null
           pricing_cents?: number | null
           screen_name?: string | null
           status?: string
+          unit_rounding_threshold_seconds?: number
           updated_at?: string
         }
         Relationships: [

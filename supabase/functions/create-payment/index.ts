@@ -90,11 +90,54 @@ serve(async (req) => {
       throw new Error("Booking not found");
     }
 
-    // Fetch screen and content
-    const [{ data: screen }, { data: content }] = await Promise.all([
-      supabaseService.from('screens').select('screen_name, owner_user_id').eq('id', booking.screen_id).maybeSingle(),
-      supabaseService.from('content_uploads').select('file_name').eq('id', booking.content_upload_id).maybeSingle(),
+    // Fetch screen, content, and monetization defaults
+    const [screenRes, contentRes, settingsRes] = await Promise.all([
+      supabaseService
+        .from('screens')
+        .select('screen_name, owner_user_id, currency, price_per_10s_cents, platform_fee_percent, unit_rounding_threshold_seconds, pricing_cents')
+        .eq('id', booking.screen_id)
+        .maybeSingle(),
+      supabaseService
+        .from('content_uploads')
+        .select('file_name')
+        .eq('id', booking.content_upload_id)
+        .maybeSingle(),
+      supabaseService
+        .from('app_settings')
+        .select('value')
+        .eq('key', 'monetization_defaults')
+        .maybeSingle(),
     ]);
+
+    const screen = screenRes.data;
+    const content = contentRes.data;
+    const defaults = (settingsRes.data?.value || {}) as {
+      platform_fee_percent?: number;
+      currency?: string;
+      price_per_10s_cents?: number | null;
+      unit_rounding_threshold_seconds?: number;
+    };
+
+    // Compute amount based on 10-second slots with rounding threshold (default 5s)
+    const unitSeconds = 10;
+    const roundThreshold = screen?.unit_rounding_threshold_seconds ?? defaults.unit_rounding_threshold_seconds ?? 5;
+
+    const totalSeconds = Math.max(0, (booking.duration_minutes || 0) * 60);
+    const remainder = totalSeconds % unitSeconds;
+    const units = Math.floor(totalSeconds / unitSeconds) + (remainder >= roundThreshold ? 1 : 0);
+
+    // Determine price per 10s (screen override -> app default -> fallback to booking.amount_cents)
+    const pricePer10s = screen?.price_per_10s_cents ?? defaults.price_per_10s_cents ?? null;
+    const computedAmount = pricePer10s !== null ? units * (pricePer10s as number) : null;
+    const amountToCharge = (computedAmount && computedAmount > 0)
+      ? computedAmount
+      : (booking.amount_cents || 0);
+
+    // Determine currency precedence (screen -> defaults -> USD)
+    const currency = (screen?.currency || defaults.currency || 'USD').toLowerCase();
+
+    // Determine platform fee percent (screen override -> app default -> 15%)
+    const platformFeePercent = screen?.platform_fee_percent ?? defaults.platform_fee_percent ?? 15.0;
 
     // Initialize Stripe
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
@@ -102,20 +145,15 @@ serve(async (req) => {
     });
 
     // Check if customer exists
-    const customers = await stripe.customers.list({ 
-      email: user.email, 
-      limit: 1 
-    });
-    
+    const customers = await stripe.customers.list({ email: user.email, limit: 1 });
     let customerId;
     if (customers.data.length > 0) {
       customerId = customers.data[0].id;
     }
 
-    // Calculate platform fee (10% of total)
-    const platformFee = Math.round((booking.amount_cents || 0) * 0.10);
-    const screenOwnerAmount = (booking.amount_cents || 0) - platformFee;
-
+    // Calculate splits
+    const platformFee = Math.round(amountToCharge * (platformFeePercent / 100));
+    const screenOwnerAmount = amountToCharge - platformFee;
     // Create checkout session
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
@@ -123,12 +161,12 @@ serve(async (req) => {
       line_items: [
         {
           price_data: {
-            currency: "usd",
+            currency,
             product_data: {
               name: `Screen Broadcast: ${screen?.screen_name || 'Screen'}`,
               description: `Broadcasting "${content?.file_name || 'Content'}" starting ${new Date(booking.start_time).toLocaleString()}`,
             },
-            unit_amount: booking.amount_cents, // Amount in cents
+            unit_amount: amountToCharge, // Amount in cents
           },
           quantity: 1,
         },
@@ -140,8 +178,12 @@ serve(async (req) => {
         bookingId: booking.id,
         userId: user.id,
         screenOwnerId: screen?.owner_user_id || '',
-        platformFee: platformFee.toString(),
-        screenOwnerAmount: screenOwnerAmount.toString(),
+        platformFeeCents: platformFee.toString(),
+        platformFeePercent: platformFeePercent.toString(),
+        screenOwnerAmountCents: screenOwnerAmount.toString(),
+        pricingUnits10s: units.toString(),
+        pricePer10sCents: (pricePer10s ?? 0).toString(),
+        currency,
       },
     }, { idempotencyKey: idemKey });
 
@@ -151,10 +193,10 @@ serve(async (req) => {
       .insert({
         booking_id: booking.id,
         user_id: user.id,
-        amount_cents: booking.amount_cents,
+        amount_cents: amountToCharge,
         platform_fee_cents: platformFee,
         owner_amount_cents: screenOwnerAmount,
-        currency: booking.currency || 'USD',
+        currency: currency.toUpperCase(),
         stripe_session_id: session.id,
         status: 'pending',
       });
@@ -163,12 +205,14 @@ serve(async (req) => {
       console.error("Payment record creation error:", paymentError);
     }
 
-    // Update booking with stripe session ID
+    // Update booking with stripe session ID and computed amounts
     await supabaseService
       .from('bookings')
       .update({ 
         stripe_session_id: session.id,
-        payment_status: 'pending'
+        payment_status: 'pending',
+        amount_cents: amountToCharge,
+        currency: currency.toUpperCase()
       })
       .eq('id', booking.id);
 
