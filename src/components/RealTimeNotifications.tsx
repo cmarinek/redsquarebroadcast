@@ -22,9 +22,11 @@ export function RealTimeNotifications() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [showPanel, setShowPanel] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [suspended, setSuspended] = useState(false);
+  const [unavailableReason, setUnavailableReason] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!user) return;
+    if (!user || suspended) return;
 
     // Fetch existing notifications
     fetchNotifications();
@@ -75,7 +77,7 @@ export function RealTimeNotifications() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user]);
+  }, [user, suspended]);
 
   const fetchNotifications = async () => {
     if (!user) return;
@@ -88,7 +90,17 @@ export function RealTimeNotifications() {
       .limit(20);
 
     if (error) {
-      console.error('Error fetching notifications:', error);
+      // Gracefully suspend notifications if table doesn't exist or other non-recoverable error
+      const code = (error as any).code || '';
+      const message = (error as any).message || '';
+      if (code === 'PGRST205' || message.toLowerCase().includes('could not find the table') || (error as any).status === 404) {
+        setSuspended(true);
+        setUnavailableReason('Notifications are not available yet.');
+        setNotifications([]);
+        setUnreadCount(0);
+      } else {
+        console.error('Error fetching notifications:', error);
+      }
       return;
     }
 
@@ -97,7 +109,7 @@ export function RealTimeNotifications() {
   };
 
   const updateUnreadCount = async () => {
-    if (!user) return;
+    if (!user || suspended) return;
 
     const { count } = await supabase
       .from('notifications')
@@ -109,6 +121,7 @@ export function RealTimeNotifications() {
   };
 
   const markAsRead = async (notificationId: string) => {
+    if (suspended) return;
     const { error } = await supabase
       .from('notifications')
       .update({ read: true })
@@ -120,6 +133,7 @@ export function RealTimeNotifications() {
   };
 
   const markAllAsRead = async () => {
+    if (suspended) return;
     const { error } = await supabase
       .from('notifications')
       .update({ read: true })
@@ -190,7 +204,7 @@ export function RealTimeNotifications() {
           <div className="flex items-center justify-between p-4 border-b">
             <h3 className="font-semibold">Notifications</h3>
             <div className="flex items-center gap-2">
-              {unreadCount > 0 && (
+              {unreadCount > 0 && !suspended && (
                 <Button
                   variant="ghost"
                   size="sm"
@@ -213,7 +227,7 @@ export function RealTimeNotifications() {
           <div className="overflow-y-auto max-h-80">
             {notifications.length === 0 ? (
               <div className="p-4 text-center text-muted-foreground">
-                No notifications yet
+                {suspended ? (unavailableReason || 'Notifications are currently unavailable') : 'No notifications yet'}
               </div>
             ) : (
               notifications.map((notification) => (
