@@ -8,6 +8,7 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import { format } from 'date-fns';
 import { toast } from 'sonner';
 import { Navigation } from '@/components/Navigation';
+import { useAuth } from '@/context/AuthContext';
 
 interface FrontendMetricRow {
   created_at: string;
@@ -35,6 +36,9 @@ export default function AdminPerformance() {
   const [loading, setLoading] = useState(false);
   const [series, setSeries] = useState<any[]>([]);
   const [tests, setTests] = useState<PerfEntry[]>([]);
+  const [paths, setPaths] = useState<string[]>(['All']);
+  const [selectedPath, setSelectedPath] = useState<string>('All');
+  const { user } = useAuth();
 
   useEffect(() => {
     document.title = 'Performance Dashboard | RedSquare';
@@ -49,63 +53,98 @@ export default function AdminPerformance() {
     document.head.appendChild(canonical);
   }, []);
 
-  const loadData = async () => {
-    setLoading(true);
-    try {
-      const since = new Date();
-      if (timeframe === '24h') since.setDate(since.getDate() - 1);
-      else since.setDate(since.getDate() - 7);
+const loadData = async () => {
+  setLoading(true);
+  try {
+    const since = new Date();
+    if (timeframe === '24h') since.setDate(since.getDate() - 1);
+    else since.setDate(since.getDate() - 7);
 
-      const { data, error } = await supabase
-        .from('frontend_metrics')
-        .select('created_at, metric_name, value, path, navigation_type')
-        .gte('created_at', since.toISOString())
-        .order('created_at', { ascending: true });
-      if (error) throw error;
+    const { data, error } = await supabase
+      .from('frontend_metrics')
+      .select('created_at, metric_name, value, path, navigation_type')
+      .gte('created_at', since.toISOString())
+      .order('created_at', { ascending: true });
+    if (error) throw error;
 
-      const filtered = (data || []).filter((d: any) => d.metric_name === metric);
+    const filtered = (data || []).filter((d: any) => d.metric_name === metric);
 
-      const grouped = filtered.map((d: any) => ({
-        ts: new Date(d.created_at),
-        value: Number(d.value || 0),
-        path: d.path,
-        navigation_type: d.navigation_type,
-      }));
-
-      const byMinute = new Map<string, { time: string; avg: number; count: number }>();
-      for (const row of grouped) {
-        const key = format(row.ts, timeframe === '24h' ? 'HH:mm' : 'MM-dd HH:00');
-        const prev = byMinute.get(key) || { time: key, avg: 0, count: 0 };
-        const count = prev.count + 1;
-        const avg = (prev.avg * prev.count + row.value) / count;
-        byMinute.set(key, { time: key, avg, count });
-      }
-      setSeries(Array.from(byMinute.values()));
-
-      const lt = await supabase.functions.invoke('load-test', { body: { action: 'summary' } });
-      setTests((lt.data?.data as any[]) || []);
-    } catch (e: any) {
-      console.error('load perf data error', e);
-      toast.error('Failed to load performance data');
-    } finally {
-      setLoading(false);
+    // Build path list (top 10 by frequency)
+    const pathCounts = new Map<string, number>();
+    for (const r of filtered) {
+      const p = r.path || 'unknown';
+      pathCounts.set(p, (pathCounts.get(p) || 0) + 1);
     }
-  };
+    const topPaths = Array.from(pathCounts.entries())
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 10)
+      .map(([p]) => p);
+    setPaths(['All', ...topPaths]);
 
-  const runLoadTest = async () => {
-    try {
-      toast.info('Running load test...');
-      const res = await supabase.functions.invoke('load-test', { body: { action: 'run' } });
-      if (res.error) throw res.error;
-      toast.success(`Load test: ${res.data?.status} in ${res.data?.duration_ms}ms`);
-      // Refresh summary
-      const lt = await supabase.functions.invoke('load-test', { body: { action: 'summary' } });
-      setTests((lt.data?.data as any[]) || []);
-    } catch (e: any) {
-      console.error('load test error', e);
-      toast.error('Load test failed');
+    const bucketFmt = timeframe === '24h' ? 'HH:mm' : 'MM-dd HH:00';
+    type BucketVal = { time: string; avg: number; p50: number; p95: number; count: number };
+    const byBucket = new Map<string, number[]>();
+
+    for (const d of filtered) {
+      if (selectedPath !== 'All' && (d.path || 'unknown') !== selectedPath) continue;
+      const key = format(new Date(d.created_at), bucketFmt);
+      const list = byBucket.get(key) || [];
+      list.push(Number(d.value || 0));
+      byBucket.set(key, list);
     }
-  };
+
+    const points: BucketVal[] = [];
+    for (const [timeKey, values] of byBucket.entries()) {
+      const sorted = values.slice().sort((a, b) => a - b);
+      const count = sorted.length;
+      const avg = sorted.reduce((a, n) => a + n, 0) / Math.max(1, count);
+      const p50 = sorted.length ? sorted[Math.floor(0.5 * (sorted.length - 1))] : 0;
+      const p95 = sorted.length ? sorted[Math.floor(0.95 * (sorted.length - 1))] : 0;
+      points.push({ time: timeKey, avg, p50, p95, count });
+    }
+
+    // Sort by time label
+    points.sort((a, b) => a.time.localeCompare(b.time));
+    setSeries(points);
+
+    const lt = await supabase.functions.invoke('load-test', { body: { action: 'summary' } });
+    setTests((lt.data?.data as any[]) || []);
+  } catch (e: any) {
+    console.error('load perf data error', e);
+    toast.error('Failed to load performance data');
+  } finally {
+    setLoading(false);
+  }
+};
+
+const runLoadTest = async () => {
+  try {
+    toast.info('Running load test...');
+    const res = await supabase.functions.invoke('load-test', { body: { action: 'run' } });
+    if (res.error) throw res.error;
+    toast.success(`Load test: ${res.data?.status} in ${res.data?.duration_ms}ms`);
+    const lt = await supabase.functions.invoke('load-test', { body: { action: 'summary' } });
+    setTests((lt.data?.data as any[]) || []);
+  } catch (e: any) {
+    console.error('load test error', e);
+    toast.error('Load test failed');
+  }
+};
+
+const checkAlerts = async () => {
+  try {
+    toast.info('Checking alerts...');
+    const email = user?.email as string | undefined;
+    const res = await supabase.functions.invoke('perf-alerts', { body: { to: email } });
+    if (res.error) throw res.error;
+    const breaches = (res.data?.breaches as any[]) || [];
+    if (breaches.length > 0) toast.warning(`${breaches.length} alert(s): ${breaches.join('; ')}`);
+    else toast.success('No alert thresholds breached');
+  } catch (e: any) {
+    console.error('alerts error', e);
+    toast.error('Alerts check failed');
+  }
+};
 
   const purgeTelemetry = async () => {
     try {
@@ -123,7 +162,7 @@ export default function AdminPerformance() {
     }
   };
 
-  useEffect(() => { loadData(); }, [metric, timeframe]);
+  useEffect(() => { loadData(); }, [metric, timeframe, selectedPath]);
 
   const latest = useMemo(() => tests.slice(0, 5), [tests]);
 
@@ -136,68 +175,79 @@ export default function AdminPerformance() {
           <p className="text-muted-foreground">Monitor Web Vitals and backend performance.</p>
         </header>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-          <Card className="lg:col-span-2">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0">
-              <CardTitle className="text-lg">Web Vitals Trend ({metric})</CardTitle>
-              <div className="flex items-center gap-2">
-                <Select value={metric} onValueChange={(v) => setMetric(v as any)}>
-                  <SelectTrigger className="w-32"><SelectValue placeholder="Metric" /></SelectTrigger>
-                  <SelectContent>
-                    {METRICS.map((m) => (
-                      <SelectItem key={m} value={m}>{m}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <Tabs value={timeframe} onValueChange={(v) => setTimeframe(v as Timeframe)}>
-                  <TabsList>
-                    <TabsTrigger value="24h">24h</TabsTrigger>
-                    <TabsTrigger value="7d">7d</TabsTrigger>
-                  </TabsList>
-                </Tabs>
-                <Button variant="outline" onClick={loadData} disabled={loading}>{loading ? 'Refreshing...' : 'Refresh'}</Button>
-              </div>
-            </CardHeader>
-            <CardContent className="h-80">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={series} margin={{ top: 10, right: 10, bottom: 0, left: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="time" />
-                  <YAxis allowDecimals domain={['auto', 'auto']} />
-                  <Tooltip />
-                  <Legend />
-                  <Line type="monotone" dataKey="avg" name="Avg" stroke="hsl(var(--primary))" dot={false} strokeWidth={2} />
-                </LineChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
+<div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+  <Card className="lg:col-span-2">
+    <CardHeader className="flex flex-row items-center justify-between space-y-0">
+      <CardTitle className="text-lg">Web Vitals Trend ({metric})</CardTitle>
+      <div className="flex flex-wrap items-center gap-2">
+        <Select value={metric} onValueChange={(v) => setMetric(v as any)}>
+          <SelectTrigger className="w-32"><SelectValue placeholder="Metric" /></SelectTrigger>
+          <SelectContent>
+            {METRICS.map((m) => (
+              <SelectItem key={m} value={m}>{m}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Select value={selectedPath} onValueChange={(v) => setSelectedPath(v)}>
+          <SelectTrigger className="w-52"><SelectValue placeholder="Path" /></SelectTrigger>
+          <SelectContent>
+            {paths.map((p) => (
+              <SelectItem key={p} value={p}>{p}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Tabs value={timeframe} onValueChange={(v) => setTimeframe(v as Timeframe)}>
+          <TabsList>
+            <TabsTrigger value="24h">24h</TabsTrigger>
+            <TabsTrigger value="7d">7d</TabsTrigger>
+          </TabsList>
+        </Tabs>
+        <Button variant="outline" onClick={loadData} disabled={loading}>{loading ? 'Refreshing...' : 'Refresh'}</Button>
+      </div>
+    </CardHeader>
+    <CardContent className="h-80">
+      <ResponsiveContainer width="100%" height="100%">
+        <LineChart data={series} margin={{ top: 10, right: 10, bottom: 0, left: 0 }}>
+          <CartesianGrid strokeDasharray="3 3" />
+          <XAxis dataKey="time" />
+          <YAxis allowDecimals domain={['auto', 'auto']} />
+          <Tooltip />
+          <Legend />
+          <Line type="monotone" dataKey="avg" name="Avg" stroke="hsl(var(--primary))" dot={false} strokeWidth={2} />
+          <Line type="monotone" dataKey="p50" name="p50" stroke="hsl(var(--muted-foreground))" dot={false} strokeWidth={1.5} />
+          <Line type="monotone" dataKey="p95" name="p95" stroke="hsl(var(--secondary-foreground))" dot={false} strokeWidth={1.5} />
+        </LineChart>
+      </ResponsiveContainer>
+    </CardContent>
+  </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Synthetic Load Tests</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-2">
-                  <Button onClick={runLoadTest}>Run Load Test</Button>
-                  <Button variant="outline" onClick={purgeTelemetry}>Purge Telemetry (30d+)</Button>
-                </div>
-              </div>
-              <div className="space-y-3">
-                {latest.map((t) => (
-                  <div key={t.id} className="p-3 rounded-md border border-border">
-                    <div className="flex items-center justify-between">
-                      <div className="font-medium">{format(new Date(t.created_at), 'MMM d, HH:mm')}</div>
-                      <div className={`text-sm ${t.status === 'ok' ? 'text-emerald-600' : 'text-yellow-600'}`}>{t.status.toUpperCase()}</div>
-                    </div>
-                    <div className="text-sm text-muted-foreground">Total: {t.duration_ms} ms</div>
-                  </div>
-                ))}
-                {latest.length === 0 && <div className="text-sm text-muted-foreground">No tests yet.</div>}
-              </div>
-            </CardContent>
-          </Card>
+  <Card>
+    <CardHeader>
+      <CardTitle className="text-lg">Synthetic Load Tests</CardTitle>
+    </CardHeader>
+    <CardContent>
+      <div className="flex flex-wrap items-center justify-between mb-4 gap-2">
+        <div className="flex items-center gap-2">
+          <Button onClick={runLoadTest}>Run Load Test</Button>
+          <Button variant="outline" onClick={purgeTelemetry}>Purge Telemetry (30d+)</Button>
+          <Button variant="secondary" onClick={checkAlerts}>Check Alerts</Button>
         </div>
+      </div>
+      <div className="space-y-3">
+        {latest.map((t) => (
+          <div key={t.id} className="p-3 rounded-md border border-border">
+            <div className="flex items-center justify-between">
+              <div className="font-medium">{format(new Date(t.created_at), 'MMM d, HH:mm')}</div>
+              <div className={`text-sm ${t.status === 'ok' ? 'text-emerald-600' : 'text-yellow-600'}`}>{t.status.toUpperCase()}</div>
+            </div>
+            <div className="text-sm text-muted-foreground">Total: {t.duration_ms} ms</div>
+          </div>
+        ))}
+        {latest.length === 0 && <div className="text-sm text-muted-foreground">No tests yet.</div>}
+      </div>
+    </CardContent>
+  </Card>
+</div>
       </main>
     </>
   );

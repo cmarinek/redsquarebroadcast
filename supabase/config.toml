@@ -36,3 +36,10 @@ verify_jwt = false
 
 [functions.load-test]
 verify_jwt = true
+
+# Phase 4.1 additions
+[functions.retention-job]
+verify_jwt = true
+
+[functions.perf-alerts]
+verify_jwt = true
