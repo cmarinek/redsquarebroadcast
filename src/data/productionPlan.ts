@@ -212,7 +212,46 @@ export const phases: Phase[] = [
     ],
   },
   {
-    phase: "Phase 5: Monitoring & Operations",
+    phase: "Phase 5: Monetization & Revenue",
+    duration: "3-4 weeks",
+    priority: "High",
+    status: "Completed",
+    progress: 100,
+    items: [
+      {
+        category: "Payments & Checkout",
+        icon: CreditCard,
+        tasks: [
+          "Stripe checkout for one-off bookings",
+          "Payment verification without webhooks",
+          "Subscription flow and customer portal",
+        ],
+        estimated: "1-2 weeks",
+      },
+      {
+        category: "Pricing & Revenue Split",
+        icon: BarChart3,
+        tasks: [
+          "Per-screen pricing and currency settings",
+          "Configurable platform fee percentage",
+          "Owner earnings calculation",
+        ],
+        estimated: "1 week",
+      },
+      {
+        category: "Payouts & Notifications",
+        icon: Bell,
+        tasks: [
+          "Payout requests and history dashboard",
+          "Email receipts for successful payments",
+          "Admin monetization controls",
+        ],
+        estimated: "1 week",
+      },
+    ],
+  },
+  {
+    phase: "Phase 6: Monitoring & Operations",
     duration: "3-4 weeks",
     priority: "Medium",
     status: "Planning",

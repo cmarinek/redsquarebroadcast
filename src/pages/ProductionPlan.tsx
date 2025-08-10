@@ -1,6 +1,7 @@
 import { Navigation } from "@/components/Navigation";
 import { Footer } from "@/components/Footer";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useEffect } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { phases } from "@/data/productionPlan";
@@ -27,6 +28,24 @@ import {
 } from "lucide-react";
 
 const ProductionPlan = () => {
+  useEffect(() => {
+    document.title = "Red Square Production Roadmap | Phases & Status";
+    const desc = "Up-to-date Red Square production plan with phases, progress, and priorities.";
+    let meta = document.querySelector('meta[name="description"]');
+    if (!meta) {
+      meta = document.createElement('meta');
+      meta.setAttribute('name', 'description');
+      document.head.appendChild(meta);
+    }
+    meta.setAttribute('content', desc);
+    let link = document.querySelector('link[rel="canonical"]') as HTMLLinkElement | null;
+    if (!link) {
+      link = document.createElement('link');
+      link.setAttribute('rel', 'canonical');
+      document.head.appendChild(link);
+    }
+    link.setAttribute('href', window.location.href);
+  }, []);
 
   const architecture = [
     {
@@ -163,7 +182,7 @@ const ProductionPlan = () => {
             <Card className="text-center">
               <CardContent className="p-6">
                 <Rocket className="w-8 h-8 text-primary mx-auto mb-2" />
-                <div className="text-2xl font-bold">5 phases</div>
+                <div className="text-2xl font-bold">{phases.length} phases</div>
                 <div className="text-sm text-muted-foreground">Implementation</div>
               </CardContent>
             </Card>
