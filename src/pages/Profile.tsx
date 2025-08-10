@@ -13,6 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Layout } from "@/components/Layout";
 import { useAuth } from "@/context/AuthContext";
 import { format } from "date-fns";
+import { useUserRoles } from "@/hooks/useUserRoles";
 
 interface ProfileData {
   id: string;
@@ -30,6 +31,7 @@ const Profile = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { user } = useAuth();
+  const { roles } = useUserRoles();
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -304,11 +306,15 @@ const Profile = () => {
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Account Type</p>
-                  <div className="flex items-center gap-2 mt-1">
-                    <Badge variant="default">
-                      {profile?.role === 'broadcaster' ? 'Broadcaster' : 'Screen Owner'}
-                    </Badge>
+                  <p className="text-sm font-medium text-muted-foreground">Account Roles</p>
+                  <div className="flex items-center gap-2 mt-1 flex-wrap">
+                    {roles && roles.length > 0 ? (
+                      roles.map((r) => (
+                        <Badge key={r} variant="outline" className="capitalize">{r}</Badge>
+                      ))
+                    ) : (
+                      <Badge variant="secondary">No roles yet</Badge>
+                    )}
                   </div>
                 </div>
                 

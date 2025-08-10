@@ -68,7 +68,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     const md = (u as any).user_metadata ?? {};
     const rawRole = typeof md.role === 'string' ? md.role : undefined;
     const allowedRoles = ['broadcaster', 'screen_owner', 'admin'] as const;
-    const desiredRole = allowedRoles.includes(rawRole as any) ? (rawRole as (typeof allowedRoles)[number]) : 'broadcaster';
+    const desiredRole = allowedRoles.includes(rawRole as any)
+      ? (rawRole as (typeof allowedRoles)[number])
+      : 'broadcaster';
     const displayName = typeof md.display_name === 'string' && md.display_name.trim() ? md.display_name.trim() : null;
     const avatarUrl = typeof md.avatar_url === 'string' && md.avatar_url.trim() ? md.avatar_url.trim() : null;
 
@@ -77,7 +79,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     // Read existing profile to avoid overwriting user-changed values
     const { data: existing, error: selectErr } = await supabase
       .from('profiles')
-      .select('user_id, role, display_name, avatar_url')
+      .select('user_id, display_name, avatar_url')
       .eq('user_id', u.id)
       .maybeSingle();
 
@@ -89,36 +91,55 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       console.log('[ensureProfileRow] inserting new profile row');
       const { error: insertErr } = await supabase.from('profiles').insert({
         user_id: u.id,
-        role: desiredRole,
         display_name: displayName ?? undefined,
         avatar_url: avatarUrl ?? undefined,
       } as any);
       if (insertErr) {
         console.warn('[ensureProfileRow] insert failed:', insertErr);
       }
-      return;
-    }
-
-    // Prepare minimal patch only for missing fields
-    const patch: Record<string, any> = {};
-    if (!existing.display_name && displayName) patch.display_name = displayName;
-    if (!existing.avatar_url && avatarUrl) patch.avatar_url = avatarUrl;
-    // Only elevate role from default if metadata explicitly requests it
-    if ((existing.role === null || existing.role === 'broadcaster') && desiredRole !== existing.role) {
-      patch.role = desiredRole;
-    }
-
-    if (Object.keys(patch).length > 0) {
-      console.log('[ensureProfileRow] updating profile with patch:', patch);
-      const { error: updateErr } = await supabase.from('profiles').update(patch).eq('user_id', u.id);
-      if (updateErr) {
-        console.warn('[ensureProfileRow] update failed:', updateErr);
-      }
     } else {
-      console.log('[ensureProfileRow] no profile update needed');
+      // Prepare minimal patch only for missing fields
+      const patch: Record<string, any> = {};
+      if (!existing.display_name && displayName) patch.display_name = displayName;
+      if (!existing.avatar_url && avatarUrl) patch.avatar_url = avatarUrl;
+
+      if (Object.keys(patch).length > 0) {
+        console.log('[ensureProfileRow] updating profile with patch:', patch);
+        const { error: updateErr } = await supabase.from('profiles').update(patch).eq('user_id', u.id);
+        if (updateErr) {
+          console.warn('[ensureProfileRow] update failed:', updateErr);
+        }
+      } else {
+        console.log('[ensureProfileRow] no profile update needed');
+      }
+    }
+
+    // Ensure at least one non-admin role exists in user_roles for this user
+    try {
+      const { data: rolesData, error: rolesErr } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', u.id);
+      if (rolesErr) {
+        console.warn('[ensureProfileRow] roles select failed:', rolesErr);
+        return;
+      }
+      const roles = (rolesData || []).map((r: any) => r.role as string);
+      if (roles.length === 0) {
+        const initialRole = desiredRole === 'admin' ? 'broadcaster' : desiredRole; // don't auto-assign admin
+        const { error: insertRoleErr } = await supabase
+          .from('user_roles')
+          .insert({ user_id: u.id, role: initialRole as any });
+        if (insertRoleErr) {
+          console.warn('[ensureProfileRow] role insert failed:', insertRoleErr);
+        } else {
+          console.log('[ensureProfileRow] assigned initial role', initialRole);
+        }
+      }
+    } catch (e) {
+      console.warn('[ensureProfileRow] roles ensure failed:', e);
     }
   };
-
   useEffect(() => {
     // Set up auth state listener FIRST
     const { data: { subscription: authSub } } = supabase.auth.onAuthStateChange(

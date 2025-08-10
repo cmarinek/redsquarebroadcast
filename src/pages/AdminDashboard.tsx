@@ -69,7 +69,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Layout } from "@/components/Layout";
 import { useAuth } from "@/context/AuthContext";
-import { useUserRoles } from "@/hooks/useUserRoles";
+import { useUserRoles, type UserRole } from "@/hooks/useUserRoles";
 import { format } from "date-fns";
 
 interface SystemHealth {
@@ -116,7 +116,7 @@ interface UserData {
   id: string;
   email: string;
   display_name: string;
-  role: 'broadcaster' | 'screen_owner' | 'admin';
+  roles: UserRole[];
   created_at: string;
   last_sign_in_at: string;
 }
@@ -275,7 +275,7 @@ const AdminDashboard = () => {
       // Fetch users with profiles
       const { data: usersData, error: usersError } = await supabase
         .from('profiles')
-        .select('user_id, display_name, role, created_at')
+        .select('user_id, display_name, created_at')
         .order('created_at', { ascending: false });
 
       if (usersError) throw usersError;
@@ -357,15 +357,27 @@ const AdminDashboard = () => {
         );
       }
 
-      // Process users data
-      const processedUsers: UserData[] = usersData?.map(user => ({
+      // Process users data with multi-role support
+      const { data: rolesData, error: rolesError } = await supabase
+        .from('user_roles')
+        .select('user_id, role');
+      if (rolesError) throw rolesError;
+      const rolesByUser = (rolesData || []).reduce((acc: Record<string, UserRole[]>, row: any) => {
+        const uid = row.user_id as string;
+        const role = row.role as UserRole;
+        if (!acc[uid]) acc[uid] = [];
+        acc[uid].push(role);
+        return acc;
+      }, {} as Record<string, UserRole[]>);
+
+      const processedUsers: UserData[] = (usersData || []).map((user: any) => ({
         id: user.user_id,
         email: user.user_id.slice(0, 8) + '...', // Shortened ID as email placeholder
         display_name: user.display_name || 'Unknown User',
-        role: user.role as 'broadcaster' | 'screen_owner' | 'admin',
+        roles: rolesByUser[user.user_id] ?? [],
         created_at: user.created_at,
         last_sign_in_at: user.created_at // Placeholder
-      })) || [];
+      }));
 
       // Calculate stats using analytics data
       const thisMonth = new Date();
@@ -523,40 +535,62 @@ const AdminDashboard = () => {
     }
   };
 
-  const updateUserRole = async (userId: string, newRole: 'broadcaster' | 'screen_owner' | 'admin') => {
+  const updateUserRole = async (userId: string, targetRole: UserRole) => {
     try {
-      const { error } = await supabase
-        .from('profiles')
-        .update({ role: newRole })
-        .eq('user_id', userId);
+      const targetUser = users.find(u => u.id === userId);
+      const hasRole = !!targetUser?.roles.includes(targetRole);
 
-      if (error) throw error;
+      if (hasRole) {
+        const { error } = await supabase
+          .from('user_roles')
+          .delete()
+          .eq('user_id', userId)
+          .eq('role', targetRole);
+        if (error) throw error;
 
-      // Log the admin action
-      await supabase.rpc('log_admin_action', {
-        admin_user_id: user!.id,
-        action: 'update_user_role',
-        target_type: 'user',
-        target_id: userId,
-        new_values: { role: newRole }
-      });
+        await supabase.rpc('log_admin_action', {
+          admin_user_id: user!.id,
+          action: 'remove_user_role',
+          target_type: 'user',
+          target_id: userId,
+          new_values: { role: targetRole }
+        });
 
-      setUsers(prev => prev.map(user => 
-        user.id === userId 
-          ? { ...user, role: newRole }
-          : user
-      ));
+        setUsers(prev => prev.map(u => 
+          u.id === userId 
+            ? { ...u, roles: u.roles.filter(r => r !== targetRole) }
+            : u
+        ));
 
-      toast({
-        title: "User role updated",
-        description: `User role changed to ${newRole}`,
-      });
+        toast({ title: 'Role removed', description: `Removed ${targetRole} role` });
+      } else {
+        const { error } = await supabase
+          .from('user_roles')
+          .insert({ user_id: userId, role: targetRole as any });
+        if (error) throw error;
+
+        await supabase.rpc('log_admin_action', {
+          admin_user_id: user!.id,
+          action: 'add_user_role',
+          target_type: 'user',
+          target_id: userId,
+          new_values: { role: targetRole }
+        });
+
+        setUsers(prev => prev.map(u => 
+          u.id === userId 
+            ? { ...u, roles: [...u.roles, targetRole] }
+            : u
+        ));
+
+        toast({ title: 'Role added', description: `Added ${targetRole} role` });
+      }
     } catch (error) {
-      console.error("Error updating user role:", error);
+      console.error('Error updating user role:', error);
       toast({
-        title: "Error updating user role",
-        description: "Please try again.",
-        variant: "destructive"
+        title: 'Error updating user role',
+        description: 'Please try again.',
+        variant: 'destructive'
       });
     }
   };
@@ -639,7 +673,7 @@ const AdminDashboard = () => {
 
   const filteredUsers = users.filter(user =>
     user.display_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    user.role.toLowerCase().includes(searchQuery.toLowerCase())
+    user.roles.join(',').toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const filteredScreens = screens.filter(screen =>
@@ -906,7 +940,7 @@ const AdminDashboard = () => {
                     <TableHeader>
                       <TableRow>
                         <TableHead>User</TableHead>
-                        <TableHead>Role</TableHead>
+                        <TableHead>Roles</TableHead>
                         <TableHead>Joined</TableHead>
                         <TableHead>Actions</TableHead>
                       </TableRow>
@@ -921,9 +955,15 @@ const AdminDashboard = () => {
                             </div>
                           </TableCell>
                           <TableCell>
-                            <Badge variant="outline" className="capitalize">
-                              {user.role}
-                            </Badge>
+                            <div className="flex flex-wrap gap-1">
+                              {user.roles.length > 0 ? (
+                                user.roles.map((r) => (
+                                  <Badge key={r} variant="outline" className="capitalize">{r}</Badge>
+                                ))
+                              ) : (
+                                <Badge variant="secondary">No roles</Badge>
+                              )}
+                            </div>
                           </TableCell>
                           <TableCell>
                             {format(new Date(user.created_at), 'MMM dd, yyyy')}
@@ -937,13 +977,13 @@ const AdminDashboard = () => {
                               </DropdownMenuTrigger>
                               <DropdownMenuContent>
                                 <DropdownMenuItem onClick={() => updateUserRole(user.id, 'broadcaster')}>
-                                  Set as Broadcaster
+                                  Toggle Broadcaster Role
                                 </DropdownMenuItem>
                                 <DropdownMenuItem onClick={() => updateUserRole(user.id, 'screen_owner')}>
-                                  Set as Screen Owner
+                                  Toggle Screen Owner Role
                                 </DropdownMenuItem>
                                 <DropdownMenuItem onClick={() => updateUserRole(user.id, 'admin')}>
-                                  Set as Admin
+                                  Toggle Admin Role
                                 </DropdownMenuItem>
                               </DropdownMenuContent>
                             </DropdownMenu>
