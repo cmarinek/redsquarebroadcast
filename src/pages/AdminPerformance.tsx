@@ -107,6 +107,22 @@ export default function AdminPerformance() {
     }
   };
 
+  const purgeTelemetry = async () => {
+    try {
+      toast.info('Purging telemetry older than 30 days...');
+      const [a, b] = await Promise.all([
+        supabase.rpc('purge_frontend_metrics', { days_old: 30 }),
+        supabase.rpc('purge_performance_metrics', { days_old: 30 }),
+      ]);
+      const purged = (a.data as number || 0) + (b.data as number || 0);
+      toast.success(`Purged ${purged} rows`);
+      loadData();
+    } catch (e: any) {
+      console.error('purge error', e);
+      toast.error('Purge failed');
+    }
+  };
+
   useEffect(() => { loadData(); }, [metric, timeframe]);
 
   const latest = useMemo(() => tests.slice(0, 5), [tests]);
@@ -162,7 +178,10 @@ export default function AdminPerformance() {
             </CardHeader>
             <CardContent>
               <div className="flex items-center justify-between mb-4">
-                <Button onClick={runLoadTest}>Run Load Test</Button>
+                <div className="flex items-center gap-2">
+                  <Button onClick={runLoadTest}>Run Load Test</Button>
+                  <Button variant="outline" onClick={purgeTelemetry}>Purge Telemetry (30d+)</Button>
+                </div>
               </div>
               <div className="space-y-3">
                 {latest.map((t) => (

@@ -37,7 +37,11 @@ export const handler = async (req: Request): Promise<Response> => {
     const body = await req.json().catch(() => ({}));
     const { events = [], session_id = null, path = null, device_info = null } = body || {};
     const ip = getClientIp(req);
-
+    const ua = (req.headers.get('user-agent') || '').toLowerCase();
+    const botRe = /(bot|crawl|spider|slurp|facebookexternalhit|preview|curl|wget|monitor|uptime|headless|puppeteer)/i;
+    if (botRe.test(ua)) {
+      return new Response(JSON.stringify({ ok: true, inserted: 0, ignored: 'bot' }), { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
     const normalized = Array.isArray(events) ? events : [events];
 
     const rows = normalized

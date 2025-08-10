@@ -26,6 +26,23 @@ async function getActorId(authHeader: string | null) {
   }
 }
 
+async function isAdmin(authHeader: string | null) {
+  try {
+    if (!authHeader) return false;
+    const token = authHeader.replace('Bearer ', '').trim();
+    if (!token) return false;
+    const supabaseUrl = Deno.env.get('SUPABASE_URL');
+    const anonKey = Deno.env.get('SUPABASE_ANON_KEY');
+    if (!supabaseUrl || !anonKey) return false;
+    const sb = createClient(supabaseUrl, anonKey, { global: { headers: { Authorization: `Bearer ${token}` } } });
+    const { data, error } = await sb.rpc('is_admin');
+    if (error) return false;
+    return Boolean(data);
+  } catch {
+    return false;
+  }
+}
+
 export const handler = async (req: Request): Promise<Response> => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders });
   if (req.method !== 'POST') return new Response(JSON.stringify({ error: 'Method not allowed' }), { status: 405, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
@@ -36,6 +53,15 @@ export const handler = async (req: Request): Promise<Response> => {
     return new Response(JSON.stringify({ error: 'Server misconfigured' }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
   }
   const supabase = createClient(supabaseUrl, serviceKey);
+
+  // Enforce admin access
+  const isAdminUser = await isAdmin(req.headers.get('authorization'));
+  if (!isAdminUser) {
+    return new Response(JSON.stringify({ error: 'Forbidden' }), {
+      status: 403,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+  }
 
   try {
     const { action = 'run' } = await req.json().catch(() => ({ action: 'run' }));

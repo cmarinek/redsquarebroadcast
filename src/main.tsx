@@ -6,4 +6,4 @@ import { initWebVitals } from '@/utils/telemetry'
 createRoot(document.getElementById("root")!).render(<App />);
 
 // Initialize frontend performance telemetry
-initWebVitals();
+initWebVitals(0.25);

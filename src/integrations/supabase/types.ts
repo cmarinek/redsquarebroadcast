@@ -467,7 +467,15 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: boolean
       }
+      purge_frontend_metrics: {
+        Args: { days_old?: number }
+        Returns: number
+      }
       purge_old_event_logs: {
+        Args: { days_old?: number }
+        Returns: number
+      }
+      purge_performance_metrics: {
         Args: { days_old?: number }
         Returns: number
       }

@@ -30,7 +30,13 @@ function baseContext() {
   }
 }
 
-export function initWebVitals() {
+export function initWebVitals(sampleRate = 0.5) {
+  try {
+    const host = window.location.hostname;
+    if (host === 'localhost' || host === '127.0.0.1') return; // prod-only
+  } catch {}
+  if (Math.random() > sampleRate) return; // simple sampling
+
   const ctx = baseContext();
   const send = (metric: Metric) => {
     const event = mapMetric(metric);

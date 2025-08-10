@@ -26,6 +26,7 @@ import ProductionPlan from "./pages/ProductionPlan";
 import AdminProjectOverview from "./pages/AdminProjectOverview";
 import Subscription from "./pages/Subscription";
 import AdminPerformance from "./pages/AdminPerformance";
+import AdminRoute from "@/components/routing/AdminRoute";
 
 const queryClient = new QueryClient();
 
@@ -42,7 +43,7 @@ const App = () => (
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/admin" element={<AdminDashboard />} />
             <Route path="/admin/overview" element={<AdminProjectOverview />} />
-            <Route path="/admin/performance" element={<AdminPerformance />} />
+            <Route path="/admin/performance" element={<AdminRoute><AdminPerformance /></AdminRoute>} />
             <Route path="/my-campaigns" element={<BroadcasterDashboard />} />
             <Route path="/my-screens" element={<ScreenOwnerDashboard />} />
             <Route path="/profile" element={<Profile />} />
