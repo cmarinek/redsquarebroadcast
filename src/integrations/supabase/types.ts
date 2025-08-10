@@ -858,6 +858,8 @@ export type Database = {
       }
       screens: {
         Row: {
+          availability_end: string | null
+          availability_start: string | null
           created_at: string
           currency: string | null
           group_id: string | null
@@ -874,6 +876,8 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          availability_end?: string | null
+          availability_start?: string | null
           created_at?: string
           currency?: string | null
           group_id?: string | null
@@ -890,6 +894,8 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          availability_end?: string | null
+          availability_start?: string | null
           created_at?: string
           currency?: string | null
           group_id?: string | null

@@ -14,6 +14,8 @@ interface Screen {
   screen_name: string | null;
   location: string | null;
   pricing_cents: number | null;
+  availability_start?: string | null;
+  availability_end?: string | null;
   status: string;
 }
 
@@ -153,7 +155,7 @@ export default function ScreenDetails() {
                     <div className="flex justify-between items-center">
                       <span className="text-sm font-medium">Operating Hours</span>
                       <span className="text-sm text-muted-foreground">
-                        09:00 - 21:00
+                        {(screen.availability_start || '09:00')} - {(screen.availability_end || '21:00')}
                       </span>
                     </div>
                     <Separator />

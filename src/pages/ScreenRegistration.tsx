@@ -51,6 +51,8 @@ const ScreenRegistration = () => {
           screen_name: formData.screen_name || null,
           location: [formData.address, formData.city].filter(Boolean).join(', '),
           pricing_cents: parseInt(formData.price_per_hour || '0', 10) * 100,
+          availability_start: formData.availability_start,
+          availability_end: formData.availability_end,
           currency: 'USD',
           status: 'active'
         });
@@ -134,7 +136,6 @@ const ScreenRegistration = () => {
                     placeholder="e.g., Downtown Coffee Shop Display"
                     value={formData.screen_name}
                     onChange={(e) => setFormData(prev => ({ ...prev, screen_name: e.target.value }))}
-                    required
                   />
                 </div>
 
