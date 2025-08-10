@@ -64,6 +64,7 @@ export const DeviceMonitoring = ({ screens }: DeviceMonitoringProps) => {
   const [deviceStatuses, setDeviceStatuses] = useState<DeviceStatus[]>([]);
   const [systemAlerts, setSystemAlerts] = useState<SystemAlert[]>([]);
   const [loading, setLoading] = useState(false);
+  const [latestMetric, setLatestMetric] = useState<{ bandwidth_kbps?: number; buffer_seconds?: number; bitrate_kbps?: number; created_at?: string } | null>(null);
 
   useEffect(() => {
     if (screens.length > 0 && !selectedScreen) {
@@ -115,6 +116,16 @@ export const DeviceMonitoring = ({ screens }: DeviceMonitoringProps) => {
       if (deviceError) throw deviceError;
 
       setDeviceStatuses(deviceData || []);
+
+      // Fetch latest playback metrics for this screen
+      const { data: metricData } = await supabase
+        .from('device_metrics')
+        .select('bitrate_kbps, bandwidth_kbps, buffer_seconds, created_at')
+        .eq('screen_id', selectedScreen)
+        .order('created_at', { ascending: false })
+        .limit(1);
+      setLatestMetric(metricData?.[0] || null);
+
 
       // Generate mock system alerts for demonstration
       const mockAlerts: SystemAlert[] = [
@@ -337,12 +348,18 @@ export const DeviceMonitoring = ({ screens }: DeviceMonitoringProps) => {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-muted-foreground">Connection</p>
-                    <p className="text-lg font-semibold capitalize">
-                      {currentDevice?.connection_type || 'Unknown'}
-                    </p>
+                    <p className="text-sm font-medium text-muted-foreground">Playback Metrics</p>
+                    {latestMetric ? (
+                      <div>
+                        <p className="text-sm">Bandwidth: {latestMetric.bandwidth_kbps ? `${latestMetric.bandwidth_kbps} kbps` : '—'}</p>
+                        <p className="text-sm">Bitrate: {latestMetric.bitrate_kbps ? `${latestMetric.bitrate_kbps} kbps` : '—'}</p>
+                        <p className="text-sm">Buffer: {latestMetric.buffer_seconds ? `${latestMetric.buffer_seconds.toFixed?.(1) ?? latestMetric.buffer_seconds} s` : '—'}</p>
+                      </div>
+                    ) : (
+                      <p className="text-muted-foreground">No data yet</p>
+                    )}
                   </div>
-                  <Wifi className="h-8 w-8 text-muted-foreground" />
+                  <Activity className="h-8 w-8 text-muted-foreground" />
                 </div>
               </CardContent>
             </Card>

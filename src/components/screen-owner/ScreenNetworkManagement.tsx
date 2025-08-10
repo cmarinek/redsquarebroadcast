@@ -109,7 +109,7 @@ export const ScreenNetworkManagement = ({ screens, onRefresh }: ScreenNetworkMan
         .insert({
           group_name: groupForm.group_name,
           description: groupForm.description,
-          owner_id: (await supabase.auth.getUser()).data.user?.id
+          owner_user_id: (await supabase.auth.getUser()).data.user?.id
         });
 
       if (error) throw error;

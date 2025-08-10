@@ -167,6 +167,48 @@ export type Database = {
         }
         Relationships: []
       }
+      device_metrics: {
+        Row: {
+          bandwidth_kbps: number | null
+          bitrate_kbps: number | null
+          buffer_seconds: number | null
+          created_at: string
+          device_id: string
+          dropped_frames: number | null
+          error_code: string | null
+          id: string
+          playback_state: string | null
+          rebuffer_count: number | null
+          screen_id: string | null
+        }
+        Insert: {
+          bandwidth_kbps?: number | null
+          bitrate_kbps?: number | null
+          buffer_seconds?: number | null
+          created_at?: string
+          device_id: string
+          dropped_frames?: number | null
+          error_code?: string | null
+          id?: string
+          playback_state?: string | null
+          rebuffer_count?: number | null
+          screen_id?: string | null
+        }
+        Update: {
+          bandwidth_kbps?: number | null
+          bitrate_kbps?: number | null
+          buffer_seconds?: number | null
+          created_at?: string
+          device_id?: string
+          dropped_frames?: number | null
+          error_code?: string | null
+          id?: string
+          playback_state?: string | null
+          rebuffer_count?: number | null
+          screen_id?: string | null
+        }
+        Relationships: []
+      }
       device_pairings: {
         Row: {
           device_id: string
@@ -580,10 +622,38 @@ export type Database = {
         }
         Relationships: []
       }
+      screen_groups: {
+        Row: {
+          created_at: string
+          description: string | null
+          group_name: string
+          id: string
+          owner_user_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          group_name: string
+          id?: string
+          owner_user_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          group_name?: string
+          id?: string
+          owner_user_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       screens: {
         Row: {
           created_at: string
           currency: string | null
+          group_id: string | null
           id: string
           location: string | null
           owner_user_id: string
@@ -596,6 +666,7 @@ export type Database = {
         Insert: {
           created_at?: string
           currency?: string | null
+          group_id?: string | null
           id: string
           location?: string | null
           owner_user_id: string
@@ -608,6 +679,7 @@ export type Database = {
         Update: {
           created_at?: string
           currency?: string | null
+          group_id?: string | null
           id?: string
           location?: string | null
           owner_user_id?: string
@@ -617,7 +689,15 @@ export type Database = {
           status?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "screens_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "screen_groups"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       subscribers: {
         Row: {

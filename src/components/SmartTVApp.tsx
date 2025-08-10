@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tv, Wifi, Settings, Download, QrCode, Play, Pause } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import Hls from 'hls.js';
+import { PlayerSDK, PlayerMetrics } from '@/player/PlayerSDK';
 
 interface TVAppState {
   isConnected: boolean;
@@ -124,25 +124,50 @@ export function SmartTVApp() {
     }
   };
 
-  // HLS playback for .m3u8 streams
+  // Unified playback via PlayerSDK (HLS, DASH, MP4)
+  const sdkRef = useRef<PlayerSDK | null>(null);
+  const deviceIdRef = useRef<string>('');
+
   useEffect(() => {
-    if (!tvState.currentContent || !tvState.currentContent.endsWith('.m3u8')) return;
+    let id = localStorage.getItem('tv_device_id');
+    if (!id) {
+      id = 'webtv-' + Math.random().toString(36).slice(2, 10).toUpperCase();
+      localStorage.setItem('tv_device_id', id);
+    }
+    deviceIdRef.current = id;
+  }, []);
+
+  const handleMetrics = async (m: PlayerMetrics) => {
+    try {
+      if (!tvState.screenId) return;
+      await supabase.functions.invoke('device-metrics', {
+        body: {
+          device_id: deviceIdRef.current,
+          screen_id: tvState.screenId,
+          ...m,
+        },
+      });
+    } catch (e) {
+      // swallow errors to avoid UI noise
+      console.debug('metrics send failed', e);
+    }
+  };
+
+  useEffect(() => {
+    if (!tvState.currentContent) return;
     const video = videoRef.current;
     if (!video) return;
-    let hls: Hls | null = null;
-    if (Hls.isSupported()) {
-      hls = new Hls();
-      hls.loadSource(tvState.currentContent);
-      hls.attachMedia(video);
-    } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-      video.src = tvState.currentContent;
+
+    if (!sdkRef.current) {
+      sdkRef.current = new PlayerSDK(video, { onMetrics: handleMetrics });
     }
+    sdkRef.current.load(tvState.currentContent);
+    if (tvState.isPlaying) sdkRef.current.play(); else sdkRef.current.pause();
+
     return () => {
-      if (hls) {
-        hls.destroy();
-      }
+      // keep sdk alive between content switches
     };
-  }, [tvState.currentContent]);
+  }, [tvState.currentContent, tvState.isPlaying]);
 
   // Polling fallback to fetch the latest scheduled content for this screen
   useEffect(() => {
@@ -360,20 +385,12 @@ export function SmartTVApp() {
         <div className="absolute inset-0 flex items-center justify-center">
           {tvState.currentContent ? (
             <div className="relative w-full h-full">
-              {tvState.currentContent.endsWith('.m3u8') ? (
+              {(tvState.currentContent.endsWith('.m3u8') || tvState.currentContent.endsWith('.mpd') || tvState.currentContent.endsWith('.mp4')) ? (
                 <video
                   ref={videoRef}
                   className="w-full h-full object-cover"
                   autoPlay={tvState.isPlaying}
                   controls={false}
-                  muted
-                />
-              ) : tvState.currentContent.endsWith('.mp4') ? (
-                <video
-                  src={tvState.currentContent}
-                  className="w-full h-full object-cover"
-                  autoPlay={tvState.isPlaying}
-                  loop
                   muted
                 />
               ) : (

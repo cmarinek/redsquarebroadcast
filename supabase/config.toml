@@ -43,3 +43,6 @@ verify_jwt = true
 
 [functions.perf-alerts]
 verify_jwt = true
+
+[functions.device-metrics]
+verify_jwt = false
