@@ -1,3 +1,4 @@
+
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -60,15 +61,61 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }
   };
 
+  // Enhanced: create or patch the profile from user_metadata without overwriting user-changed values
   const ensureProfileRow = async (u: User | null) => {
     if (!u) return;
-    try {
-      await supabase.from('profiles').upsert(
-        { user_id: u.id, role: 'broadcaster' },
-        { onConflict: 'user_id' }
-      );
-    } catch (e) {
-      console.warn('ensureProfileRow failed:', e);
+
+    const md = (u as any).user_metadata ?? {};
+    const rawRole = typeof md.role === 'string' ? md.role : undefined;
+    const allowedRoles = ['broadcaster', 'screen_owner', 'admin'] as const;
+    const desiredRole = allowedRoles.includes(rawRole as any) ? (rawRole as (typeof allowedRoles)[number]) : 'broadcaster';
+    const displayName = typeof md.display_name === 'string' && md.display_name.trim() ? md.display_name.trim() : null;
+    const avatarUrl = typeof md.avatar_url === 'string' && md.avatar_url.trim() ? md.avatar_url.trim() : null;
+
+    console.log('[ensureProfileRow] metadata:', { desiredRole, displayName, avatarUrl, raw: md });
+
+    // Read existing profile to avoid overwriting user-changed values
+    const { data: existing, error: selectErr } = await supabase
+      .from('profiles')
+      .select('user_id, role, display_name, avatar_url')
+      .eq('user_id', u.id)
+      .maybeSingle();
+
+    if (selectErr && (selectErr as any).code !== 'PGRST116') {
+      console.warn('[ensureProfileRow] select profile failed:', selectErr);
+    }
+
+    if (!existing) {
+      console.log('[ensureProfileRow] inserting new profile row');
+      const { error: insertErr } = await supabase.from('profiles').insert({
+        user_id: u.id,
+        role: desiredRole,
+        display_name: displayName ?? undefined,
+        avatar_url: avatarUrl ?? undefined,
+      } as any);
+      if (insertErr) {
+        console.warn('[ensureProfileRow] insert failed:', insertErr);
+      }
+      return;
+    }
+
+    // Prepare minimal patch only for missing fields
+    const patch: Record<string, any> = {};
+    if (!existing.display_name && displayName) patch.display_name = displayName;
+    if (!existing.avatar_url && avatarUrl) patch.avatar_url = avatarUrl;
+    // Only elevate role from default if metadata explicitly requests it
+    if ((existing.role === null || existing.role === 'broadcaster') && desiredRole !== existing.role) {
+      patch.role = desiredRole;
+    }
+
+    if (Object.keys(patch).length > 0) {
+      console.log('[ensureProfileRow] updating profile with patch:', patch);
+      const { error: updateErr } = await supabase.from('profiles').update(patch).eq('user_id', u.id);
+      if (updateErr) {
+        console.warn('[ensureProfileRow] update failed:', updateErr);
+      }
+    } else {
+      console.log('[ensureProfileRow] no profile update needed');
     }
   };
 
