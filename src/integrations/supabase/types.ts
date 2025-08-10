@@ -14,6 +14,150 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_analytics: {
+        Row: {
+          created_at: string
+          id: string
+          metadata: Json | null
+          metric_date: string
+          metric_name: string
+          metric_value: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          metric_date?: string
+          metric_name: string
+          metric_value: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          metric_date?: string
+          metric_name?: string
+          metric_value?: number
+        }
+        Relationships: []
+      }
+      admin_audit_logs: {
+        Row: {
+          action: string
+          admin_user_id: string
+          created_at: string
+          id: string
+          ip_address: unknown | null
+          new_values: Json | null
+          old_values: Json | null
+          target_id: string | null
+          target_type: string | null
+          user_agent: string | null
+        }
+        Insert: {
+          action: string
+          admin_user_id: string
+          created_at?: string
+          id?: string
+          ip_address?: unknown | null
+          new_values?: Json | null
+          old_values?: Json | null
+          target_id?: string | null
+          target_type?: string | null
+          user_agent?: string | null
+        }
+        Update: {
+          action?: string
+          admin_user_id?: string
+          created_at?: string
+          id?: string
+          ip_address?: unknown | null
+          new_values?: Json | null
+          old_values?: Json | null
+          target_id?: string | null
+          target_type?: string | null
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
+      admin_security_alerts: {
+        Row: {
+          affected_user_id: string | null
+          alert_type: string
+          created_at: string
+          id: string
+          ip_address: unknown | null
+          message: string
+          metadata: Json | null
+          resolved_at: string | null
+          resolved_by_user_id: string | null
+          severity: string
+          status: string
+          title: string
+          user_agent: string | null
+        }
+        Insert: {
+          affected_user_id?: string | null
+          alert_type: string
+          created_at?: string
+          id?: string
+          ip_address?: unknown | null
+          message: string
+          metadata?: Json | null
+          resolved_at?: string | null
+          resolved_by_user_id?: string | null
+          severity: string
+          status?: string
+          title: string
+          user_agent?: string | null
+        }
+        Update: {
+          affected_user_id?: string | null
+          alert_type?: string
+          created_at?: string
+          id?: string
+          ip_address?: unknown | null
+          message?: string
+          metadata?: Json | null
+          resolved_at?: string | null
+          resolved_by_user_id?: string | null
+          severity?: string
+          status?: string
+          title?: string
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
+      admin_system_health: {
+        Row: {
+          created_at: string
+          error_message: string | null
+          id: string
+          metadata: Json | null
+          response_time_ms: number | null
+          service_name: string
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          metadata?: Json | null
+          response_time_ms?: number | null
+          service_name: string
+          status: string
+        }
+        Update: {
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          metadata?: Json | null
+          response_time_ms?: number | null
+          service_name?: string
+          status?: string
+        }
+        Relationships: []
+      }
       app_settings: {
         Row: {
           key: string
@@ -866,6 +1010,23 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      create_security_alert: {
+        Args: {
+          alert_type: string
+          severity: string
+          title: string
+          message: string
+          affected_user_id?: string
+          ip_address?: unknown
+          user_agent?: string
+          metadata?: Json
+        }
+        Returns: string
+      }
+      get_platform_analytics: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
       has_role: {
         Args: {
           _user_id: string
@@ -876,6 +1037,19 @@ export type Database = {
       is_admin: {
         Args: Record<PropertyKey, never>
         Returns: boolean
+      }
+      log_admin_action: {
+        Args: {
+          action: string
+          admin_user_id?: string
+          target_type?: string
+          target_id?: string
+          old_values?: Json
+          new_values?: Json
+          ip_address?: unknown
+          user_agent?: string
+        }
+        Returns: string
       }
       purge_frontend_metrics: {
         Args: { days_old?: number }
@@ -888,6 +1062,29 @@ export type Database = {
       purge_performance_metrics: {
         Args: { days_old?: number }
         Returns: number
+      }
+      record_analytics_metric: {
+        Args: {
+          metric_name: string
+          metric_value: number
+          metric_date?: string
+          metadata?: Json
+        }
+        Returns: undefined
+      }
+      record_system_health: {
+        Args: {
+          service_name: string
+          status: string
+          response_time_ms: number
+          error_message?: string
+          metadata?: Json
+        }
+        Returns: string
+      }
+      resolve_security_alert: {
+        Args: { alert_id: string; resolved_by_user_id?: string }
+        Returns: undefined
       }
     }
     Enums: {
