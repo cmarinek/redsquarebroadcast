@@ -1,12 +1,13 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { MapPin, Clock, DollarSign, Star, Calendar, Upload } from "lucide-react";
+import { MapPin, Clock, DollarSign, Star, Calendar, Upload, QrCode } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { supabase } from "@/integrations/supabase/client";
 import { Navigation } from "@/components/Navigation";
+import QRCode from "react-qr-code";
 
 interface Screen {
   id: string;

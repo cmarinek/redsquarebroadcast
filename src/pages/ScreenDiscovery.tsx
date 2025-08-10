@@ -5,8 +5,16 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { Layout } from "@/components/Layout";
+import { MapContainer, TileLayer, CircleMarker, Popup } from "react-leaflet";
+import { QrScanner } from "@yudiel/react-qr-scanner";
+
+// Type workaround for react-leaflet props in this setup
+const AnyMapContainer = MapContainer as any;
+const AnyTileLayer = TileLayer as any;
+const AnyCircleMarker = CircleMarker as any;
 
 interface Screen {
   id: string;
@@ -24,10 +32,13 @@ export default function ScreenDiscovery() {
   const [screens, setScreens] = useState<Screen[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
+  const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
+  const [showScanner, setShowScanner] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
     fetchScreens();
+    getLocation();
   }, []);
 
   const fetchScreens = async () => {
@@ -46,15 +57,65 @@ export default function ScreenDiscovery() {
     }
   };
 
-  const filteredScreens = screens.filter(screen =>
+  // Get user location
+  const getLocation = () => {
+    if (!navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition(
+      (pos) => setCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+      () => setCoords(null),
+      { enableHighAccuracy: true, timeout: 8000 }
+    );
+  };
+
+  // Haversine distance in km
+  const distanceKm = (a: { lat: number; lng: number }, b: { lat: number; lng: number }) => {
+    const toRad = (v: number) => (v * Math.PI) / 180;
+    const R = 6371; // km
+    const dLat = toRad(b.lat - a.lat);
+    const dLng = toRad(b.lng - a.lng);
+    const lat1 = toRad(a.lat);
+    const lat2 = toRad(b.lat);
+    const x = Math.sin(dLat / 2) ** 2 + Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLng / 2) ** 2;
+    return 2 * R * Math.asin(Math.sqrt(x));
+  };
+
+  const filteredScreens = screens.filter((screen) =>
     screen.screen_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     screen.address?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     screen.city?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const handleQRScan = () => {
-    // In a real app, this would open camera for QR scanning
-    alert("QR scanner would open here");
+  const orderedScreens = [...filteredScreens].sort((a, b) => {
+    if (!coords) return 0;
+    const aHas = a.location_lat && a.location_lng;
+    const bHas = b.location_lat && b.location_lng;
+    if (!aHas && !bHas) return 0;
+    if (!aHas) return 1;
+    if (!bHas) return -1;
+    const da = distanceKm(coords, { lat: a.location_lat, lng: a.location_lng });
+    const db = distanceKm(coords, { lat: b.location_lat, lng: b.location_lng });
+    return da - db;
+  });
+
+  const handleQRScan = () => setShowScanner(true);
+
+  const handleDecode = (text: string) => {
+    try {
+      // Accept full URLs like https://site/screen/ID or direct IDs
+      let id = text;
+      if (text.startsWith('http')) {
+        const url = new URL(text);
+        const parts = url.pathname.split('/').filter(Boolean);
+        const idx = parts.indexOf('screen');
+        if (idx !== -1 && parts[idx + 1]) id = parts[idx + 1];
+      }
+      if (id) navigate(`/screen/${id}`);
+    } catch {
+      // Fallback: try direct navigation
+      navigate(`/screen/${text}`);
+    } finally {
+      setShowScanner(false);
+    }
   };
 
   return (
@@ -87,18 +148,74 @@ export default function ScreenDiscovery() {
             </Button>
           </div>
 
-          {/* Map Placeholder */}
+          {/* Map */}
           <Card className="mb-8">
-            <CardContent className="p-6">
-              <div className="bg-muted rounded-lg h-64 flex items-center justify-center">
-                <div className="text-center">
-                  <MapPin className="h-12 w-12 text-muted-foreground mx-auto mb-2" />
-                  <p className="text-muted-foreground">Interactive Map View</p>
-                  <p className="text-sm text-muted-foreground">Shows nearby screens based on your location</p>
-                </div>
+            <CardContent className="p-0">
+              <div className="h-64 rounded-lg overflow-hidden">
+                <AnyMapContainer
+                  center={coords ? [coords.lat, coords.lng] : (
+                    orderedScreens.length && orderedScreens[0].location_lat && orderedScreens[0].location_lng
+                      ? [orderedScreens[0].location_lat, orderedScreens[0].location_lng]
+                      : [37.7749, -122.4194]
+                  ) as any}
+                  zoom={13}
+                  style={{ height: '100%', width: '100%' }}
+                >
+                  <AnyTileLayer
+                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                  />
+
+                  {coords && (
+                    <AnyCircleMarker
+                      center={[coords.lat, coords.lng] as any}
+                      radius={8}
+                      pathOptions={{ color: 'hsl(var(--accent))', fillColor: 'hsl(var(--accent))', fillOpacity: 0.7 }}
+                    >
+                      <Popup>You are here</Popup>
+                    </AnyCircleMarker>
+                  )}
+
+                  {orderedScreens.filter(s => !!s.location_lat && !!s.location_lng).map((s) => (
+                    <AnyCircleMarker
+                      key={s.id}
+                      center={[s.location_lat, s.location_lng] as any}
+                      radius={10}
+                      pathOptions={{ color: 'hsl(var(--primary))', fillColor: 'hsl(var(--primary))', fillOpacity: 0.6 }}
+                    >
+                      <Popup>
+                        <div className="space-y-1">
+                          <div className="font-medium">{s.screen_name || 'Digital Screen'}</div>
+                          <div className="text-sm text-muted-foreground">{s.address}, {s.city}</div>
+                          <button
+                            className="mt-2 inline-flex items-center px-3 py-1 rounded bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))]"
+                            onClick={() => navigate(`/screen/${s.id}`)}
+                          >
+                            View & Book
+                          </button>
+                        </div>
+                      </Popup>
+                    </AnyCircleMarker>
+                  ))}
+                </AnyMapContainer>
               </div>
             </CardContent>
           </Card>
+
+          {/* QR Scanner Dialog */}
+          <Dialog open={showScanner} onOpenChange={setShowScanner}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Scan Screen QR Code</DialogTitle>
+              </DialogHeader>
+              <div className="rounded overflow-hidden">
+                <QrScanner
+                  onDecode={handleDecode}
+                  onError={() => setShowScanner(false)}
+                  constraints={{ facingMode: 'environment' }}
+                />
+              </div>
+            </DialogContent>
+          </Dialog>
 
           {/* Screens List */}
           <div className="space-y-4">
