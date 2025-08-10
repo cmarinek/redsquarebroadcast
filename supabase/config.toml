@@ -1,4 +1,4 @@
-project_id = "wwgvwwiwmfxqifnsayas"
+project_id = "hqeyyutbuxhyildsasqq"
 
 [functions.create-payment]
 verify_jwt = true
@@ -22,4 +22,10 @@ verify_jwt = true
 verify_jwt = true
 
 [functions.get-signed-view-url]
+verify_jwt = true
+
+[functions.system-monitoring]
+verify_jwt = true
+
+[functions.post-upload-process]
 verify_jwt = true

@@ -145,6 +145,16 @@ export default function ContentUpload() {
 
       if (contentError) throw contentError;
 
+      // Kick off post-upload processing (moderation, thumbnails/transcode)
+      await supabase.functions.invoke('post-upload-process', {
+        body: {
+          bucket: 'content',
+          file_path: (signed as any).path,
+          content_type: uploadedFile.file.type,
+          file_size: uploadedFile.file.size,
+        },
+      });
+
       toast({
         title: "Content uploaded successfully!",
         description: "Proceeding to scheduling..."

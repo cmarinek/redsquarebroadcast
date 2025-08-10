@@ -126,6 +126,16 @@ serve(async (req) => {
       rate_limit_remaining: rl.remaining,
     };
 
+    // Compute ETag from response body
+    const bodyString = JSON.stringify(responseBody);
+    const hashBuffer = await crypto.subtle.digest(
+      'SHA-256',
+      new TextEncoder().encode(bodyString)
+    );
+    const etag = Array.from(new Uint8Array(hashBuffer))
+      .map((b) => b.toString(16).padStart(2, '0'))
+      .join('');
+
     // Background log (non-blocking)
     // deno-lint-ignore no-explicit-any
     (globalThis as any).EdgeRuntime?.waitUntil?.(insertLog({
@@ -137,11 +147,13 @@ serve(async (req) => {
       rate_limit_remaining: rl.remaining,
     }));
 
-    return new Response(JSON.stringify(responseBody), {
+    return new Response(bodyString, {
       headers: {
         ...corsHeaders,
-        "Content-Type": "application/json",
-        "Cache-Control": "no-store",
+        'Content-Type': 'application/json',
+        // Allow short-lived caching of the signed URL response
+        'Cache-Control': 'public, max-age=60, s-maxage=300',
+        'ETag': `W/"${etag}"`,
       },
     });
   } catch (e) {
