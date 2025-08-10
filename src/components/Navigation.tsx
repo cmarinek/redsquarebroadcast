@@ -76,6 +76,9 @@ export const Navigation = () => {
                     <Button variant="outline" asChild>
                       <Link to="/admin/overview">Project Overview</Link>
                     </Button>
+                    <Button variant="outline" asChild>
+                      <Link to="/admin/performance">Performance</Link>
+                    </Button>
                   </>
                 )}
 
@@ -135,6 +138,12 @@ export const Navigation = () => {
                           <Link to="/admin/overview" className="flex items-center">
                             <Shield className="w-4 h-4 mr-2" />
                             Project Overview
+                          </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem asChild>
+                          <Link to="/admin/performance" className="flex items-center">
+                            <Shield className="w-4 h-4 mr-2" />
+                            Performance
                           </Link>
                         </DropdownMenuItem>
                       </>
@@ -224,6 +233,9 @@ export const Navigation = () => {
                     </Button>
                     <Button variant="outline" asChild className="w-full justify-start">
                       <Link to="/admin/overview">Project Overview</Link>
+                    </Button>
+                    <Button variant="outline" asChild className="w-full justify-start">
+                      <Link to="/admin/performance">Performance</Link>
                     </Button>
                   </>
                 )}

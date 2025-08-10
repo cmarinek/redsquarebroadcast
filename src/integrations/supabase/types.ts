@@ -203,6 +203,51 @@ export type Database = {
         }
         Relationships: []
       }
+      frontend_metrics: {
+        Row: {
+          client_ip: string | null
+          created_at: string
+          delta: number | null
+          device_info: Json | null
+          id: string
+          id_value: string | null
+          metric_name: string
+          navigation_type: string | null
+          path: string | null
+          session_id: string | null
+          user_id: string | null
+          value: number
+        }
+        Insert: {
+          client_ip?: string | null
+          created_at?: string
+          delta?: number | null
+          device_info?: Json | null
+          id?: string
+          id_value?: string | null
+          metric_name: string
+          navigation_type?: string | null
+          path?: string | null
+          session_id?: string | null
+          user_id?: string | null
+          value: number
+        }
+        Update: {
+          client_ip?: string | null
+          created_at?: string
+          delta?: number | null
+          device_info?: Json | null
+          id?: string
+          id_value?: string | null
+          metric_name?: string
+          navigation_type?: string | null
+          path?: string | null
+          session_id?: string | null
+          user_id?: string | null
+          value?: number
+        }
+        Relationships: []
+      }
       idempotency_keys: {
         Row: {
           created_at: string
@@ -272,6 +317,36 @@ export type Database = {
           status?: string
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      performance_metrics: {
+        Row: {
+          actor: string | null
+          created_at: string
+          details: Json | null
+          duration_ms: number
+          id: string
+          status: string
+          test_name: string
+        }
+        Insert: {
+          actor?: string | null
+          created_at?: string
+          details?: Json | null
+          duration_ms: number
+          id?: string
+          status?: string
+          test_name: string
+        }
+        Update: {
+          actor?: string | null
+          created_at?: string
+          details?: Json | null
+          duration_ms?: number
+          id?: string
+          status?: string
+          test_name?: string
         }
         Relationships: []
       }

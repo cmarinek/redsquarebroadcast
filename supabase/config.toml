@@ -29,3 +29,10 @@ verify_jwt = true
 
 [functions.post-upload-process]
 verify_jwt = true
+
+# New functions for Phase 4
+[functions.frontend-telemetry]
+verify_jwt = false
+
+[functions.load-test]
+verify_jwt = true
