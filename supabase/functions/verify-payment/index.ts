@@ -99,15 +99,15 @@ serve(async (req) => {
     if (paymentStatus === 'completed') {
       const { data: booking } = await supabaseService
         .from('bookings')
-        .select('screens!inner(owner_id), content_uploads!inner(file_name)')
+        .select('screens!inner(owner_user_id), content_uploads!inner(file_name)')
         .eq('stripe_session_id', sessionId)
-        .single();
+        .maybeSingle();
 
-      if (booking?.screens.owner_id) {
+      if (booking?.screens.owner_user_id) {
         await supabaseService
           .from('notifications')
           .insert({
-            user_id: booking.screens.owner_id,
+            user_id: booking.screens.owner_user_id,
             title: 'New Booking Confirmed',
             message: `A new broadcast of "${booking.content_uploads.file_name}" has been confirmed for your screen.`,
             type: 'booking'
