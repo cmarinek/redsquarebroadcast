@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { supabase } from "@/integrations/supabase/client";
 import { Navigation } from "@/components/Navigation";
+import QRCode from "react-qr-code";
 
 interface Screen {
   id: string;
@@ -249,6 +250,20 @@ export default function ScreenDetails() {
                       <li>• 24/7 support</li>
                     </ul>
                   </div>
+                </CardContent>
+              </Card>
+
+              {/* QR Share */}
+              <Card className="mt-6">
+                <CardHeader>
+                  <CardTitle>Scan to open this screen</CardTitle>
+                  <CardDescription>Share this QR to jump directly to this screen profile</CardDescription>
+                </CardHeader>
+                <CardContent className="flex flex-col items-center gap-3">
+                  <div className="bg-background p-4 rounded" aria-label="Screen QR code">
+                    <QRCode value={`${window.location.origin}/screen/${screen.id}`} size={160} bgColor="transparent" />
+                  </div>
+                  <p className="text-xs text-muted-foreground break-all">{`${window.location.origin}/screen/${screen.id}`}</p>
                 </CardContent>
               </Card>
             </div>
