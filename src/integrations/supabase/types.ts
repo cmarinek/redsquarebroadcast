@@ -152,6 +152,36 @@ export type Database = {
         }
         Relationships: []
       }
+      event_logs: {
+        Row: {
+          client_ip: string | null
+          context: string | null
+          created_at: string
+          details: Json | null
+          event_type: string
+          id: string
+          user_id: string | null
+        }
+        Insert: {
+          client_ip?: string | null
+          context?: string | null
+          created_at?: string
+          details?: Json | null
+          event_type: string
+          id?: string
+          user_id?: string | null
+        }
+        Update: {
+          client_ip?: string | null
+          context?: string | null
+          created_at?: string
+          details?: Json | null
+          event_type?: string
+          id?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null

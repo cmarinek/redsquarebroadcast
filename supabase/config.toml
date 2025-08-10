@@ -20,3 +20,6 @@ verify_jwt = true
 
 [functions.create-signed-upload]
 verify_jwt = true
+
+[functions.get-signed-view-url]
+verify_jwt = true
