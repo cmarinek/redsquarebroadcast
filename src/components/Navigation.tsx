@@ -8,25 +8,26 @@ import { useOnboarding } from "@/hooks/useOnboarding";
 import { RealTimeNotifications } from "@/components/RealTimeNotifications";
 import { BroadcasterOnboarding } from "@/components/onboarding/BroadcasterOnboarding";
 import { ScreenOwnerOnboarding } from "@/components/onboarding/ScreenOwnerOnboarding";
-import { 
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 export const Navigation = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showBroadcasterOnboarding, setShowBroadcasterOnboarding] = useState(false);
   const [showScreenOwnerOnboarding, setShowScreenOwnerOnboarding] = useState(false);
-  const { user, signOut } = useAuth();
-  const { isBroadcaster, isScreenOwner, isAdmin, loading: rolesLoading } = useUserRoles();
-  const { 
-    shouldShowBroadcasterOnboarding, 
+  const {
+    user,
+    signOut
+  } = useAuth();
+  const {
+    isBroadcaster,
+    isScreenOwner,
+    isAdmin,
+    loading: rolesLoading
+  } = useUserRoles();
+  const {
+    shouldShowBroadcasterOnboarding,
     shouldShowScreenOwnerOnboarding,
     markBroadcasterOnboardingComplete,
-    markScreenOwnerOnboardingComplete 
+    markScreenOwnerOnboardingComplete
   } = useOnboarding();
   return <>
     <nav className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md border-b border-border">
@@ -36,40 +37,34 @@ export const Navigation = () => {
             <div className="w-8 h-8 bg-gradient-primary rounded-lg flex items-center justify-center">
               <div className="w-4 h-4 bg-foreground rounded-sm"></div>
             </div>
-            <span className="text-xl font-bold text-foreground">RedSquare Broadcast</span>
+            <span className="text-xl font-bold text-foreground">RedSquare</span>
           </div>
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-4">
-            {user ? (
-              <>
+            {user ? <>
                 {/* Broadcaster features */}
-                {(isBroadcaster() || isAdmin()) && (
-                  <>
+                {(isBroadcaster() || isAdmin()) && <>
                     <Button variant="outline" asChild>
                       <Link to="/discover">Find Screens</Link>
                     </Button>
                     <Button variant="outline" asChild>
                       <Link to="/my-campaigns">My Campaigns</Link>
                     </Button>
-                  </>
-                )}
+                  </>}
                 
                 {/* Screen Owner features */}
-                {(isScreenOwner() || isAdmin()) && (
-                  <>
+                {(isScreenOwner() || isAdmin()) && <>
                     <Button variant="outline" asChild>
                       <Link to="/my-screens">My Screens</Link>
                     </Button>
                     <Button variant="outline" asChild>
                       <Link to="/subscription">Subscription</Link>
                     </Button>
-                  </>
-                )}
+                  </>}
                 
                 {/* Admin features */}
-                {isAdmin() && (
-                  <>
+                {isAdmin() && <>
                     <Button variant="outline" asChild>
                       <Link to="/admin">Admin Dashboard</Link>
                     </Button>
@@ -79,8 +74,7 @@ export const Navigation = () => {
                     <Button variant="outline" asChild>
                       <Link to="/admin/performance">Performance</Link>
                     </Button>
-                  </>
-                )}
+                  </>}
 
                 <RealTimeNotifications />
                 
@@ -102,8 +96,7 @@ export const Navigation = () => {
                     </DropdownMenuItem>
                     
                      {/* Screen Owner specific options */}
-                    {(isScreenOwner() || isAdmin()) && (
-                      <>
+                    {(isScreenOwner() || isAdmin()) && <>
                         <DropdownMenuItem asChild>
                           <Link to="/my-screens" className="flex items-center">
                             <BarChart3 className="w-4 h-4 mr-2" />
@@ -122,12 +115,10 @@ export const Navigation = () => {
                             Device Setup
                           </Link>
                         </DropdownMenuItem>
-                      </>
-                    )}
+                      </>}
                     
                     {/* Admin specific options */}
-                    {isAdmin() && (
-                      <>
+                    {isAdmin() && <>
                         <DropdownMenuItem asChild>
                           <Link to="/admin" className="flex items-center">
                             <Shield className="w-4 h-4 mr-2" />
@@ -146,18 +137,15 @@ export const Navigation = () => {
                             Performance
                           </Link>
                         </DropdownMenuItem>
-                      </>
-                    )}
+                      </>}
 
                     {/* Broadcaster specific options */}
-                    {isBroadcaster() && !isScreenOwner() && !isAdmin() && (
-                      <DropdownMenuItem asChild>
+                    {isBroadcaster() && !isScreenOwner() && !isAdmin() && <DropdownMenuItem asChild>
                         <Link to="/register-screen" className="flex items-center">
                           <Monitor className="w-4 h-4 mr-2" />
                           Become Screen Owner
                         </Link>
-                      </DropdownMenuItem>
-                    )}
+                      </DropdownMenuItem>}
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={() => setShowBroadcasterOnboarding(true)}>
                       <HelpCircle className="w-4 h-4 mr-2" />
@@ -174,9 +162,7 @@ export const Navigation = () => {
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
-              </>
-            ) : (
-              <>
+              </> : <>
                 <Button variant="outline" asChild>
                   <Link to="/how-it-works">How It Works</Link>
                 </Button>
@@ -189,8 +175,7 @@ export const Navigation = () => {
                 <Button className="bg-gradient-primary hover:shadow-[var(--shadow-red)] transition-all duration-300" asChild>
                   <Link to="/auth">Get Started</Link>
                 </Button>
-              </>
-            )}
+              </>}
           </div>
 
           {/* Mobile menu button */}
@@ -204,30 +189,24 @@ export const Navigation = () => {
         {/* Mobile Navigation */}
         {isMenuOpen && <div className="md:hidden pb-4">
             <div className="flex flex-col space-y-3">
-              {user ? (
-                <>
+              {user ? <>
                 {/* Broadcaster features */}
-                {(isBroadcaster() || isAdmin()) && (
-                  <>
+                {(isBroadcaster() || isAdmin()) && <>
                     <Button variant="outline" asChild className="w-full justify-start">
                       <Link to="/discover">Find Screens</Link>
                     </Button>
                     <Button variant="outline" asChild className="w-full justify-start">
                       <Link to="/my-campaigns">My Campaigns</Link>
                     </Button>
-                  </>
-                )}
+                  </>}
                 
                 {/* Screen Owner features */}
-                {(isScreenOwner() || isAdmin()) && (
-                  <Button variant="outline" asChild className="w-full justify-start">
+                {(isScreenOwner() || isAdmin()) && <Button variant="outline" asChild className="w-full justify-start">
                     <Link to="/my-screens">My Screens</Link>
-                  </Button>
-                )}
+                  </Button>}
                 
                 {/* Admin features */}
-                {isAdmin() && (
-                  <>
+                {isAdmin() && <>
                     <Button variant="outline" asChild className="w-full justify-start">
                       <Link to="/admin">Admin Dashboard</Link>
                     </Button>
@@ -237,16 +216,14 @@ export const Navigation = () => {
                     <Button variant="outline" asChild className="w-full justify-start">
                       <Link to="/admin/performance">Performance</Link>
                     </Button>
-                  </>
-                )}
+                  </>}
 
                 <Button variant="outline" asChild className="w-full justify-start">
                   <Link to="/profile">Profile Settings</Link>
                 </Button>
                 
                 {/* Role-specific options */}
-                {(isScreenOwner() || isAdmin()) && (
-                  <>
+                {(isScreenOwner() || isAdmin()) && <>
                     <Button variant="outline" asChild className="w-full justify-start">
                       <Link to="/register-screen">Register New Screen</Link>
                     </Button>
@@ -256,22 +233,17 @@ export const Navigation = () => {
                     <Button variant="outline" asChild className="w-full justify-start">
                       <Link to="/subscription">Subscription</Link>
                     </Button>
-                  </>
-                )}
+                  </>}
                 
-                {isBroadcaster() && !isScreenOwner() && !isAdmin() && (
-                  <Button variant="outline" asChild className="w-full justify-start">
+                {isBroadcaster() && !isScreenOwner() && !isAdmin() && <Button variant="outline" asChild className="w-full justify-start">
                     <Link to="/register-screen">Become Screen Owner</Link>
-                  </Button>
-                )}
+                  </Button>}
                 
                 <Button onClick={signOut} variant="outline" className="w-full justify-start">
                   <LogOut className="w-4 h-4 mr-2" />
                   Sign Out
                 </Button>
-                </>
-              ) : (
-                <>
+                </> : <>
                   <Button variant="outline" asChild className="w-full justify-start">
                     <Link to="/how-it-works">How It Works</Link>
                   </Button>
@@ -284,24 +256,21 @@ export const Navigation = () => {
                   <Button className="bg-gradient-primary w-full justify-start" asChild>
                     <Link to="/auth">Get Started</Link>
                   </Button>
-                </>
-              )}
+                </>}
             </div>
           </div>}
       </div>
     </nav>
     
     {/* Onboarding Modals */}
-    <BroadcasterOnboarding
-      isOpen={showBroadcasterOnboarding || shouldShowBroadcasterOnboarding()}
-      onClose={() => { setShowBroadcasterOnboarding(false); markBroadcasterOnboardingComplete(); }}
-      onComplete={markBroadcasterOnboardingComplete}
-    />
+    <BroadcasterOnboarding isOpen={showBroadcasterOnboarding || shouldShowBroadcasterOnboarding()} onClose={() => {
+      setShowBroadcasterOnboarding(false);
+      markBroadcasterOnboardingComplete();
+    }} onComplete={markBroadcasterOnboardingComplete} />
     
-    <ScreenOwnerOnboarding
-      isOpen={showScreenOwnerOnboarding || shouldShowScreenOwnerOnboarding()}
-      onClose={() => { setShowScreenOwnerOnboarding(false); markScreenOwnerOnboardingComplete(); }}
-      onComplete={markScreenOwnerOnboardingComplete}
-    />
+    <ScreenOwnerOnboarding isOpen={showScreenOwnerOnboarding || shouldShowScreenOwnerOnboarding()} onClose={() => {
+      setShowScreenOwnerOnboarding(false);
+      markScreenOwnerOnboardingComplete();
+    }} onComplete={markScreenOwnerOnboardingComplete} />
   </>;
 };
