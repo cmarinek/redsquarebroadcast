@@ -1,10 +1,16 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useUserRoles } from "./useUserRoles";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase, SUPABASE_PROJECT_REF } from "@/integrations/supabase/client";
 
-const LS_BROADCASTER_DONE = 'onboarding.broadcaster.done';
-const LS_SCREEN_OWNER_DONE = 'onboarding.screen_owner.done';
+const getOnboardingKeys = (uid?: string) => {
+  const ref = SUPABASE_PROJECT_REF;
+  const id = uid || 'anon';
+  return {
+    broadcaster: `onboarding.${ref}.${id}.broadcaster.done`,
+    screenOwner: `onboarding.${ref}.${id}.screen_owner.done`,
+  };
+};
 
 interface OnboardingStatus {
   has_completed_broadcaster_onboarding: boolean;
@@ -25,6 +31,20 @@ export const useOnboarding = () => {
     fetchOnboardingStatus();
   }, [user, profileLoading]);
 
+  useEffect(() => {
+    const param = new URLSearchParams(window.location.search).get('onboarding');
+    if (!user) return;
+    if (param === 'reset') {
+      const keys = getOnboardingKeys(user.id);
+      localStorage.removeItem(keys.broadcaster);
+      localStorage.removeItem(keys.screenOwner);
+      const url = new URL(window.location.href);
+      url.searchParams.delete('onboarding');
+      window.history.replaceState({}, '', url.toString());
+      setOnboardingStatus(prev => prev ? { ...prev } : null);
+    }
+  }, [user]);
+
   const fetchOnboardingStatus = async () => {
     try {
       const { data, error } = await supabase
@@ -33,20 +53,17 @@ export const useOnboarding = () => {
         .eq('user_id', user!.id)
         .single();
 
-      const localBroadcasterDone = localStorage.getItem(LS_BROADCASTER_DONE) === 'true';
-      const localScreenOwnerDone = localStorage.getItem(LS_SCREEN_OWNER_DONE) === 'true';
-
       if (error) throw error;
 
       setOnboardingStatus({
-        has_completed_broadcaster_onboarding: data.has_completed_broadcaster_onboarding || localBroadcasterDone,
-        has_completed_screen_owner_onboarding: data.has_completed_screen_owner_onboarding || localScreenOwnerDone
+        has_completed_broadcaster_onboarding: !!data.has_completed_broadcaster_onboarding,
+        has_completed_screen_owner_onboarding: !!data.has_completed_screen_owner_onboarding
       });
     } catch (error) {
       console.error("Error fetching onboarding status:", error);
-      // Default values if profile doesn't exist yet, merged with local cache
-      const localBroadcasterDone = localStorage.getItem(LS_BROADCASTER_DONE) === 'true';
-      const localScreenOwnerDone = localStorage.getItem(LS_SCREEN_OWNER_DONE) === 'true';
+      const keys = getOnboardingKeys(user?.id);
+      const localBroadcasterDone = localStorage.getItem(keys.broadcaster) === 'true';
+      const localScreenOwnerDone = localStorage.getItem(keys.screenOwner) === 'true';
       setOnboardingStatus({
         has_completed_broadcaster_onboarding: localBroadcasterDone,
         has_completed_screen_owner_onboarding: localScreenOwnerDone
@@ -59,8 +76,9 @@ export const useOnboarding = () => {
   const markBroadcasterOnboardingComplete = async () => {
     if (!user) return;
 
+    const keys = getOnboardingKeys(user.id);
     // Optimistic local fallback to prevent modal reopen loops
-    localStorage.setItem(LS_BROADCASTER_DONE, 'true');
+    localStorage.setItem(keys.broadcaster, 'true');
     setOnboardingStatus(prev => prev ? {
       ...prev,
       has_completed_broadcaster_onboarding: true
@@ -84,8 +102,9 @@ export const useOnboarding = () => {
   const markScreenOwnerOnboardingComplete = async () => {
     if (!user) return;
 
+    const keys = getOnboardingKeys(user.id);
     // Optimistic local fallback to prevent modal reopen loops
-    localStorage.setItem(LS_SCREEN_OWNER_DONE, 'true');
+    localStorage.setItem(keys.screenOwner, 'true');
     setOnboardingStatus(prev => prev ? {
       ...prev,
       has_completed_screen_owner_onboarding: true
@@ -108,7 +127,8 @@ export const useOnboarding = () => {
 
   const shouldShowBroadcasterOnboarding = () => {
     if (!user) return false;
-    if (localStorage.getItem(LS_BROADCASTER_DONE) === 'true') return false;
+    const param = new URLSearchParams(window.location.search).get('onboarding');
+    if (param === 'force' || param === 'broadcaster') return true;
     return (
       onboardingStatus &&
       !onboardingStatus.has_completed_broadcaster_onboarding &&
@@ -118,7 +138,8 @@ export const useOnboarding = () => {
 
   const shouldShowScreenOwnerOnboarding = () => {
     if (!user) return false;
-    if (localStorage.getItem(LS_SCREEN_OWNER_DONE) === 'true') return false;
+    const param = new URLSearchParams(window.location.search).get('onboarding');
+    if (param === 'force' || param === 'screen_owner') return true;
     return (
       onboardingStatus &&
       !onboardingStatus.has_completed_screen_owner_onboarding &&

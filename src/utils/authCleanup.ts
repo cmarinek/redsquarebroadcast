@@ -5,7 +5,7 @@ export const cleanupAuthState = () => {
 
     // Remove all Supabase auth keys from localStorage
     Object.keys(localStorage).forEach((key) => {
-      if (key.startsWith('supabase.auth.') || key.includes('sb-')) {
+      if (key.startsWith('supabase.auth.') || key.includes('sb-') || key.startsWith('onboarding.')) {
         localStorage.removeItem(key);
       }
     });
@@ -13,7 +13,7 @@ export const cleanupAuthState = () => {
     // Remove from sessionStorage if in use
     try {
       Object.keys(sessionStorage || {}).forEach((key) => {
-        if (key.startsWith('supabase.auth.') || key.includes('sb-')) {
+        if (key.startsWith('supabase.auth.') || key.includes('sb-') || key.startsWith('onboarding.')) {
           sessionStorage.removeItem(key);
         }
       });
