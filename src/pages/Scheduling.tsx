@@ -88,7 +88,7 @@ export default function Scheduling() {
   const calculateTotal = () => {
     if (!screen) return 0;
     const baseAmount = (screen.pricing_cents || 0) * duration;
-    const platformFee = baseAmount * 0.05;
+    const platformFee = Math.round(baseAmount * 0.10);
     return baseAmount + platformFee;
   };
 
@@ -128,18 +128,33 @@ export default function Scheduling() {
       const endTime = `${endHour.toString().padStart(2, '0')}:00`;
 
       // Double-check availability before creating booking
+      const proposedStart = new Date(selectedDate);
+      const startHour = parseInt(startTime.split(':')[0]);
+      proposedStart.setHours(startHour, 0, 0, 0);
+      const proposedEnd = new Date(proposedStart.getTime() + duration * 60 * 60 * 1000);
+
+      const dayStart = new Date(selectedDate);
+      dayStart.setHours(0, 0, 0, 0);
+      const dayEnd = new Date(selectedDate);
+      dayEnd.setHours(24, 0, 0, 0);
+
       const { data: existingBookings, error: checkError } = await supabase
         .from('bookings')
-        .select('id')
+        .select('id, start_time, duration_minutes, status')
         .eq('screen_id', screen.id)
-        .eq('scheduled_date', format(selectedDate, 'yyyy-MM-dd'))
-        .in('status', ['confirmed', 'paid', 'active'])
-        .gte('scheduled_end_time', startTime)
-        .lte('scheduled_start_time', endTime);
+        .gte('start_time', dayStart.toISOString())
+        .lt('start_time', dayEnd.toISOString());
 
       if (checkError) throw checkError;
 
-      if (existingBookings && existingBookings.length > 0) {
+      const overlap = (existingBookings || []).some((b: any) => {
+        const bStart = new Date(b.start_time);
+        const bEnd = new Date(bStart.getTime() + (b.duration_minutes || 0) * 60000);
+        const blocks = ['confirmed', 'pending'].includes(b.status || 'pending');
+        return blocks && bStart < proposedEnd && bEnd > proposedStart;
+      });
+
+      if (overlap) {
         toast({
           title: "Time slot no longer available",
           description: "Someone just booked this time slot. Please choose a different time.",
@@ -154,12 +169,13 @@ export default function Scheduling() {
         .insert({
           user_id: user.id,
           screen_id: screen.id,
-          content_id: content.id,
-          scheduled_date: format(selectedDate, 'yyyy-MM-dd'),
-          scheduled_start_time: startTime,
-          scheduled_end_time: endTime,
-          total_amount: calculateTotal(),
-          status: 'pending'
+          content_upload_id: content.id,
+          start_time: proposedStart.toISOString(),
+          duration_minutes: duration * 60,
+          amount_cents: calculateTotal(),
+          currency: 'USD',
+          status: 'pending',
+          payment_status: 'pending'
         })
         .select()
         .single();
@@ -381,8 +397,8 @@ export default function Scheduling() {
                       <span>${((((screen.pricing_cents || 0)) * duration) / 100).toFixed(2)}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span>Platform fee (5%):</span>
-                      <span>${((((screen.pricing_cents || 0)) * duration * 0.05) / 100).toFixed(2)}</span>
+                      <span>Platform fee (10%):</span>
+                      <span>${((((screen.pricing_cents || 0)) * duration * 0.10) / 100).toFixed(2)}</span>
                     </div>
                     <Separator />
                     <div className="flex justify-between font-medium text-base">

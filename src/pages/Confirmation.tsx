@@ -13,23 +13,24 @@ import { getSignedViewUrl } from "@/utils/media";
 
 interface BookingDetails {
   id: string;
-  screen: {
+  screen_id: string;
+  content_upload_id: string;
+  start_time: string;
+  duration_minutes: number;
+  amount_cents: number;
+  status: string;
+  payment_status: string;
+  screen?: {
     screen_name: string;
-    address: string;
-    city: string;
+    address?: string;
+    city?: string;
   };
-  content: {
+  content?: {
     file_name: string;
     file_type: string;
     file_path: string;
     file_url?: string;
   };
-  scheduled_date: string;
-  scheduled_start_time: string;
-  scheduled_end_time: string;
-  total_amount: number;
-  status: string;
-  payment_status: string;
 }
 
 export default function Confirmation() {
@@ -88,22 +89,34 @@ export default function Confirmation() {
 
   const fetchBookingDetails = async () => {
     try {
-      const { data, error } = await supabase
+      const { data: bookingRow, error: bookingErr } = await supabase
         .from('bookings')
-        .select(`
-          *,
-          screen:screens(screen_name, address, city),
-          content:content_uploads(file_name, file_type, file_path)
-        `)
+        .select('*')
         .eq('id', bookingId)
-        .single();
+        .maybeSingle();
 
-      if (error) throw error;
-      const resolved = data as any;
+      if (bookingErr || !bookingRow) throw bookingErr || new Error('Booking not found');
+
+      const [{ data: screenRow }, { data: contentRow }] = await Promise.all([
+        supabase.from('screens').select('screen_name, location').eq('id', bookingRow.screen_id).maybeSingle(),
+        supabase.from('content_uploads').select('file_name, file_type, file_path').eq('id', bookingRow.content_upload_id).maybeSingle(),
+      ]);
+
+      const resolved: BookingDetails = {
+        ...bookingRow,
+        screen: {
+          screen_name: screenRow?.screen_name || 'Digital Screen',
+          address: screenRow?.location || '',
+          city: '',
+        },
+        content: contentRow ? { ...contentRow } : undefined,
+      } as any;
+
       if (resolved?.content?.file_path) {
         const url = await getSignedViewUrl('content', resolved.content.file_path, 300);
-        if (url) resolved.content.file_url = url;
+        if (url) (resolved.content as any).file_url = url;
       }
+
       setBooking(resolved);
     } catch (error) {
       console.error("Error fetching booking:", error);
@@ -239,26 +252,20 @@ export default function Confirmation() {
               <div className="bg-secondary/30 rounded-lg p-4 space-y-2">
                 <div className="flex justify-between text-sm">
                   <span className="font-medium">Broadcast Date:</span>
-                  <span>{format(new Date(booking.scheduled_date), 'EEEE, MMMM d, yyyy')}</span>
+                  <span>{format(new Date(booking.start_time), 'EEEE, MMMM d, yyyy')}</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="font-medium">Time Slot:</span>
-                  <span>{booking.scheduled_start_time} - {booking.scheduled_end_time}</span>
+                  <span>{new Date(booking.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - {new Date(new Date(booking.start_time).getTime() + (booking.duration_minutes||0)*60000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="font-medium">Duration:</span>
-                  <span>
-                    {Math.round(
-                      (new Date(`1970-01-01T${booking.scheduled_end_time}`).getTime() - 
-                       new Date(`1970-01-01T${booking.scheduled_start_time}`).getTime()) / 
-                      (1000 * 60 * 60)
-                    )} hour(s)
-                  </span>
+                  <span>{Math.round((booking.duration_minutes||0)/60)} hour(s)</span>
                 </div>
                 <div className="border-t pt-2 mt-2">
                   <div className="flex justify-between font-medium">
                     <span>Total Paid:</span>
-                    <span>${(booking.total_amount / 100).toFixed(2)}</span>
+                    <span>${((booking.amount_cents||0) / 100).toFixed(2)}</span>
                   </div>
                 </div>
               </div>

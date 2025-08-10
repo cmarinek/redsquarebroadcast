@@ -45,41 +45,53 @@ export const useAvailability = (screenId: string | undefined, selectedDate: Date
     try {
       const dateStr = format(selectedDate, 'yyyy-MM-dd');
       
-      // Fetch existing bookings for the selected date
+      // Define start and end of the selected day (local time)
+      const dayStart = new Date(selectedDate);
+      dayStart.setHours(0, 0, 0, 0);
+      const dayEnd = new Date(selectedDate);
+      dayEnd.setHours(24, 0, 0, 0);
+      
+      // Fetch existing bookings for the selected date using start_time/duration_minutes
       const { data: bookings, error } = await supabase
         .from("bookings")
-        .select("id, user_id, content_id, scheduled_start_time, scheduled_end_time, status")
+        .select("id, user_id, start_time, duration_minutes, status, payment_status")
         .eq("screen_id", screenId)
-        .eq("scheduled_date", dateStr)
-        .in("status", ["confirmed", "paid", "active"]);
+        .gte("start_time", dayStart.toISOString())
+        .lt("start_time", dayEnd.toISOString());
 
       if (error) throw error;
 
-      // Generate time slots based on screen availability
+      // Generate hourly time slots (defaults 09:00-21:00)
       const slots: TimeSlot[] = [];
-      const start = parseInt(screen.availability_start.split(':')[0]);
-      const end = parseInt(screen.availability_end.split(':')[0]);
+      const startHour = 9;
+      const endHour = 21;
 
-      for (let hour = start; hour < end; hour++) {
+      for (let hour = startHour; hour < endHour; hour++) {
         const timeStr = `${hour.toString().padStart(2, '0')}:00`;
+
+        const slotStart = new Date(selectedDate);
+        slotStart.setHours(hour, 0, 0, 0);
+        const slotEnd = new Date(slotStart);
+        slotEnd.setHours(hour + 1, 0, 0, 0);
         
         // Check if this time slot conflicts with any booking
-        const conflictingBooking = bookings?.find(booking => {
-          const bookingStart = parseInt(booking.scheduled_start_time.split(':')[0]);
-          const bookingEnd = parseInt(booking.scheduled_end_time.split(':')[0]);
-          return hour >= bookingStart && hour < bookingEnd;
+        const conflictingBooking = bookings?.find((b: any) => {
+          const bStart = new Date(b.start_time);
+          const bEnd = new Date(bStart.getTime() + (b.duration_minutes || 0) * 60000);
+          const blocks = ['confirmed', 'pending'].includes(b.status || 'pending');
+          return blocks && bStart < slotEnd && bEnd > slotStart;
         });
 
         slots.push({
           time: timeStr,
           available: !conflictingBooking,
-          booking: conflictingBooking || undefined
+          booking: undefined,
         });
       }
 
       setAvailability({
         date: dateStr,
-        timeSlots: slots
+        timeSlots: slots,
       });
     } catch (error) {
       console.error("Error fetching availability:", error);

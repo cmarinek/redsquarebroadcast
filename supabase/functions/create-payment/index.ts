@@ -82,17 +82,19 @@ serve(async (req) => {
     // Get booking details
     const { data: booking, error: bookingError } = await supabaseService
       .from('bookings')
-      .select(`
-        *,
-        screens!inner(screen_name, price_per_hour, owner_id),
-        content_uploads!inner(file_name)
-      `)
+      .select('*')
       .eq('id', bookingId)
-      .single();
+      .maybeSingle();
 
     if (bookingError || !booking) {
       throw new Error("Booking not found");
     }
+
+    // Fetch screen and content
+    const [{ data: screen }, { data: content }] = await Promise.all([
+      supabaseService.from('screens').select('screen_name, owner_user_id').eq('id', booking.screen_id).maybeSingle(),
+      supabaseService.from('content_uploads').select('file_name').eq('id', booking.content_upload_id).maybeSingle(),
+    ]);
 
     // Initialize Stripe
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
@@ -111,8 +113,8 @@ serve(async (req) => {
     }
 
     // Calculate platform fee (10% of total)
-    const platformFee = Math.round(booking.total_amount * 0.10);
-    const screenOwnerAmount = booking.total_amount - platformFee;
+    const platformFee = Math.round((booking.amount_cents || 0) * 0.10);
+    const screenOwnerAmount = (booking.amount_cents || 0) - platformFee;
 
     // Create checkout session
     const session = await stripe.checkout.sessions.create({
@@ -123,10 +125,10 @@ serve(async (req) => {
           price_data: {
             currency: "usd",
             product_data: {
-              name: `Screen Broadcast: ${booking.screens.screen_name}`,
-              description: `Broadcasting "${booking.content_uploads.file_name}" on ${booking.scheduled_date}`,
+              name: `Screen Broadcast: ${screen?.screen_name || 'Screen'}`,
+              description: `Broadcasting "${content?.file_name || 'Content'}" starting ${new Date(booking.start_time).toLocaleString()}`,
             },
-            unit_amount: booking.total_amount, // Amount in cents
+            unit_amount: booking.amount_cents, // Amount in cents
           },
           quantity: 1,
         },
@@ -137,7 +139,7 @@ serve(async (req) => {
       metadata: {
         bookingId: booking.id,
         userId: user.id,
-        screenOwnerId: booking.screens.owner_id,
+        screenOwnerId: screen?.owner_user_id || '',
         platformFee: platformFee.toString(),
         screenOwnerAmount: screenOwnerAmount.toString(),
       },
@@ -148,9 +150,11 @@ serve(async (req) => {
       .from('payments')
       .insert({
         booking_id: booking.id,
-        amount: booking.total_amount,
-        platform_fee: platformFee,
-        screen_owner_amount: screenOwnerAmount,
+        user_id: user.id,
+        amount_cents: booking.amount_cents,
+        platform_fee_cents: platformFee,
+        owner_amount_cents: screenOwnerAmount,
+        currency: booking.currency || 'USD',
         stripe_session_id: session.id,
         status: 'pending',
       });

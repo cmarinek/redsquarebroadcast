@@ -13,20 +13,23 @@ import { format } from "date-fns";
 
 interface BookingDetails {
   id: string;
-  screen: {
+  screen_id: string;
+  content_upload_id: string;
+  start_time: string;
+  duration_minutes: number;
+  amount_cents: number;
+  currency: string;
+  status: string;
+  payment_status: string;
+  screen?: {
     screen_name: string;
-    address: string;
-    city: string;
+    address?: string;
+    city?: string;
   };
-  content: {
+  content?: {
     file_name: string;
     file_type: string;
   };
-  scheduled_date: string;
-  scheduled_start_time: string;
-  scheduled_end_time: string;
-  total_amount: number;
-  status: string;
 }
 
 export default function Payment() {
@@ -57,18 +60,30 @@ export default function Payment() {
 
   const fetchBookingDetails = async () => {
     try {
-      const { data, error } = await supabase
+      const { data: bookingRow, error: bookingErr } = await supabase
         .from('bookings')
-        .select(`
-          *,
-          screen:screens(screen_name, address, city),
-          content:content_uploads(file_name, file_type)
-        `)
+        .select('*')
         .eq('id', bookingId)
-        .single();
+        .maybeSingle();
 
-      if (error) throw error;
-      setBooking(data);
+      if (bookingErr || !bookingRow) throw bookingErr || new Error('Booking not found');
+
+      const [{ data: screenRow }, { data: contentRow }] = await Promise.all([
+        supabase.from('screens').select('screen_name, location').eq('id', bookingRow.screen_id).maybeSingle(),
+        supabase.from('content_uploads').select('file_name, file_type').eq('id', bookingRow.content_upload_id).maybeSingle(),
+      ]);
+
+      const assembled: BookingDetails = {
+        ...bookingRow,
+        screen: {
+          screen_name: screenRow?.screen_name || 'Digital Screen',
+          address: screenRow?.location || '',
+          city: '',
+        },
+        content: contentRow ? { file_name: contentRow.file_name, file_type: contentRow.file_type } : undefined,
+      };
+
+      setBooking(assembled);
     } catch (error) {
       console.error("Error fetching booking:", error);
       toast({
@@ -158,7 +173,7 @@ export default function Payment() {
           <div className="mb-8">
             <Button 
               variant="ghost" 
-              onClick={() => navigate(`/book/${screenId}/schedule?contentId=${booking.content.file_name}`)}
+              onClick={() => navigate(`/book/${screenId}/schedule?contentId=${booking.content_upload_id}`)}
               className="mb-4"
               disabled={processing}
             >
@@ -209,13 +224,13 @@ export default function Payment() {
                   <div>
                     <span className="font-medium">Date:</span>
                     <p className="text-muted-foreground">
-                      {format(new Date(booking.scheduled_date), 'EEEE, MMMM d, yyyy')}
+                      {format(new Date(booking.start_time), 'EEEE, MMMM d, yyyy')}
                     </p>
                   </div>
                   <div>
                     <span className="font-medium">Time:</span>
                     <p className="text-muted-foreground">
-                      {booking.scheduled_start_time} - {booking.scheduled_end_time}
+                      {new Date(booking.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - {new Date(new Date(booking.start_time).getTime() + (booking.duration_minutes||0)*60000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </p>
                   </div>
                 </div>
@@ -231,26 +246,20 @@ export default function Payment() {
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
                     <span>Broadcast time:</span>
-                    <span>
-                      {Math.round(
-                        (new Date(`1970-01-01T${booking.scheduled_end_time}`).getTime() - 
-                         new Date(`1970-01-01T${booking.scheduled_start_time}`).getTime()) / 
-                        (1000 * 60 * 60)
-                      )} hour(s)
-                    </span>
+                    <span>{Math.round((booking.duration_minutes || 0) / 60)} hour(s)</span>
                   </div>
                   <div className="flex justify-between">
                     <span>Base rate:</span>
-                    <span>${((booking.total_amount * 0.95) / 100).toFixed(2)}</span>
+                    <span>${(((booking.amount_cents || 0) * 0.90) / 100).toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span>Platform fee (5%):</span>
-                    <span>${((booking.total_amount * 0.05) / 100).toFixed(2)}</span>
+                    <span>Platform fee (10%):</span>
+                    <span>${(((booking.amount_cents || 0) * 0.10) / 100).toFixed(2)}</span>
                   </div>
                   <Separator />
                   <div className="flex justify-between font-medium text-base">
                     <span>Total:</span>
-                    <span>${(booking.total_amount / 100).toFixed(2)}</span>
+                    <span>${((booking.amount_cents || 0) / 100).toFixed(2)}</span>
                   </div>
                 </div>
               </CardContent>
@@ -303,7 +312,7 @@ export default function Payment() {
                     Redirecting to Stripe...
                   </>
                 ) : (
-                  `Pay $${(booking.total_amount / 100).toFixed(2)}`
+                  `Pay $${((booking.amount_cents || 0) / 100).toFixed(2)}`
                 )}
               </Button>
             </div>
