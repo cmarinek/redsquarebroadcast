@@ -43,6 +43,7 @@ import { AudienceTargeting } from "@/components/broadcaster/AudienceTargeting";
 import { ABTestingTools } from "@/components/broadcaster/ABTestingTools";
 import { MobileAppIntegration } from "@/components/broadcaster/MobileAppIntegration";
 import { format, isAfter, isBefore, addDays } from "date-fns";
+import { getSignedViewUrl } from "@/utils/media";
 
 interface BookingData {
   id: string;
@@ -60,7 +61,8 @@ interface BookingData {
   content_uploads: {
     file_name: string;
     file_type: string;
-    file_url: string;
+    file_path: string;
+    file_url?: string;
   }[];
 }
 
@@ -127,7 +129,7 @@ const BroadcasterDashboard = () => {
         .select(`
           *,
           screens!inner(screen_name, address, city),
-          content_uploads(file_name, file_type, file_url)
+          content_uploads(file_name, file_type, file_path)
         `)
         .eq('user_id', user.id)
         .order('scheduled_date', { ascending: false });
@@ -135,21 +137,28 @@ const BroadcasterDashboard = () => {
       if (error) throw error;
 
       // Transform the data to match our interface
-      const transformedBookings: BookingData[] = data?.map(booking => ({
-        id: booking.id,
-        scheduled_date: booking.scheduled_date,
-        scheduled_start_time: booking.scheduled_start_time,
-        scheduled_end_time: booking.scheduled_end_time,
-        total_amount: booking.total_amount,
-        status: booking.status,
-        payment_status: booking.payment_status,
-        screen: {
-          screen_name: (booking as any).screens.screen_name,
-          address: (booking as any).screens.address,
-          city: (booking as any).screens.city,
-        },
-        content_uploads: Array.isArray(booking.content_uploads) ? booking.content_uploads : []
-      })) || [];
+      const transformedBookings: BookingData[] = await Promise.all((data || []).map(async (booking) => {
+        const base = {
+          id: booking.id,
+          scheduled_date: booking.scheduled_date,
+          scheduled_start_time: booking.scheduled_start_time,
+          scheduled_end_time: booking.scheduled_end_time,
+          total_amount: booking.total_amount,
+          status: booking.status,
+          payment_status: booking.payment_status,
+          screen: {
+            screen_name: (booking as any).screens.screen_name,
+            address: (booking as any).screens.address,
+            city: (booking as any).screens.city,
+          },
+        };
+        const contents = Array.isArray(booking.content_uploads) ? booking.content_uploads : [];
+        const withUrls = await Promise.all(contents.map(async (c: any) => ({
+          ...c,
+          file_url: c.file_path ? await getSignedViewUrl('content', c.file_path, 300) : undefined,
+        })));
+        return { ...base, content_uploads: withUrls } as BookingData;
+      }));
 
       setBookings(transformedBookings);
       

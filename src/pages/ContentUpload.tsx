@@ -112,6 +112,7 @@ export default function ContentUpload() {
           bucket: 'content',
           file_name: uploadedFile.file.name,
           content_type: uploadedFile.file.type,
+          content_size: uploadedFile.file.size,
         },
       });
 

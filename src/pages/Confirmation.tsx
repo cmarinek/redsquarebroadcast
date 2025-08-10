@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Navigation } from "@/components/Navigation";
 import { useAuth } from "@/context/AuthContext";
 import { format } from "date-fns";
+import { getSignedViewUrl } from "@/utils/media";
 
 interface BookingDetails {
   id: string;
@@ -20,7 +21,8 @@ interface BookingDetails {
   content: {
     file_name: string;
     file_type: string;
-    file_url: string;
+    file_path: string;
+    file_url?: string;
   };
   scheduled_date: string;
   scheduled_start_time: string;
@@ -91,13 +93,18 @@ export default function Confirmation() {
         .select(`
           *,
           screen:screens(screen_name, address, city),
-          content:content_uploads(file_name, file_type, file_url)
+          content:content_uploads(file_name, file_type, file_path)
         `)
         .eq('id', bookingId)
         .single();
 
       if (error) throw error;
-      setBooking(data);
+      const resolved = data as any;
+      if (resolved?.content?.file_path) {
+        const url = await getSignedViewUrl('content', resolved.content.file_path, 300);
+        if (url) resolved.content.file_url = url;
+      }
+      setBooking(resolved);
     } catch (error) {
       console.error("Error fetching booking:", error);
       toast({
