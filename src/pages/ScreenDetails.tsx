@@ -1,25 +1,21 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { MapPin, Clock, DollarSign, Star, Calendar, Upload, QrCode } from "lucide-react";
+import { MapPin, Clock, DollarSign, Star, Calendar, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { supabase } from "@/integrations/supabase/client";
 import { Navigation } from "@/components/Navigation";
-import QRCode from "react-qr-code";
 
 interface Screen {
   id: string;
-  screen_name: string;
-  address: string;
-  city: string;
-  price_per_hour: number;
-  location_lat: number;
-  location_lng: number;
-  availability_start: string;
-  availability_end: string;
+  screen_name: string | null;
+  location: string | null;
+  pricing_cents: number | null;
+  status: string;
 }
+
 
 export default function ScreenDetails() {
   const { screenId } = useParams();
@@ -106,7 +102,7 @@ export default function ScreenDetails() {
                 </h1>
                 <div className="flex items-center gap-2 text-muted-foreground">
                   <MapPin className="h-4 w-4" />
-                  <span>{screen.address}, {screen.city}</span>
+                  <span>{screen.location || 'Location not specified'}</span>
                 </div>
               </div>
               <div className="flex items-center gap-4">
@@ -117,7 +113,7 @@ export default function ScreenDetails() {
                 <div className="text-right">
                   <div className="text-2xl font-bold flex items-center gap-1">
                     <DollarSign className="h-5 w-5" />
-                    {(screen.price_per_hour / 100).toFixed(2)}
+                    {((screen.pricing_cents || 0) / 100).toFixed(2)}
                   </div>
                   <div className="text-sm text-muted-foreground">per hour</div>
                 </div>
@@ -156,7 +152,7 @@ export default function ScreenDetails() {
                     <div className="flex justify-between items-center">
                       <span className="text-sm font-medium">Operating Hours</span>
                       <span className="text-sm text-muted-foreground">
-                        {screen.availability_start} - {screen.availability_end}
+                        09:00 - 21:00
                       </span>
                     </div>
                     <Separator />
@@ -231,7 +227,7 @@ export default function ScreenDetails() {
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
                       <span>Base rate:</span>
-                      <span>${(screen.price_per_hour / 100).toFixed(2)}/hour</span>
+                      <span>${((screen.pricing_cents || 0) / 100).toFixed(2)}/hour</span>
                     </div>
                     <div className="flex justify-between">
                       <span>Platform fee:</span>
@@ -240,7 +236,7 @@ export default function ScreenDetails() {
                     <Separator />
                     <div className="flex justify-between font-medium">
                       <span>Total (1 hour):</span>
-                      <span>${((screen.price_per_hour * 1.05) / 100).toFixed(2)}</span>
+                      <span>${(((screen.pricing_cents || 0) * 1.05) / 100).toFixed(2)}</span>
                     </div>
                   </div>
 

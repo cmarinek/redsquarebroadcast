@@ -17,9 +17,9 @@ import { useAvailability } from "@/hooks/useAvailability";
 interface Screen {
   id: string;
   screen_name: string;
-  price_per_hour: number;
-  availability_start: string;
-  availability_end: string;
+  pricing_cents: number | null;
+  availability_start?: string | null;
+  availability_end?: string | null;
 }
 
 interface ContentUpload {
@@ -75,8 +75,8 @@ export default function Scheduling() {
     if (!screen) return [];
     
     const slots = [];
-    const start = parseInt(screen.availability_start.split(':')[0]);
-    const end = parseInt(screen.availability_end.split(':')[0]);
+    const start = parseInt((screen.availability_start || '09:00').split(':')[0]);
+    const end = parseInt((screen.availability_end || '21:00').split(':')[0]);
     
     for (let hour = start; hour < end; hour++) {
       slots.push(`${hour.toString().padStart(2, '0')}:00`);
@@ -87,7 +87,7 @@ export default function Scheduling() {
 
   const calculateTotal = () => {
     if (!screen) return 0;
-    const baseAmount = screen.price_per_hour * duration;
+    const baseAmount = (screen.pricing_cents || 0) * duration;
     const platformFee = baseAmount * 0.05;
     return baseAmount + platformFee;
   };
@@ -374,15 +374,15 @@ export default function Scheduling() {
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
                       <span>Base rate:</span>
-                      <span>${(screen.price_per_hour / 100).toFixed(2)} × {duration}</span>
+                      <span>${(((screen.pricing_cents || 0)) / 100).toFixed(2)} × {duration}</span>
                     </div>
                     <div className="flex justify-between">
                       <span>Subtotal:</span>
-                      <span>${((screen.price_per_hour * duration) / 100).toFixed(2)}</span>
+                      <span>${((((screen.pricing_cents || 0)) * duration) / 100).toFixed(2)}</span>
                     </div>
                     <div className="flex justify-between">
                       <span>Platform fee (5%):</span>
-                      <span>${((screen.price_per_hour * duration * 0.05) / 100).toFixed(2)}</span>
+                      <span>${((((screen.pricing_cents || 0)) * duration * 0.05) / 100).toFixed(2)}</span>
                     </div>
                     <Separator />
                     <div className="flex justify-between font-medium text-base">

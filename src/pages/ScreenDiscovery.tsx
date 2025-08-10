@@ -18,14 +18,10 @@ const AnyCircleMarker = CircleMarker as any;
 
 interface Screen {
   id: string;
-  screen_name: string;
-  address: string;
-  city: string;
-  price_per_hour: number;
-  location_lat: number;
-  location_lng: number;
-  availability_start: string;
-  availability_end: string;
+  screen_name: string | null;
+  location: string | null;
+  pricing_cents: number | null;
+  status: string;
 }
 
 export default function ScreenDiscovery() {
@@ -45,11 +41,11 @@ export default function ScreenDiscovery() {
     try {
       const { data, error } = await supabase
         .from("screens")
-        .select("*")
-        .eq("is_active", true);
+        .select("id, screen_name, location, pricing_cents, status")
+        .eq("status", "active");
 
       if (error) throw error;
-      setScreens(data || []);
+      setScreens((data as Screen[]) || []);
     } catch (error) {
       console.error("Error fetching screens:", error);
     } finally {
@@ -80,22 +76,12 @@ export default function ScreenDiscovery() {
   };
 
   const filteredScreens = screens.filter((screen) =>
-    screen.screen_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    screen.address?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    screen.city?.toLowerCase().includes(searchQuery.toLowerCase())
+    (screen.screen_name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (screen.location || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+    screen.id.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const orderedScreens = [...filteredScreens].sort((a, b) => {
-    if (!coords) return 0;
-    const aHas = a.location_lat && a.location_lng;
-    const bHas = b.location_lat && b.location_lng;
-    if (!aHas && !bHas) return 0;
-    if (!aHas) return 1;
-    if (!bHas) return -1;
-    const da = distanceKm(coords, { lat: a.location_lat, lng: a.location_lng });
-    const db = distanceKm(coords, { lat: b.location_lat, lng: b.location_lng });
-    return da - db;
-  });
+  const orderedScreens = [...filteredScreens];
 
   const handleQRScan = () => setShowScanner(true);
 
@@ -153,11 +139,7 @@ export default function ScreenDiscovery() {
             <CardContent className="p-0">
               <div className="h-64 rounded-lg overflow-hidden">
                 <AnyMapContainer
-                  center={coords ? [coords.lat, coords.lng] : (
-                    orderedScreens.length && orderedScreens[0].location_lat && orderedScreens[0].location_lng
-                      ? [orderedScreens[0].location_lat, orderedScreens[0].location_lng]
-                      : [37.7749, -122.4194]
-                  ) as any}
+                  center={coords ? [coords.lat, coords.lng] : [37.7749, -122.4194] as any}
                   zoom={13}
                   style={{ height: '100%', width: '100%' }}
                 >
@@ -175,27 +157,7 @@ export default function ScreenDiscovery() {
                     </AnyCircleMarker>
                   )}
 
-                  {orderedScreens.filter(s => !!s.location_lat && !!s.location_lng).map((s) => (
-                    <AnyCircleMarker
-                      key={s.id}
-                      center={[s.location_lat, s.location_lng] as any}
-                      radius={10}
-                      pathOptions={{ color: 'hsl(var(--primary))', fillColor: 'hsl(var(--primary))', fillOpacity: 0.6 }}
-                    >
-                      <Popup>
-                        <div className="space-y-1">
-                          <div className="font-medium">{s.screen_name || 'Digital Screen'}</div>
-                          <div className="text-sm text-muted-foreground">{s.address}, {s.city}</div>
-                          <button
-                            className="mt-2 inline-flex items-center px-3 py-1 rounded bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))]"
-                            onClick={() => navigate(`/screen/${s.id}`)}
-                          >
-                            View & Book
-                          </button>
-                        </div>
-                      </Popup>
-                    </AnyCircleMarker>
-                  ))}
+                  {/* Screen markers omitted – precise coordinates not available */}
                 </AnyMapContainer>
               </div>
             </CardContent>
@@ -253,7 +215,7 @@ export default function ScreenDiscovery() {
                           </CardTitle>
                           <CardDescription className="flex items-center gap-1 mt-1">
                             <MapPin className="h-4 w-4" />
-                            {screen.address}, {screen.city}
+                            {screen.location || 'Location not specified'}
                           </CardDescription>
                         </div>
                         <Badge variant="secondary">
@@ -266,11 +228,11 @@ export default function ScreenDiscovery() {
                       <div className="flex justify-between items-center mb-4">
                         <div className="flex items-center gap-2 text-sm text-muted-foreground">
                           <Clock className="h-4 w-4" />
-                          {screen.availability_start} - {screen.availability_end}
+                          {`09:00 - 21:00`}
                         </div>
                         <div className="flex items-center gap-1 text-lg font-semibold">
                           <DollarSign className="h-4 w-4" />
-                          {(screen.price_per_hour / 100).toFixed(2)}/hr
+                          {((screen.pricing_cents || 0) / 100).toFixed(2)}/hr
                         </div>
                       </div>
                       <Button 

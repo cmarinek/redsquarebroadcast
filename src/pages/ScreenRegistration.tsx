@@ -40,25 +40,19 @@ const ScreenRegistration = () => {
     setLoading(true);
 
     try {
-      // Generate unique QR code URL
+      // Generate unique ID and QR destination URL
       const screenId = crypto.randomUUID();
-      const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${window.location.origin}/screen/${screenId}`;
 
       const { error } = await supabase
         .from('screens')
         .insert({
           id: screenId,
-          owner_id: user.id,
-          screen_name: formData.screen_name,
-          address: formData.address,
-          city: formData.city,
-          location_lat: formData.location_lat ? parseFloat(formData.location_lat) : null,
-          location_lng: formData.location_lng ? parseFloat(formData.location_lng) : null,
-          price_per_hour: parseInt(formData.price_per_hour) * 100, // Convert to cents
-          availability_start: formData.availability_start,
-          availability_end: formData.availability_end,
-          qr_code_url: qrCodeUrl,
-          is_active: true,
+          owner_user_id: user.id,
+          screen_name: formData.screen_name || null,
+          location: [formData.address, formData.city].filter(Boolean).join(', '),
+          pricing_cents: parseInt(formData.price_per_hour || '0', 10) * 100,
+          currency: 'USD',
+          status: 'active'
         });
 
       if (error) throw error;
@@ -68,8 +62,8 @@ const ScreenRegistration = () => {
         description: "Your screen is now available for booking.",
       });
 
-      navigate('/dashboard');
-    } catch (error) {
+      navigate(`/screen/${screenId}`);
+    } catch (error: any) {
       console.error("Registration error:", error);
       toast({
         title: "Registration failed",
