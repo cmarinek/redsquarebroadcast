@@ -5,7 +5,20 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
+
+// Simple in-memory rate limiter per user per minute
+const RATE_LIMIT = 10;
+const WINDOW_MS = 60 * 1000;
+const rateStore = new Map<string, { count: number; resetAt: number }>();
+function rateLimit(key: string) {
+  const now = Date.now();
+  const e = rateStore.get(key);
+  if (!e || now > e.resetAt) { rateStore.set(key, { count: 1, resetAt: now + WINDOW_MS }); return { allowed: true }; }
+  if (e.count >= RATE_LIMIT) return { allowed: false };
+  e.count += 1; return { allowed: true };
+}
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -33,10 +46,20 @@ serve(async (req) => {
 
     // Parse request body
     const { amount, period_start, period_end } = await req.json();
-    
+
+    // Rate limit
+    const rl = rateLimit(`${user.id}|create-payout`);
+    if (!rl.allowed) {
+      return new Response(JSON.stringify({ error: 'Rate limit exceeded' }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 429 });
+    }
+
     if (!amount || !period_start || !period_end) {
       throw new Error("Missing required fields: amount, period_start, period_end");
     }
+
+    // Idempotency per user+period range
+    const idemKey = `create-payout:${user.id}:${period_start}:${period_end}`;
+    await supabaseClient.from('idempotency_keys').upsert({ idempotency_key: idemKey, function_name: 'create-payout', user_id: user.id, status: 'started' });
 
     // Initialize Stripe
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
@@ -99,7 +122,7 @@ serve(async (req) => {
         payout_request_id: payoutRequest.id,
         message: "Payout request processed successfully"
       }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...corsHeaders, "Content-Type": "application/json", 'Cache-Control': 'no-store' },
         status: 200,
       });
 

@@ -37,6 +37,7 @@ interface ContentModerationItem {
     file_name: string;
     file_type: string;
     file_url: string;
+    file_path?: string;
     file_size: number;
   };
   screen: {
@@ -69,7 +70,7 @@ export const ContentApprovalWorkflows = ({ screens }: ContentApprovalWorkflowsPr
         .from('content_moderation')
         .select(`
           *,
-          content_uploads!inner(file_name, file_type, file_url, file_size),
+          content_uploads!inner(file_name, file_type, file_path, file_size),
           screens!inner(screen_name)
         `);
 
@@ -94,7 +95,17 @@ export const ContentApprovalWorkflows = ({ screens }: ContentApprovalWorkflowsPr
         screen: (item as any).screens
       })) || [];
 
-      setContentItems(processedItems);
+      // Attach signed URLs for previews
+      const { getSignedViewUrl } = await import('@/utils/media');
+      const withUrls = await Promise.all(processedItems.map(async (it) => {
+        let file_url = '';
+        if (it.content?.file_path && (it.content.file_type?.startsWith('image/') || it.content.file_type?.startsWith('video/'))) {
+          file_url = (await getSignedViewUrl('content', it.content.file_path, 300)) || '';
+        }
+        return { ...it, content: { ...it.content, file_url } } as ContentModerationItem;
+      }));
+
+      setContentItems(withUrls);
     } catch (error) {
       console.error("Error fetching moderation items:", error);
       toast({

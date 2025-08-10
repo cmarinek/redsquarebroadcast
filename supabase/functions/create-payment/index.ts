@@ -5,7 +5,28 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
+
+// Simple in-memory rate limiter per IP+user per minute
+const RATE_LIMIT = 20;
+const WINDOW_MS = 60 * 1000;
+const rateStore = new Map<string, { count: number; resetAt: number }>();
+function rateLimit(key: string) {
+  const now = Date.now();
+  const entry = rateStore.get(key);
+  if (!entry || now > entry.resetAt) {
+    rateStore.set(key, { count: 1, resetAt: now + WINDOW_MS });
+    return { allowed: true, remaining: RATE_LIMIT - 1 };
+  }
+  if (entry.count >= RATE_LIMIT) return { allowed: false, remaining: 0 };
+  entry.count += 1;
+  return { allowed: true, remaining: RATE_LIMIT - entry.count };
+}
+
+function makeIdemKey(userId: string, bookingId: string, headerKey?: string | null) {
+  return headerKey && headerKey.length > 0 ? headerKey : `create-payment:${userId}:${bookingId}`;
+}
 
 serve(async (req) => {
   // Handle CORS preflight requests
@@ -38,6 +59,25 @@ serve(async (req) => {
 
     // Get request body
     const { bookingId, successUrl, cancelUrl } = await req.json();
+
+    // Rate limit
+    const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown';
+    const rl = rateLimit(`${ip}|${user.id}|create-payment`);
+    if (!rl.allowed) {
+      return new Response(JSON.stringify({ error: 'Rate limit exceeded' }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 429,
+      });
+    }
+
+    // Idempotency key handling
+    const headerIdem = req.headers.get('Idempotency-Key') || req.headers.get('idempotency-key');
+    const idemKey = makeIdemKey(user.id, bookingId, headerIdem);
+
+    // Try to register idempotency key (best-effort)
+    const { error: idemErr } = await supabaseService
+      .from('idempotency_keys')
+      .insert({ idempotency_key: idemKey, function_name: 'create-payment', user_id: user.id, status: 'started' });
 
     // Get booking details
     const { data: booking, error: bookingError } = await supabaseService
@@ -101,7 +141,7 @@ serve(async (req) => {
         platformFee: platformFee.toString(),
         screenOwnerAmount: screenOwnerAmount.toString(),
       },
-    });
+    }, { idempotencyKey: idemKey });
 
     // Create payment record
     const { error: paymentError } = await supabaseService
@@ -128,8 +168,14 @@ serve(async (req) => {
       })
       .eq('id', booking.id);
 
+    // Mark idempotency as processed (best-effort)
+    await supabaseService
+      .from('idempotency_keys')
+      .update({ status: 'processed', last_seen: new Date().toISOString() })
+      .eq('idempotency_key', idemKey);
+
     return new Response(JSON.stringify({ url: session.url }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      headers: { ...corsHeaders, "Content-Type": "application/json", 'Cache-Control': 'no-store' },
       status: 200,
     });
 

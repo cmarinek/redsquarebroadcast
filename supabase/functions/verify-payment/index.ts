@@ -5,7 +5,20 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
+
+// Simple in-memory rate limiter per IP per minute
+const RATE_LIMIT = 60;
+const WINDOW_MS = 60 * 1000;
+const rateStore = new Map<string, { count: number; resetAt: number }>();
+function rateLimit(key: string) {
+  const now = Date.now();
+  const e = rateStore.get(key);
+  if (!e || now > e.resetAt) { rateStore.set(key, { count: 1, resetAt: now + WINDOW_MS }); return { allowed: true }; }
+  if (e.count >= RATE_LIMIT) return { allowed: false };
+  e.count += 1; return { allowed: true };
+}
 
 serve(async (req) => {
   // Handle CORS preflight requests
@@ -37,6 +50,20 @@ serve(async (req) => {
 
     if (!session) {
       throw new Error("Session not found");
+    }
+
+    // Idempotent check: if already completed, return early
+    const { data: existingPayment } = await supabaseService
+      .from('payments')
+      .select('status')
+      .eq('stripe_session_id', sessionId)
+      .maybeSingle();
+
+    if (existingPayment?.status === 'completed') {
+      return new Response(JSON.stringify({ status: 'completed', session: { id: session.id, payment_status: session.payment_status, amount_total: session.amount_total, currency: session.currency } }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json", 'Cache-Control': 'no-store' },
+        status: 200,
+      });
     }
 
     // Update payment status based on Stripe session
@@ -97,7 +124,7 @@ serve(async (req) => {
         currency: session.currency,
       }
     }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      headers: { ...corsHeaders, "Content-Type": "application/json", 'Cache-Control': 'no-store' },
       status: 200,
     });
 
