@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/context/AuthContext";
@@ -5,7 +6,6 @@ import { useAuth } from "@/context/AuthContext";
 export type UserRole = 'broadcaster' | 'screen_owner' | 'admin';
 
 interface UserProfile {
-  role: UserRole;
   display_name?: string;
   avatar_url?: string;
 }
@@ -13,52 +13,63 @@ interface UserProfile {
 export const useUserRoles = () => {
   const { user } = useAuth();
   const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [roles, setRoles] = useState<UserRole[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!user) {
       setProfile(null);
+      setRoles([]);
       setLoading(false);
       return;
     }
-
-    fetchUserProfile();
+    fetchUserData();
   }, [user]);
 
-  const fetchUserProfile = async () => {
+  const fetchUserData = async () => {
+    setLoading(true);
     try {
-      const { data, error } = await supabase
+      // Fetch minimal profile info
+      const { data: p, error: pErr } = await supabase
         .from('profiles')
-        .select('role, display_name, avatar_url')
+        .select('display_name, avatar_url')
         .eq('user_id', user!.id)
-        .single();
+        .maybeSingle();
+      if (pErr) {
+        console.warn("Error fetching user profile:", pErr);
+      }
+      setProfile(p ?? null);
 
-      if (error) throw error;
-      setProfile(data);
-    } catch (error) {
-      console.error("Error fetching user profile:", error);
-      // Default to broadcaster role if profile doesn't exist
-      setProfile({ role: 'broadcaster' });
+      // Fetch roles from user_roles (multi-role)
+      const { data: r, error: rErr } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', user!.id);
+      if (rErr) {
+        console.warn("Error fetching user roles:", rErr);
+        setRoles([]);
+      } else {
+        const list = (r ?? []).map((row: any) => row.role as UserRole);
+        setRoles(list);
+      }
     } finally {
       setLoading(false);
     }
   };
 
-  const hasRole = (role: UserRole): boolean => {
-    return profile?.role === role;
-  };
-
+  const hasRole = (role: UserRole): boolean => roles.includes(role);
   const isBroadcaster = (): boolean => hasRole('broadcaster');
   const isScreenOwner = (): boolean => hasRole('screen_owner');
   const isAdmin = (): boolean => hasRole('admin');
 
   return {
     profile,
+    roles,
     loading,
     hasRole,
     isBroadcaster,
     isScreenOwner,
     isAdmin,
-    refetch: fetchUserProfile
+    refetch: fetchUserData,
   };
 };

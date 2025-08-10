@@ -11,15 +11,20 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Shield, UserCog, Search } from "lucide-react";
 
 type ProfileRow = {
   user_id: string;
   display_name: string | null;
   avatar_url: string | null;
-  role: UserRole;
+  role: UserRole; // legacy single role on profiles; not used for logic anymore
   created_at?: string;
+};
+
+type RoleRow = {
+  user_id: string;
+  role: UserRole;
 };
 
 const roleLabel: Record<UserRole, string> = {
@@ -45,9 +50,9 @@ export function AdminRoleManager() {
   const { user } = useAuth();
   const { toast } = useToast();
   const [q, setQ] = useState("");
-  const [pendingChange, setPendingChange] = useState<{ user_id: string; newRole: UserRole } | null>(null);
+  const [pendingChange, setPendingChange] = useState<{ user_id: string } | null>(null);
 
-  const { data, isLoading, refetch } = useQuery({
+  const { data: profiles, isLoading: profilesLoading, refetch: refetchProfiles } = useQuery({
     queryKey: ["admin", "profiles"],
     queryFn: async () => {
       console.log("[AdminRoleManager] fetching profiles");
@@ -60,50 +65,108 @@ export function AdminRoleManager() {
     },
     meta: {
       onError: (err: any) => {
-        console.error("[AdminRoleManager] fetch error", err);
+        console.error("[AdminRoleManager] profiles fetch error", err);
       },
     },
   });
 
-  const filtered = useMemo(() => {
-    if (!data) return [];
-    const t = q.trim().toLowerCase();
-    if (!t) return data;
-    return data.filter((p) => {
-      const dn = p.display_name?.toLowerCase() ?? "";
-      return dn.includes(t) || p.user_id.toLowerCase().includes(t) || p.role.toLowerCase().includes(t);
+  const userIds = useMemo(() => (profiles ?? []).map(p => p.user_id), [profiles]);
+
+  const { data: roles, isLoading: rolesLoading, refetch: refetchRoles } = useQuery({
+    queryKey: ["admin", "user_roles", userIds],
+    enabled: userIds.length > 0,
+    queryFn: async () => {
+      console.log("[AdminRoleManager] fetching user_roles for", userIds.length, "users");
+      const { data, error } = await supabase
+        .from("user_roles")
+        .select("user_id, role")
+        .in("user_id", userIds);
+      if (error) throw error;
+      return (data ?? []) as RoleRow[];
+    },
+    meta: {
+      onError: (err: any) => {
+        console.error("[AdminRoleManager] user_roles fetch error", err);
+      },
+    },
+  });
+
+  const rolesByUser = useMemo(() => {
+    const map: Record<string, UserRole[]> = {};
+    (roles ?? []).forEach((row) => {
+      if (!map[row.user_id]) map[row.user_id] = [];
+      map[row.user_id].push(row.role);
     });
-  }, [data, q]);
+    return map;
+  }, [roles]);
 
-  const applyRoleChange = async (targetUserId: string, newRole: UserRole) => {
-    console.log("[AdminRoleManager] update role", { targetUserId, newRole });
-    const { error } = await supabase.from("profiles").update({ role: newRole }).eq("user_id", targetUserId);
-    if (error) {
-      console.error("[AdminRoleManager] update error", error);
-      toast({
-        title: "Failed to change role",
-        description: error.message ?? "Please try again.",
-        variant: "destructive",
-      });
-      return;
+  const filtered = useMemo(() => {
+    if (!profiles) return [];
+    const t = q.trim().toLowerCase();
+    if (!t) return profiles;
+    return profiles.filter((p) => {
+      const dn = p.display_name?.toLowerCase() ?? "";
+      const rolesText = (rolesByUser[p.user_id] ?? []).join(",").toLowerCase();
+      return dn.includes(t) || p.user_id.toLowerCase().includes(t) || rolesText.includes(t);
+    });
+  }, [profiles, q, rolesByUser]);
+
+  const applyToggleRole = async (targetUserId: string, role: UserRole) => {
+    const currentRoles = rolesByUser[targetUserId] ?? [];
+    const isActive = currentRoles.includes(role);
+
+    console.log("[AdminRoleManager] toggle role", { targetUserId, role, isActive });
+
+    if (isActive) {
+      const { error } = await supabase
+        .from("user_roles")
+        .delete()
+        .eq("user_id", targetUserId)
+        .eq("role", role);
+      if (error) {
+        console.error("[AdminRoleManager] delete role error", error);
+        toast({
+          title: "Failed to remove role",
+          description: error.message ?? "Please try again.",
+          variant: "destructive",
+        });
+        return;
+      }
+      toast({ title: "Role removed", description: `${roleLabel[role]} removed` });
+    } else {
+      const { error } = await supabase
+        .from("user_roles")
+        .insert({ user_id: targetUserId, role } as any);
+      if (error) {
+        console.error("[AdminRoleManager] insert role error", error);
+        toast({
+          title: "Failed to add role",
+          description: error.message ?? "Please try again.",
+          variant: "destructive",
+        });
+        return;
+      }
+      toast({ title: "Role added", description: `${roleLabel[role]} granted` });
     }
-    toast({ title: "Role updated", description: `User role set to ${roleLabel[newRole]}` });
-    setPendingChange(null);
-    refetch();
+
+    await Promise.all([refetchRoles(), refetchProfiles()]);
   };
 
-  const confirmChange = (row: ProfileRow, newRole: UserRole) => {
-    // If switching away from admin or affecting self, show confirm dialog
-    if (row.role === "admin" && newRole !== "admin") {
-      setPendingChange({ user_id: row.user_id, newRole });
+  const confirmToggle = (row: ProfileRow, role: UserRole) => {
+    const currentRoles = rolesByUser[row.user_id] ?? [];
+    const isActive = currentRoles.includes(role);
+
+    // Only confirm when removing the admin role
+    if (role === "admin" && isActive) {
+      setPendingChange({ user_id: row.user_id });
       return;
     }
-    if (user?.id === row.user_id && newRole !== "admin") {
-      setPendingChange({ user_id: row.user_id, newRole });
-      return;
-    }
-    applyRoleChange(row.user_id, newRole);
+
+    // If affecting own admin removal, also confirm (handled above as it's removing admin)
+    applyToggleRole(row.user_id, role);
   };
+
+  const isBusy = profilesLoading || rolesLoading;
 
   return (
     <Card className="border-0 shadow-sm">
@@ -113,7 +176,7 @@ export function AdminRoleManager() {
             <UserCog className="w-5 h-5" />
             User Roles
           </CardTitle>
-          <CardDescription>Promote or demote user roles. Only admins can access this.</CardDescription>
+          <CardDescription>Grant or revoke multiple roles per user. Only admins can access this.</CardDescription>
         </div>
         <div className="flex items-center gap-2">
           <div className="relative w-full md:w-72">
@@ -125,7 +188,7 @@ export function AdminRoleManager() {
               className="pl-8"
             />
           </div>
-          <Button variant="outline" onClick={() => refetch()}>Refresh</Button>
+          <Button variant="outline" onClick={() => { refetchProfiles(); refetchRoles(); }}>Refresh</Button>
         </div>
       </CardHeader>
       <CardContent>
@@ -134,74 +197,87 @@ export function AdminRoleManager() {
             <TableHeader>
               <TableRow>
                 <TableHead>User</TableHead>
-                <TableHead>Role</TableHead>
+                <TableHead>Roles</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {isLoading && (
+              {isBusy && (
                 <TableRow>
                   <TableCell colSpan={3}>
                     <div className="animate-pulse h-8 bg-muted rounded" />
                   </TableCell>
                 </TableRow>
               )}
-              {!isLoading && filtered.length === 0 && (
+              {!isBusy && filtered.length === 0 && (
                 <TableRow>
                   <TableCell colSpan={3} className="text-center text-muted-foreground py-6">
                     No users found
                   </TableCell>
                 </TableRow>
               )}
-              {filtered.map((row) => (
-                <TableRow key={row.user_id}>
-                  <TableCell>
-                    <div className="flex items-center gap-3">
-                      <Avatar className="h-8 w-8">
-                        <AvatarImage src={row.avatar_url ?? undefined} />
-                        <AvatarFallback>
-                          {(row.display_name?.[0] ?? row.user_id?.[0] ?? "U").toUpperCase()}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <div className="font-medium">{row.display_name ?? "Anonymous"}</div>
-                        <div className="text-xs text-muted-foreground">{row.user_id}</div>
+              {filtered.map((row) => {
+                const userRoles = rolesByUser[row.user_id] ?? [];
+                const isBroadcaster = userRoles.includes("broadcaster");
+                const isScreenOwner = userRoles.includes("screen_owner");
+                const isAdmin = userRoles.includes("admin");
+                return (
+                  <TableRow key={row.user_id}>
+                    <TableCell>
+                      <div className="flex items-center gap-3">
+                        <Avatar className="h-8 w-8">
+                          <AvatarImage src={row.avatar_url ?? undefined} />
+                          <AvatarFallback>
+                            {(row.display_name?.[0] ?? row.user_id?.[0] ?? "U").toUpperCase()}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <div className="font-medium">{row.display_name ?? "Anonymous"}</div>
+                          <div className="text-xs text-muted-foreground">{row.user_id}</div>
+                        </div>
                       </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant={roleBadgeVariant(row.role)} className="capitalize">
-                      {roleLabel[row.role]}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex items-center justify-end gap-2">
-                      <Button
-                        variant={row.role === "broadcaster" ? "default" : "outline"}
-                        size="sm"
-                        onClick={() => confirmChange(row, "broadcaster")}
-                      >
-                        Broadcaster
-                      </Button>
-                      <Button
-                        variant={row.role === "screen_owner" ? "default" : "outline"}
-                        size="sm"
-                        onClick={() => confirmChange(row, "screen_owner")}
-                      >
-                        Screen Owner
-                      </Button>
-                      <Button
-                        variant={row.role === "admin" ? "default" : "outline"}
-                        size="sm"
-                        onClick={() => confirmChange(row, "admin")}
-                      >
-                        <Shield className="h-4 w-4 mr-1" />
-                        Admin
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex flex-wrap gap-1">
+                        {userRoles.length === 0 && (
+                          <Badge variant="outline" className="capitalize">None</Badge>
+                        )}
+                        {userRoles.map((r) => (
+                          <Badge key={r} variant={roleBadgeVariant(r)} className="capitalize">
+                            {roleLabel[r]}
+                          </Badge>
+                        ))}
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex items-center justify-end gap-2">
+                        <Button
+                          variant={isBroadcaster ? "default" : "outline"}
+                          size="sm"
+                          onClick={() => confirmToggle(row, "broadcaster")}
+                        >
+                          Broadcaster
+                        </Button>
+                        <Button
+                          variant={isScreenOwner ? "default" : "outline"}
+                          size="sm"
+                          onClick={() => confirmToggle(row, "screen_owner")}
+                        >
+                          Screen Owner
+                        </Button>
+                        <Button
+                          variant={isAdmin ? "default" : "outline"}
+                          size="sm"
+                          onClick={() => confirmToggle(row, "admin")}
+                        >
+                          <Shield className="h-4 w-4 mr-1" />
+                          Admin
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
             </TableBody>
           </Table>
         </div>
@@ -210,9 +286,9 @@ export function AdminRoleManager() {
       <AlertDialog open={!!pendingChange} onOpenChange={(open) => !open && setPendingChange(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Confirm role change</AlertDialogTitle>
+            <AlertDialogTitle>Confirm admin removal</AlertDialogTitle>
             <AlertDialogDescription>
-              You are changing an Admin to a non-admin role. If this is the last admin, the change will be blocked.
+              You are removing the Admin role. If this is the last admin, the change will be blocked.
               Proceed?
             </AlertDialogDescription>
           </AlertDialogHeader>
@@ -221,7 +297,7 @@ export function AdminRoleManager() {
             <AlertDialogAction
               onClick={() => {
                 if (pendingChange) {
-                  applyRoleChange(pendingChange.user_id, pendingChange.newRole);
+                  applyToggleRole(pendingChange.user_id, "admin");
                 }
               }}
             >
