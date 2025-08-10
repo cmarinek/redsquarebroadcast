@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { 
   Users, 
@@ -59,6 +59,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { 
   DropdownMenu,
   DropdownMenuContent,
@@ -185,27 +186,36 @@ const AdminDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("overview");
+  
+  // Prevent repeated fetching and allow suspending on error
+  const fetchAttemptedRef = useRef(false);
+  const fetchSuspendedRef = useRef(false);
+  const [dataUnavailable, setDataUnavailable] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user) {
       navigate('/auth');
       return;
     }
-    
-    if (!rolesLoading && !isAdmin()) {
+
+    if (rolesLoading) return;
+
+    const admin = isAdmin();
+    if (!admin) {
       navigate('/');
       toast({
         title: "Access Denied",
         description: "You don't have admin privileges.",
-        variant: "destructive"
+        variant: "destructive",
       });
       return;
     }
-    
-    if (!rolesLoading && isAdmin()) {
-      fetchAdminData();
-    }
-  }, [user, isAdmin, rolesLoading, navigate]);
+
+    if (fetchSuspendedRef.current || fetchAttemptedRef.current) return;
+    fetchAttemptedRef.current = true;
+    fetchAdminData();
+  }, [user?.id, rolesLoading, navigate]);
+
 
   const fetchAdminData = async () => {
     try {
@@ -406,11 +416,11 @@ const AdminDashboard = () => {
       setBookings(processedBookings);
     } catch (error) {
       console.error("Error fetching admin data:", error);
-      toast({
-        title: "Error loading data",
-        description: "Please try again.",
-        variant: "destructive"
-      });
+      // Graceful fallback: show empty dashboard and suspend further fetches until reload
+      fetchSuspendedRef.current = true;
+      setDataUnavailable(
+        "Admin data sources are not initialized yet (e.g., analytics function or tables). Showing placeholders and stopping further fetches until you reload."
+      );
     } finally {
       setLoading(false);
     }
@@ -528,10 +538,10 @@ const AdminDashboard = () => {
 
   const getSeverityColor = (severity: 'low' | 'medium' | 'high' | 'critical') => {
     switch (severity) {
-      case 'low': return 'bg-blue-50 text-blue-700 border-blue-200';
-      case 'medium': return 'bg-yellow-50 text-yellow-700 border-yellow-200';
-      case 'high': return 'bg-orange-50 text-orange-700 border-orange-200';
-      case 'critical': return 'bg-red-50 text-red-700 border-red-200';
+      case 'low': return 'border';
+      case 'medium': return 'border';
+      case 'high': return 'border';
+      case 'critical': return 'border';
     }
   };
 
@@ -729,6 +739,16 @@ const AdminDashboard = () => {
             </Button>
           </div>
         </div>
+
+        {dataUnavailable && (
+          <div className="mb-6">
+            <Alert>
+              <AlertTriangle className="h-4 w-4" />
+              <AlertTitle>Limited dashboard data</AlertTitle>
+              <AlertDescription>{dataUnavailable}</AlertDescription>
+            </Alert>
+          </div>
+        )}
 
         {/* Stats Grid */}
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4 mb-8">
