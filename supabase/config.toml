@@ -46,3 +46,13 @@ verify_jwt = true
 
 [functions.device-metrics]
 verify_jwt = false
+
+# Phase 4.2 additions
+[functions.device-commands]
+verify_jwt = false
+
+[functions.device-settings]
+verify_jwt = false
+
+[functions.tv-crash-report]
+verify_jwt = false

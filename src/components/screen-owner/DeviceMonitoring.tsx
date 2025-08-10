@@ -18,6 +18,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
@@ -65,6 +66,7 @@ export const DeviceMonitoring = ({ screens }: DeviceMonitoringProps) => {
   const [systemAlerts, setSystemAlerts] = useState<SystemAlert[]>([]);
   const [loading, setLoading] = useState(false);
   const [latestMetric, setLatestMetric] = useState<{ bandwidth_kbps?: number; buffer_seconds?: number; bitrate_kbps?: number; created_at?: string } | null>(null);
+  const [loadUrl, setLoadUrl] = useState<string>('');
 
   useEffect(() => {
     if (screens.length > 0 && !selectedScreen) {
@@ -189,6 +191,30 @@ export const DeviceMonitoring = ({ screens }: DeviceMonitoringProps) => {
     });
   };
 
+  const sendCommand = async (command: 'play' | 'pause' | 'load', payload?: any) => {
+    if (!selectedScreen) {
+      toast({ title: 'Select a screen first', variant: 'destructive' });
+      return;
+    }
+    try {
+      const { error } = await supabase.functions.invoke('device-commands', {
+        body: { action: 'enqueue', screen_id: selectedScreen, command, payload },
+      });
+      if (error) throw error;
+      toast({ title: 'Command sent', description: command.toUpperCase() });
+    } catch (e: any) {
+      toast({ title: 'Failed to send command', description: e?.message || 'Error', variant: 'destructive' });
+    }
+  };
+
+  const handleLoad = async () => {
+    if (!loadUrl) {
+      toast({ title: 'Enter a media URL', variant: 'destructive' });
+      return;
+    }
+    await sendCommand('load', { url: loadUrl });
+  };
+
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'online':
@@ -293,6 +319,27 @@ export const DeviceMonitoring = ({ screens }: DeviceMonitoringProps) => {
 
       {currentScreen && (
         <>
+          {/* Remote Control */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Settings className="h-5 w-5" />
+                Remote Control
+              </CardTitle>
+              <CardDescription>Send simple commands to this screen</CardDescription>
+            </CardHeader>
+            <CardContent className="flex flex-col md:flex-row gap-3">
+              <div className="flex gap-3">
+                <Button variant="secondary" onClick={() => sendCommand('play')}>Play</Button>
+                <Button variant="outline" onClick={() => sendCommand('pause')}>Pause</Button>
+              </div>
+              <div className="flex-1 flex gap-3">
+                <Input placeholder="Media URL (.m3u8, .mpd, .mp4, image)" value={loadUrl} onChange={(e)=>setLoadUrl(e.target.value)} />
+                <Button onClick={handleLoad}>Load</Button>
+              </div>
+            </CardContent>
+          </Card>
+
           {/* Device Status Overview */}
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
             <Card>

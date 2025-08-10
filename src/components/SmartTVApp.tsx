@@ -54,6 +54,36 @@ export function SmartTVApp() {
     document.title = 'Red Square Smart TV | HLS Player & Pairing';
   }, []);
 
+  // Global crash reporting
+  useEffect(() => {
+    const onError = (e: ErrorEvent) => {
+      supabase.functions.invoke('tv-crash-report', {
+        body: {
+          device_id: deviceIdRef.current,
+          screen_id: tvState.screenId || null,
+          message: e.message,
+          stack: e.error?.stack || null,
+          context: { source: e.filename, lineno: e.lineno, colno: e.colno },
+        },
+      }).catch(() => {});
+    };
+    const onRejection = (e: PromiseRejectionEvent) => {
+      supabase.functions.invoke('tv-crash-report', {
+        body: {
+          device_id: deviceIdRef.current,
+          screen_id: tvState.screenId || null,
+          message: e.reason?.message || 'unhandledrejection',
+          stack: e.reason?.stack || null,
+        },
+      }).catch(() => {});
+    };
+    window.addEventListener('error', onError);
+    window.addEventListener('unhandledrejection', onRejection);
+    return () => {
+      window.removeEventListener('error', onError);
+      window.removeEventListener('unhandledrejection', onRejection);
+    };
+  }, [tvState.screenId]);
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const p = params.get('pair');
@@ -169,6 +199,12 @@ export function SmartTVApp() {
     };
   }, [tvState.currentContent, tvState.isPlaying]);
 
+  // Apply volume to video element
+  useEffect(() => {
+    const v = videoRef.current;
+    if (v) v.volume = Math.max(0, Math.min(1, tvState.volume / 100));
+  }, [tvState.volume]);
+
   // Polling fallback to fetch the latest scheduled content for this screen
   useEffect(() => {
     if (!tvState.isConnected || !tvState.screenId) return;
@@ -202,6 +238,56 @@ export function SmartTVApp() {
       canceled = true;
       clearInterval(id);
     };
+  }, [tvState.isConnected, tvState.screenId]);
+  
+  // Fetch settings once connected
+  useEffect(() => {
+    if (!tvState.isConnected || !tvState.screenId) return;
+    supabase.functions.invoke('device-settings', {
+      body: { mode: 'get', device_id: deviceIdRef.current, screen_id: tvState.screenId },
+    }).then(({ data }: any) => {
+      const s = data?.settings || {};
+      if (typeof s.volume === 'number') setTvState((prev) => ({ ...prev, volume: s.volume }));
+      if (typeof s.brightness === 'number') setTvState((prev) => ({ ...prev, brightness: s.brightness }));
+    }).catch(() => {});
+  }, [tvState.isConnected, tvState.screenId]);
+
+  // Command polling loop
+  useEffect(() => {
+    if (!tvState.isConnected || !tvState.screenId) return;
+    let cancelled = false;
+    const poll = async () => {
+      try {
+        const { data, error } = await supabase.functions.invoke('device-commands', {
+          body: { action: 'poll', device_id: deviceIdRef.current, screen_id: tvState.screenId },
+        });
+        if (!error) {
+          const commands = (data?.commands || []) as Array<{ id: string; command: string; payload?: any }>;
+          const ackIds: string[] = [];
+          for (const c of commands) {
+            const cmd = (c.command || '').toLowerCase();
+            if (cmd === 'play') {
+              setTvState((prev) => ({ ...prev, isPlaying: true }));
+              sdkRef.current?.play();
+            } else if (cmd === 'pause') {
+              setTvState((prev) => ({ ...prev, isPlaying: false }));
+              sdkRef.current?.pause();
+            } else if (cmd === 'load' && c.payload?.url) {
+              setTvState((prev) => ({ ...prev, currentContent: c.payload.url, isPlaying: true }));
+            }
+            ackIds.push(c.id);
+          }
+          if (ackIds.length) {
+            await supabase.functions.invoke('device-commands', {
+              body: { action: 'ack', device_id: deviceIdRef.current, ack_ids: ackIds },
+            });
+          }
+        }
+      } catch {}
+      if (!cancelled) setTimeout(poll, 5000);
+    };
+    poll();
+    return () => { cancelled = true; };
   }, [tvState.isConnected, tvState.screenId]);
   
   // TV remote focus management for Android TV remotes (D-pad)
