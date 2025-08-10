@@ -182,6 +182,78 @@ export type Database = {
         }
         Relationships: []
       }
+      idempotency_keys: {
+        Row: {
+          created_at: string
+          function_name: string
+          idempotency_key: string
+          last_seen: string
+          request_hash: string | null
+          status: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          function_name: string
+          idempotency_key: string
+          last_seen?: string
+          request_hash?: string | null
+          status?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          function_name?: string
+          idempotency_key?: string
+          last_seen?: string
+          request_hash?: string | null
+          status?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      media_jobs: {
+        Row: {
+          attempts: number
+          bucket: string
+          created_at: string
+          file_path: string
+          id: string
+          job_type: string
+          last_error: string | null
+          metadata: Json | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          attempts?: number
+          bucket: string
+          created_at?: string
+          file_path: string
+          id?: string
+          job_type: string
+          last_error?: string | null
+          metadata?: Json | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          attempts?: number
+          bucket?: string
+          created_at?: string
+          file_path?: string
+          id?: string
+          job_type?: string
+          last_error?: string | null
+          metadata?: Json | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -295,7 +367,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      purge_old_event_logs: {
+        Args: { days_old?: number }
+        Returns: number
+      }
     }
     Enums: {
       [_ in never]: never
