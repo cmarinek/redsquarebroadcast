@@ -32,6 +32,8 @@ import { ScreenNetworkManagement } from "@/components/screen-owner/ScreenNetwork
 import { ContentApprovalWorkflows } from "@/components/screen-owner/ContentApprovalWorkflows";
 import { PayoutManagement } from "@/components/screen-owner/PayoutManagement";
 import { AvailabilityManager } from "@/components/screen-owner/AvailabilityManager";
+import { useUserRoles } from "@/hooks/useUserRoles";
+import AdminRoleManager from "@/components/admin/AdminRoleManager";
 
 interface ScreenData {
   id: string;
@@ -60,6 +62,7 @@ const ScreenOwnerDashboard = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { user } = useAuth();
+  const { isAdmin } = useUserRoles();
   const [screens, setScreens] = useState<ScreenData[]>([]);
   const [stats, setStats] = useState<DashboardStats>({
     totalScreens: 0,
@@ -294,6 +297,7 @@ const ScreenOwnerDashboard = () => {
             <TabsTrigger value="content">Content</TabsTrigger>
             <TabsTrigger value="availability">Availability</TabsTrigger>
             <TabsTrigger value="payouts">Payouts</TabsTrigger>
+            {isAdmin() && <TabsTrigger value="admin">Admin</TabsTrigger>}
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6">
@@ -384,25 +388,8 @@ const ScreenOwnerDashboard = () => {
             <PayoutManagement screens={screens} />
           </TabsContent>
 
-          <TabsContent value="analytics" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Detailed Analytics</CardTitle>
-                <CardDescription>Coming soon - Advanced analytics and reporting</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="text-center py-12">
-                  <BarChart3 className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold mb-2">Advanced Analytics</h3>
-                  <p className="text-muted-foreground mb-4">
-                    Detailed performance metrics, trend analysis, and revenue forecasting
-                  </p>
-                  <Button variant="outline" disabled>
-                    Coming Soon
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+          <TabsContent value="admin" className="space-y-6">
+            <AdminRoleManager />
           </TabsContent>
         </Tabs>
       </div>
