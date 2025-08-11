@@ -206,8 +206,9 @@ const ProductionPlan = () => {
           </div>
           {(() => {
             const phase4 = phases.find(p => p.phase.startsWith("Phase 4"));
-            const external = phase4?.items.find(i => i.category.includes("Remaining (External Infra)"));
+            const external = phase4?.items.find(i => i.category.includes("External Infra"));
             const tasks = external?.tasks || [];
+            if (!phase4 || phase4.status.toLowerCase() === 'completed' || tasks.length === 0) return null;
             return (
               <Card>
                 <CardHeader>
@@ -228,6 +229,7 @@ const ProductionPlan = () => {
               </Card>
             );
           })()}
+
         </div>
       </section>
 
