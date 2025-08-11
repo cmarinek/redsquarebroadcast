@@ -26,6 +26,14 @@ interface PerfEntry {
   details: Record<string, any>;
 }
 
+interface FrontendError {
+  id: string;
+  created_at: string;
+  message: string;
+  path: string | null;
+  user_agent: string | null;
+}
+
 const METRICS = ['LCP', 'FID', 'CLS', 'INP', 'FCP', 'TTFB'] as const;
 
 type Timeframe = '24h' | '7d';
@@ -36,6 +44,7 @@ export default function AdminPerformance() {
   const [loading, setLoading] = useState(false);
   const [series, setSeries] = useState<any[]>([]);
   const [tests, setTests] = useState<PerfEntry[]>([]);
+  const [errors, setErrors] = useState<FrontendError[]>([]);
   const [paths, setPaths] = useState<string[]>(['All']);
   const [selectedPath, setSelectedPath] = useState<string>('All');
   const { user } = useAuth();
@@ -109,6 +118,13 @@ const loadData = async () => {
 
     const lt = await supabase.functions.invoke('load-test', { body: { action: 'summary' } });
     setTests((lt.data?.data as any[]) || []);
+
+    const { data: errs } = await supabase
+      .from('frontend_errors')
+      .select('id, created_at, message, path, user_agent')
+      .order('created_at', { ascending: false })
+      .limit(10);
+    setErrors((errs as any[]) || []);
   } catch (e: any) {
     console.error('load perf data error', e);
     toast.error('Failed to load performance data');
@@ -244,6 +260,30 @@ const checkAlerts = async () => {
           </div>
         ))}
         {latest.length === 0 && <div className="text-sm text-muted-foreground">No tests yet.</div>}
+      </div>
+    </CardContent>
+  </Card>
+</div>
+
+<div className="mt-4 grid grid-cols-1">
+  <Card>
+    <CardHeader>
+      <CardTitle className="text-lg">Recent Frontend Errors</CardTitle>
+    </CardHeader>
+    <CardContent>
+      <div className="space-y-3">
+        {errors.map((e) => (
+          <div key={e.id} className="p-3 rounded-md border border-border">
+            <div className="flex items-center justify-between">
+              <div className="font-medium">{format(new Date(e.created_at), 'MMM d, HH:mm')}</div>
+              <div className="text-xs text-muted-foreground truncate max-w-[60%]">{e.path || 'unknown path'}</div>
+            </div>
+            <div className="text-sm text-destructive mt-1 line-clamp-2">{e.message}</div>
+          </div>
+        ))}
+        {errors.length === 0 && (
+          <div className="text-sm text-muted-foreground">No errors captured in the last samples.</div>
+        )}
       </div>
     </CardContent>
   </Card>

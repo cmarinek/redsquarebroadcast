@@ -2,6 +2,7 @@ import { createRoot } from 'react-dom/client'
 import App from './App.tsx'
 import './index.css'
 import { initWebVitals } from '@/utils/telemetry'
+import { initErrorReporting } from '@/utils/errorReporting'
 import { cleanupAuthState } from '@/utils/authCleanup'
 import { supabase, SUPABASE_PROJECT_REF } from '@/integrations/supabase/client'
 
@@ -27,3 +28,5 @@ createRoot(document.getElementById("root")!).render(<App />);
 
 // Initialize frontend performance telemetry
 initWebVitals(0.25);
+// Initialize client-side error reporting (sampled)
+initErrorReporting(0.5);

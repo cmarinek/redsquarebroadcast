@@ -56,3 +56,7 @@ verify_jwt = false
 
 [functions.tv-crash-report]
 verify_jwt = false
+
+[functions.frontend-error]
+verify_jwt = false
+

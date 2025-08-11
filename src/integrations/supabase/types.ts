@@ -563,6 +563,39 @@ export type Database = {
         }
         Relationships: []
       }
+      frontend_errors: {
+        Row: {
+          created_at: string
+          id: string
+          message: string
+          path: string | null
+          session_id: string | null
+          stack: string | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          message: string
+          path?: string | null
+          session_id?: string | null
+          stack?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          message?: string
+          path?: string | null
+          session_id?: string | null
+          stack?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       frontend_metrics: {
         Row: {
           client_ip: string | null
