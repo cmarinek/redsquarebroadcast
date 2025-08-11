@@ -158,6 +158,27 @@ export type Database = {
         }
         Relationships: []
       }
+      api_rate_limits: {
+        Row: {
+          count: number
+          key: string
+          last_request_at: string
+          window_start: string
+        }
+        Insert: {
+          count?: number
+          key: string
+          last_request_at?: string
+          window_start: string
+        }
+        Update: {
+          count?: number
+          key?: string
+          last_request_at?: string
+          window_start?: string
+        }
+        Relationships: []
+      }
       app_settings: {
         Row: {
           key: string
@@ -241,6 +262,54 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      bookings_archive: {
+        Row: {
+          amount_cents: number | null
+          content_upload_id: string
+          created_at: string
+          currency: string
+          duration_minutes: number
+          id: string
+          payment_status: string
+          screen_id: string
+          start_time: string
+          status: string
+          stripe_session_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount_cents?: number | null
+          content_upload_id: string
+          created_at?: string
+          currency?: string
+          duration_minutes: number
+          id?: string
+          payment_status?: string
+          screen_id: string
+          start_time: string
+          status?: string
+          stripe_session_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount_cents?: number | null
+          content_upload_id?: string
+          created_at?: string
+          currency?: string
+          duration_minutes?: number
+          id?: string
+          payment_status?: string
+          screen_id?: string
+          start_time?: string
+          status?: string
+          stripe_session_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       content_schedule: {
         Row: {
@@ -1046,9 +1115,35 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      mv_screen_activity: {
+        Row: {
+          bookings_7d: number | null
+          last_booking_at: string | null
+          revenue_7d_cents: number | null
+          screen_id: string | null
+          total_bookings: number | null
+          total_revenue_cents: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bookings_screen_id_fkey"
+            columns: ["screen_id"]
+            isOneToOne: false
+            referencedRelation: "screens"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
+      archive_old_bookings: {
+        Args: { days_old?: number }
+        Returns: number
+      }
+      check_rate_limit: {
+        Args: { _key: string; _limit: number; _window_seconds: number }
+        Returns: boolean
+      }
       create_security_alert: {
         Args: {
           alert_type: string
@@ -1120,6 +1215,10 @@ export type Database = {
           metadata?: Json
         }
         Returns: string
+      }
+      refresh_mv_screen_activity: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
       }
       resolve_security_alert: {
         Args: { alert_id: string; resolved_by_user_id?: string }
