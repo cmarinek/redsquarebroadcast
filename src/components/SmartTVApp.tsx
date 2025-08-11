@@ -481,7 +481,7 @@ export function SmartTVApp() {
             <div className="text-center">
               <p className="text-sm text-muted-foreground mb-2">Scan to open pairing</p>
               <div className="inline-block p-3 rounded-lg border">
-                <QRCode value={`${window.location.origin}/device-setup?device_id=${encodeURIComponent(deviceId)}`} size={128} />
+                <QRCode value={`${window.location.origin}/device-setup?device_id=${encodeURIComponent(deviceId)}&pair=${encodeURIComponent(tvState.connectionCode)}`} size={128} />
               </div>
               <p className="text-xs text-muted-foreground mt-2">Open on your phone to generate or enter the pairing code</p>
             </div>
