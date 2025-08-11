@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
@@ -48,6 +49,9 @@ export default function AdminPerformance() {
   const [paths, setPaths] = useState<string[]>(['All']);
   const [selectedPath, setSelectedPath] = useState<string>('All');
   const { user } = useAuth();
+  const [recipientEmail, setRecipientEmail] = useState<string>('');
+  const [lastAlertSummary, setLastAlertSummary] = useState<any | null>(null);
+  const [autoCheck, setAutoCheck] = useState<boolean>(false);
 
   useEffect(() => {
     document.title = 'Performance Dashboard | RedSquare';
@@ -150,10 +154,11 @@ const runLoadTest = async () => {
 const checkAlerts = async () => {
   try {
     toast.info('Checking alerts...');
-    const email = user?.email as string | undefined;
-    const res = await supabase.functions.invoke('perf-alerts', { body: { to: email } });
+    const to = (recipientEmail || user?.email || '').trim();
+    const res = await supabase.functions.invoke('perf-alerts', { body: { to: to || undefined } });
     if (res.error) throw res.error;
     const breaches = (res.data?.breaches as any[]) || [];
+    setLastAlertSummary(res.data?.summary || null);
     if (breaches.length > 0) toast.warning(`${breaches.length} alert(s): ${breaches.join('; ')}`);
     else toast.success('No alert thresholds breached');
   } catch (e: any) {
@@ -179,6 +184,20 @@ const checkAlerts = async () => {
   };
 
   useEffect(() => { loadData(); }, [metric, timeframe, selectedPath]);
+
+  useEffect(() => {
+    const local = localStorage.getItem('perf_alert_recipient');
+    setRecipientEmail(local || user?.email || '');
+  }, [user?.email]);
+
+  useEffect(() => {
+    let id: any;
+    if (autoCheck) {
+      id = setInterval(() => { checkAlerts(); }, 60 * 60 * 1000); // hourly
+    }
+    return () => { if (id) clearInterval(id); };
+  }, [autoCheck, recipientEmail]);
+
 
   const latest = useMemo(() => tests.slice(0, 5), [tests]);
 
@@ -239,9 +258,39 @@ const checkAlerts = async () => {
 
   <Card>
     <CardHeader>
-      <CardTitle className="text-lg">Synthetic Load Tests</CardTitle>
+      <CardTitle className="text-lg">Synthetic Load Tests & Alerts</CardTitle>
     </CardHeader>
     <CardContent>
+      <div className="space-y-3 mb-4">
+        <div className="flex items-center gap-2">
+          <Input
+            placeholder="Alert recipient email"
+            value={recipientEmail}
+            onChange={(e) => setRecipientEmail(e.target.value)}
+          />
+          <Button
+            variant="outline"
+            onClick={() => {
+              localStorage.setItem('perf_alert_recipient', recipientEmail.trim());
+              toast.success('Recipient saved');
+            }}
+          >
+            Save
+          </Button>
+          <Button
+            variant={autoCheck ? 'secondary' : 'outline'}
+            onClick={() => setAutoCheck((v) => !v)}
+          >
+            {autoCheck ? 'Auto-check ON' : 'Auto-check OFF'}
+          </Button>
+        </div>
+        {lastAlertSummary && (
+          <div className="text-sm text-muted-foreground">
+            <div>p95 LCP: {lastAlertSummary?.lcp?.p95 ?? '—'} ms | p95 INP: {lastAlertSummary?.inp?.p95 ?? '—'} ms</div>
+            <div>CLS p95: {lastAlertSummary?.cls?.p95 ?? '—'} | Avg load test: {lastAlertSummary?.load_test?.avg_ms ?? '—'} ms</div>
+          </div>
+        )}
+      </div>
       <div className="flex flex-wrap items-center justify-between mb-4 gap-2">
         <div className="flex items-center gap-2">
           <Button onClick={runLoadTest}>Run Load Test</Button>
