@@ -44,6 +44,7 @@ import {
   Info,
   CheckSquare
 } from "lucide-react";
+import { Link } from "react-router-dom";
 import { AdminSystemHealth } from "@/components/admin/AdminSystemHealth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -729,6 +730,11 @@ const AdminDashboard = () => {
             </p>
           </div>
           <div className="flex items-center gap-3">
+            <Button variant="outline" size="lg" asChild>
+              <Link to="/admin/performance">
+                <BarChart3 className="h-4 w-4 mr-2" /> Performance
+              </Link>
+            </Button>
             <Button variant="outline" size="lg">
               <Download className="h-4 w-4 mr-2" />
               Export Data

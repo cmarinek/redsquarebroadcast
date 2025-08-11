@@ -86,6 +86,24 @@ serve(async (req) => {
       breaches,
     };
 
+    // Persist breaches to admin_security_alerts (aggregate entry)
+    if (breaches.length > 0) {
+      try {
+        await supabase.rpc('create_security_alert', {
+          alert_type: 'performance',
+          severity: 'warning',
+          title: `Performance threshold breaches (${breaches.length})`,
+          message: breaches.join('; '),
+          affected_user_id: null,
+          ip_address: null,
+          user_agent: null,
+          metadata: payload as any,
+        });
+      } catch (e) {
+        console.warn('perf-alerts create_security_alert failed', e);
+      }
+    }
+
     // Optionally send email
     const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
     if (RESEND_API_KEY && to && breaches.length > 0) {
@@ -101,7 +119,7 @@ serve(async (req) => {
         const emailRes = await resend.emails.send({
           from: "RedSquare Alerts <alerts@redsquare.app>",
           to: [to],
-          subject: `Perf Alerts: ${breaches.length} breach(es)` ,
+          subject: `Perf Alerts: ${breaches.length} breach(es)`,
           html,
         });
         console.log("perf-alerts email sent", emailRes);

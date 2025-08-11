@@ -10,6 +10,8 @@ import { format } from 'date-fns';
 import { toast } from 'sonner';
 import { Navigation } from '@/components/Navigation';
 import { useAuth } from '@/context/AuthContext';
+import { Link } from 'react-router-dom';
+import { timeApi } from '@/utils/apm';
 
 interface FrontendMetricRow {
   created_at: string;
@@ -35,7 +37,7 @@ interface FrontendError {
   user_agent: string | null;
 }
 
-const METRICS = ['LCP', 'FID', 'CLS', 'INP', 'FCP', 'TTFB'] as const;
+const METRICS = ['LCP', 'FID', 'CLS', 'INP', 'FCP', 'TTFB', 'API_MS', 'REBUF_COUNT', 'BUFFER_S', 'BITRATE_Kbps'] as const;
 
 type Timeframe = '24h' | '7d';
 
@@ -52,6 +54,8 @@ export default function AdminPerformance() {
   const [recipientEmail, setRecipientEmail] = useState<string>('');
   const [lastAlertSummary, setLastAlertSummary] = useState<any | null>(null);
   const [autoCheck, setAutoCheck] = useState<boolean>(false);
+  const [perfBreaches, setPerfBreaches] = useState<any[]>([]);
+  const [healthChecks, setHealthChecks] = useState<any[]>([]);
 
   useEffect(() => {
     document.title = 'Performance Dashboard | RedSquare';
@@ -73,11 +77,14 @@ const loadData = async () => {
     if (timeframe === '24h') since.setDate(since.getDate() - 1);
     else since.setDate(since.getDate() - 7);
 
-    const { data, error } = await supabase
-      .from('frontend_metrics')
-      .select('created_at, metric_name, value, path, navigation_type')
-      .gte('created_at', since.toISOString())
-      .order('created_at', { ascending: true });
+    const { data, error } = await timeApi('admin_perf_frontend_metrics', () =>
+      supabase
+        .from('frontend_metrics')
+        .select('created_at, metric_name, value, path, navigation_type')
+        .gte('created_at', since.toISOString())
+        .order('created_at', { ascending: true })
+        .then((r) => r as any)
+    );
     if (error) throw error;
 
     const filtered = (data || []).filter((d: any) => d.metric_name === metric);
@@ -120,7 +127,9 @@ const loadData = async () => {
     points.sort((a, b) => a.time.localeCompare(b.time));
     setSeries(points);
 
-    const lt = await supabase.functions.invoke('load-test', { body: { action: 'summary' } });
+    const lt = await timeApi('admin_perf_load_test_summary', () =>
+      supabase.functions.invoke('load-test', { body: { action: 'summary' } })
+    );
     setTests((lt.data?.data as any[]) || []);
 
     const { data: errs } = await supabase
@@ -129,6 +138,21 @@ const loadData = async () => {
       .order('created_at', { ascending: false })
       .limit(10);
     setErrors((errs as any[]) || []);
+
+    const { data: alerts } = await supabase
+      .from('admin_security_alerts')
+      .select('id, created_at, severity, title, message')
+      .eq('alert_type', 'performance')
+      .order('created_at', { ascending: false })
+      .limit(5);
+    setPerfBreaches(alerts as any[] || []);
+
+    const { data: health } = await supabase
+      .from('admin_system_health')
+      .select('service_name, status, response_time_ms, created_at')
+      .order('created_at', { ascending: false })
+      .limit(5);
+    setHealthChecks(health as any[] || []);
   } catch (e: any) {
     console.error('load perf data error', e);
     toast.error('Failed to load performance data');
@@ -140,10 +164,10 @@ const loadData = async () => {
 const runLoadTest = async () => {
   try {
     toast.info('Running load test...');
-    const res = await supabase.functions.invoke('load-test', { body: { action: 'run' } });
+    const res = await timeApi('admin_perf_load_test_run', () => supabase.functions.invoke('load-test', { body: { action: 'run' } }));
     if (res.error) throw res.error;
     toast.success(`Load test: ${res.data?.status} in ${res.data?.duration_ms}ms`);
-    const lt = await supabase.functions.invoke('load-test', { body: { action: 'summary' } });
+    const lt = await timeApi('admin_perf_load_test_summary', () => supabase.functions.invoke('load-test', { body: { action: 'summary' } }));
     setTests((lt.data?.data as any[]) || []);
   } catch (e: any) {
     console.error('load test error', e);
@@ -205,9 +229,19 @@ const checkAlerts = async () => {
     <>
       <Navigation />
       <main className="pt-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <header className="mb-6">
-          <h1 className="text-2xl font-bold text-foreground">Performance Dashboard</h1>
-          <p className="text-muted-foreground">Monitor Web Vitals and backend performance.</p>
+        <header className="mb-6 flex items-center justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-bold text-foreground">Performance Dashboard</h1>
+            <p className="text-muted-foreground">Monitor Web Vitals and backend performance.</p>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" asChild>
+              <Link to="/admin">Admin Dashboard</Link>
+            </Button>
+            <Button variant="outline" asChild>
+              <Link to="/admin/overview">Project Overview</Link>
+            </Button>
+          </div>
         </header>
 
 <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
@@ -284,12 +318,12 @@ const checkAlerts = async () => {
             {autoCheck ? 'Auto-check ON' : 'Auto-check OFF'}
           </Button>
         </div>
-        {lastAlertSummary && (
-          <div className="text-sm text-muted-foreground">
-            <div>p95 LCP: {lastAlertSummary?.lcp?.p95 ?? '—'} ms | p95 INP: {lastAlertSummary?.inp?.p95 ?? '—'} ms</div>
-            <div>CLS p95: {lastAlertSummary?.cls?.p95 ?? '—'} | Avg load test: {lastAlertSummary?.load_test?.avg_ms ?? '—'} ms</div>
-          </div>
-        )}
+          {lastAlertSummary && (
+            <div className="text-sm text-muted-foreground">
+              <div>p95 LCP: {lastAlertSummary?.LCP?.p95 ?? '—'} ms | p95 INP: {lastAlertSummary?.INP?.p95 ?? '—'} ms</div>
+              <div>CLS p95: {lastAlertSummary?.CLS?.p95 ?? '—'} | Avg load test: {lastAlertSummary?.load_test?.avg_ms ?? '—'} ms</div>
+            </div>
+          )}
       </div>
       <div className="flex flex-wrap items-center justify-between mb-4 gap-2">
         <div className="flex items-center gap-2">
@@ -314,7 +348,49 @@ const checkAlerts = async () => {
   </Card>
 </div>
 
-<div className="mt-4 grid grid-cols-1">
+<div className="mt-4 grid grid-cols-1 gap-4">
+  <Card>
+    <CardHeader>
+      <CardTitle className="text-lg">Perf Breaches</CardTitle>
+    </CardHeader>
+    <CardContent>
+      <div className="space-y-3">
+        {perfBreaches.map((b) => (
+          <div key={b.id} className="p-3 rounded-md border border-border">
+            <div className="flex items-center justify-between">
+              <div className="font-medium">{new Date(b.created_at).toLocaleString()}</div>
+              <div className="text-xs uppercase">{b.severity}</div>
+            </div>
+            <div className="text-sm text-foreground mt-1">{b.title}</div>
+            <div className="text-xs text-muted-foreground mt-1 line-clamp-2">{b.message}</div>
+          </div>
+        ))}
+        {perfBreaches.length === 0 && (
+          <div className="text-sm text-muted-foreground">No recent performance breaches.</div>
+        )}
+      </div>
+    </CardContent>
+  </Card>
+
+  <Card>
+    <CardHeader>
+      <CardTitle className="text-lg">Last 5 Health Checks</CardTitle>
+    </CardHeader>
+    <CardContent>
+      <div className="space-y-3">
+        {healthChecks.map((h, idx) => (
+          <div key={idx} className="p-3 rounded-md border border-border flex items-center justify-between">
+            <div className="text-sm">{h.service_name}</div>
+            <div className="text-xs text-muted-foreground">{h.status} • {h.response_time_ms ?? '—'} ms • {new Date(h.created_at).toLocaleTimeString()}</div>
+          </div>
+        ))}
+        {healthChecks.length === 0 && (
+          <div className="text-sm text-muted-foreground">No health checks recorded.</div>
+        )}
+      </div>
+    </CardContent>
+  </Card>
+
   <Card>
     <CardHeader>
       <CardTitle className="text-lg">Recent Frontend Errors</CardTitle>
@@ -324,7 +400,7 @@ const checkAlerts = async () => {
         {errors.map((e) => (
           <div key={e.id} className="p-3 rounded-md border border-border">
             <div className="flex items-center justify-between">
-              <div className="font-medium">{format(new Date(e.created_at), 'MMM d, HH:mm')}</div>
+              <div className="font-medium">{new Date(e.created_at).toLocaleString()}</div>
               <div className="text-xs text-muted-foreground truncate max-w-[60%]">{e.path || 'unknown path'}</div>
             </div>
             <div className="text-sm text-destructive mt-1 line-clamp-2">{e.message}</div>

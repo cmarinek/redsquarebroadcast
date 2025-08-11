@@ -1,5 +1,6 @@
 import Hls from 'hls.js';
 import dashjs from 'dashjs';
+import { supabase } from '@/integrations/supabase/client';
 
 export type PlayerMetrics = {
   bitrate_kbps?: number;
@@ -137,5 +138,15 @@ export class PlayerSDK {
 
   private sendMetrics(m: PlayerMetrics) {
     try { this.opts?.onMetrics?.(m); } catch { /* noop */ }
+    try {
+      const path = typeof window !== 'undefined' ? (window.location.pathname + window.location.search) : null;
+      const events: any[] = [];
+      if (typeof m.rebuffer_count === 'number') events.push({ metric_name: 'REBUF_COUNT', value: m.rebuffer_count, id_value: 'player' });
+      if (typeof m.buffer_seconds === 'number') events.push({ metric_name: 'BUFFER_S', value: m.buffer_seconds, id_value: 'player' });
+      if (typeof m.bitrate_kbps === 'number') events.push({ metric_name: 'BITRATE_Kbps', value: m.bitrate_kbps, id_value: 'player' });
+      if (events.length) {
+        supabase.functions.invoke('frontend-telemetry', { body: { events, path } }).catch(() => {});
+      }
+    } catch { /* noop */ }
   }
 }
