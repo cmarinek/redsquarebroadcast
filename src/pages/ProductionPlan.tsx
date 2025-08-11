@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useEffect } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { phases, getRemainingTasks } from "@/data/productionPlan";
 import { 
   Server, 
@@ -495,6 +496,77 @@ const ProductionPlan = () => {
               </Badge>
             </div>
           </div>
+        </div>
+      </section>
+
+      {/* Feature Summary by Role */}
+      <section className="py-24">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-4xl font-bold mb-4">Feature Summary by Role</h2>
+            <p className="text-lg text-muted-foreground">High-level overview of key capabilities for each user type.</p>
+          </div>
+
+          <Card className="p-6">
+            <Tabs defaultValue="broadcaster" className="w-full">
+              <TabsList className="mb-6">
+                <TabsTrigger value="broadcaster">Broadcasters</TabsTrigger>
+                <TabsTrigger value="screen_owner">Screen Owners</TabsTrigger>
+                <TabsTrigger value="admin">Admins</TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="broadcaster">
+                <div className="grid md:grid-cols-2 gap-4">
+                  <ul className="space-y-2">
+                    <li className="flex items-start gap-2 text-sm text-muted-foreground"><CheckCircle className="w-4 h-4 text-primary mt-0.5" /> Discover nearby screens via map or search</li>
+                    <li className="flex items-start gap-2 text-sm text-muted-foreground"><CheckCircle className="w-4 h-4 text-primary mt-0.5" /> Scan QR to open a screen profile instantly</li>
+                    <li className="flex items-start gap-2 text-sm text-muted-foreground"><CheckCircle className="w-4 h-4 text-primary mt-0.5" /> Upload images, videos (MP4), and GIFs</li>
+                    <li className="flex items-start gap-2 text-sm text-muted-foreground"><CheckCircle className="w-4 h-4 text-primary mt-0.5" /> Preview content and schedule via calendar UI</li>
+                  </ul>
+                  <ul className="space-y-2">
+                    <li className="flex items-start gap-2 text-sm text-muted-foreground"><CheckCircle className="w-4 h-4 text-primary mt-0.5" /> Pay for time slots securely (Stripe/PayPal)</li>
+                    <li className="flex items-start gap-2 text-sm text-muted-foreground"><CheckCircle className="w-4 h-4 text-primary mt-0.5" /> Receive booking confirmations and receipts</li>
+                    <li className="flex items-start gap-2 text-sm text-muted-foreground"><CheckCircle className="w-4 h-4 text-primary mt-0.5" /> Audience targeting and A/B testing tools</li>
+                    <li className="flex items-start gap-2 text-sm text-muted-foreground"><CheckCircle className="w-4 h-4 text-primary mt-0.5" /> Performance and reach analytics</li>
+                  </ul>
+                </div>
+              </TabsContent>
+
+              <TabsContent value="screen_owner">
+                <div className="grid md:grid-cols-2 gap-4">
+                  <ul className="space-y-2">
+                    <li className="flex items-start gap-2 text-sm text-muted-foreground"><CheckCircle className="w-4 h-4 text-primary mt-0.5" /> Register screens via dongle or smart TV app</li>
+                    <li className="flex items-start gap-2 text-sm text-muted-foreground"><CheckCircle className="w-4 h-4 text-primary mt-0.5" /> Unique screen ID and QR code for discovery</li>
+                    <li className="flex items-start gap-2 text-sm text-muted-foreground"><CheckCircle className="w-4 h-4 text-primary mt-0.5" /> Set availability windows and pricing per slot</li>
+                    <li className="flex items-start gap-2 text-sm text-muted-foreground"><CheckCircle className="w-4 h-4 text-primary mt-0.5" /> Optional content approval workflows</li>
+                  </ul>
+                  <ul className="space-y-2">
+                    <li className="flex items-start gap-2 text-sm text-muted-foreground"><CheckCircle className="w-4 h-4 text-primary mt-0.5" /> Monitor device status, heartbeats, and commands</li>
+                    <li className="flex items-start gap-2 text-sm text-muted-foreground"><CheckCircle className="w-4 h-4 text-primary mt-0.5" /> Payout management and earnings dashboard</li>
+                    <li className="flex items-start gap-2 text-sm text-muted-foreground"><CheckCircle className="w-4 h-4 text-primary mt-0.5" /> Revenue optimization tools and insights</li>
+                    <li className="flex items-start gap-2 text-sm text-muted-foreground"><CheckCircle className="w-4 h-4 text-primary mt-0.5" /> Manage multi-screen networks</li>
+                  </ul>
+                </div>
+              </TabsContent>
+
+              <TabsContent value="admin">
+                <div className="grid md:grid-cols-2 gap-4">
+                  <ul className="space-y-2">
+                    <li className="flex items-start gap-2 text-sm text-muted-foreground"><CheckCircle className="w-4 h-4 text-primary mt-0.5" /> Role and access management</li>
+                    <li className="flex items-start gap-2 text-sm text-muted-foreground"><CheckCircle className="w-4 h-4 text-primary mt-0.5" /> System health, geo status, and alerts</li>
+                    <li className="flex items-start gap-2 text-sm text-muted-foreground"><CheckCircle className="w-4 h-4 text-primary mt-0.5" /> Content moderation and policy enforcement</li>
+                    <li className="flex items-start gap-2 text-sm text-muted-foreground"><CheckCircle className="w-4 h-4 text-primary mt-0.5" /> Monetization controls and platform fee settings</li>
+                  </ul>
+                  <ul className="space-y-2">
+                    <li className="flex items-start gap-2 text-sm text-muted-foreground"><CheckCircle className="w-4 h-4 text-primary mt-0.5" /> Performance analytics and alerting</li>
+                    <li className="flex items-start gap-2 text-sm text-muted-foreground"><CheckCircle className="w-4 h-4 text-primary mt-0.5" /> Infrastructure and configuration management</li>
+                    <li className="flex items-start gap-2 text-sm text-muted-foreground"><CheckCircle className="w-4 h-4 text-primary mt-0.5" /> Billing oversight, refunds, and disputes</li>
+                    <li className="flex items-start gap-2 text-sm text-muted-foreground"><CheckCircle className="w-4 h-4 text-primary mt-0.5" /> Audit logs and security controls</li>
+                  </ul>
+                </div>
+              </TabsContent>
+            </Tabs>
+          </Card>
         </div>
       </section>
 
