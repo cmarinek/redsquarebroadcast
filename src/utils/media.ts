@@ -6,7 +6,9 @@ export async function getSignedViewUrl(bucket: 'content' | 'avatars', filePath: 
       body: { bucket, file_path: filePath, expires_in: expiresIn },
     });
     if (error) throw error as any;
-    return (data as any)?.url ?? null;
+    // Prefer CDN URL when available, fall back to origin, keep legacy 'url' compatibility
+    const d = data as any;
+    return d?.cdn_url || d?.origin_url || d?.url || null;
   } catch (e) {
     console.error('getSignedViewUrl error:', e);
     return null;
