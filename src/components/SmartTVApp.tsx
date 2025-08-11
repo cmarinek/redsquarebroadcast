@@ -53,6 +53,14 @@ export function SmartTVApp() {
   // Set basic SEO for this page and auto-pair via deep link
   useEffect(() => {
     document.title = 'Red Square Smart TV | HLS Player & Pairing';
+    const metaDesc = document.querySelector('meta[name="description"]') || document.createElement('meta');
+    metaDesc.setAttribute('name', 'description');
+    metaDesc.setAttribute('content', 'Smart TV player with HLS/DASH, easy pairing via QR to broadcast on Red Square screens.');
+    if (!metaDesc.parentNode) document.head.appendChild(metaDesc);
+    const linkCanonical = document.querySelector('link[rel="canonical"]') || document.createElement('link');
+    linkCanonical.setAttribute('rel', 'canonical');
+    linkCanonical.setAttribute('href', window.location.origin + '/smart-tv');
+    if (!linkCanonical.parentNode) document.head.appendChild(linkCanonical);
   }, []);
 
   // Global crash reporting
@@ -156,9 +164,13 @@ export function SmartTVApp() {
 
   const sendHeartbeat = async (screenId: string) => {
     try {
-      // Mock heartbeat - in real implementation this would use device_status table
-      console.log('Sending heartbeat for screen:', screenId);
-      // Simulated status update
+      await supabase.functions.invoke('device-heartbeat', {
+        body: {
+          device_id: deviceIdRef.current,
+          screen_id: screenId,
+          status: tvState.isPlaying ? 'playing' : 'idle',
+        },
+      });
     } catch (error) {
       console.error('Error sending heartbeat:', error);
     }

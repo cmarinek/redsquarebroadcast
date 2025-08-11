@@ -63,6 +63,7 @@ const App = () => (
               <Route path="/confirmation/:bookingId" element={<Confirmation />} />
               <Route path="/device-setup" element={<DeviceSetup />} />
               <Route path="/smart-tv" element={<SmartTVApp />} />
+              <Route path="/tv" element={<SmartTVApp />} />
               <Route path="/subscription" element={<Subscription />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
