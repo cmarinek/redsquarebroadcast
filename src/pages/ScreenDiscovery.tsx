@@ -33,17 +33,35 @@ export default function ScreenDiscovery() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    fetchScreens();
+    fetchScreens("");
     getLocation();
   }, []);
 
-  const fetchScreens = async () => {
+  // Debounced server-side search for better performance
+  useEffect(() => {
+    const handle = setTimeout(() => {
+      fetchScreens(searchQuery.trim());
+    }, 300);
+    return () => clearTimeout(handle);
+  }, [searchQuery]);
+
+  const fetchScreens = async (q: string) => {
+    setLoading(true);
     try {
-      const { data, error } = await supabase
+      let query = supabase
         .from("screens")
         .select("id, screen_name, location, pricing_cents, status")
-        .eq("status", "active");
+        .eq("status", "active")
+        .limit(50);
 
+      if (q) {
+        const like = `%${q}%`;
+        query = query.or(
+          `screen_name.ilike.${like},location.ilike.${like},id.ilike.${like}`
+        );
+      }
+
+      const { data, error } = await query;
       if (error) throw error;
       setScreens((data as Screen[]) || []);
     } catch (error) {
