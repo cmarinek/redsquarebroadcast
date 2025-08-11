@@ -171,7 +171,7 @@ export const phases: Phase[] = [
     duration: "4-6 weeks",
     priority: "High",
     status: "In Progress",
-    progress: 90,
+    progress: 95,
     items: [
       {
         category: "Database Optimization",
@@ -210,7 +210,7 @@ export const phases: Phase[] = [
         estimated: "1-2 weeks",
       },
       {
-        category: "Status Update (App-side implemented)",
+        category: "Status Update (App-side 100%)",
         icon: Bell,
         tasks: [
           "Cron jobs: perf-alerts hourly, system-health 10m, retention 02:00 UTC, MV refresh 15m",
