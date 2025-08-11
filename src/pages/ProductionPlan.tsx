@@ -504,7 +504,7 @@ const ProductionPlan = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-4xl font-bold mb-4">Feature Summary by Role</h2>
-            <p className="text-lg text-muted-foreground">High-level overview of key capabilities for each user type.</p>
+            <p className="text-lg text-muted-foreground">High-level overview of key capabilities and workflows for each user type.</p>
           </div>
 
           <Card className="p-6">
@@ -516,53 +516,97 @@ const ProductionPlan = () => {
               </TabsList>
 
               <TabsContent value="broadcaster">
-                <div className="grid md:grid-cols-2 gap-4">
-                  <ul className="space-y-2">
-                    <li className="flex items-start gap-2 text-sm text-muted-foreground"><CheckCircle className="w-4 h-4 text-primary mt-0.5" /> Discover nearby screens via map or search</li>
-                    <li className="flex items-start gap-2 text-sm text-muted-foreground"><CheckCircle className="w-4 h-4 text-primary mt-0.5" /> Scan QR to open a screen profile instantly</li>
-                    <li className="flex items-start gap-2 text-sm text-muted-foreground"><CheckCircle className="w-4 h-4 text-primary mt-0.5" /> Upload images, videos (MP4), and GIFs</li>
-                    <li className="flex items-start gap-2 text-sm text-muted-foreground"><CheckCircle className="w-4 h-4 text-primary mt-0.5" /> Preview content and schedule via calendar UI</li>
-                  </ul>
-                  <ul className="space-y-2">
-                    <li className="flex items-start gap-2 text-sm text-muted-foreground"><CheckCircle className="w-4 h-4 text-primary mt-0.5" /> Pay for time slots securely (Stripe/PayPal)</li>
-                    <li className="flex items-start gap-2 text-sm text-muted-foreground"><CheckCircle className="w-4 h-4 text-primary mt-0.5" /> Receive booking confirmations and receipts</li>
-                    <li className="flex items-start gap-2 text-sm text-muted-foreground"><CheckCircle className="w-4 h-4 text-primary mt-0.5" /> Audience targeting and A/B testing tools</li>
-                    <li className="flex items-start gap-2 text-sm text-muted-foreground"><CheckCircle className="w-4 h-4 text-primary mt-0.5" /> Performance and reach analytics</li>
-                  </ul>
+                <div className="space-y-8">
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <ul className="space-y-2">
+                      <li className="flex items-start gap-2 text-sm text-muted-foreground"><CheckCircle className="w-4 h-4 text-primary mt-0.5" /> Discover nearby screens via map or search</li>
+                      <li className="flex items-start gap-2 text-sm text-muted-foreground"><CheckCircle className="w-4 h-4 text-primary mt-0.5" /> Scan QR to open a screen profile instantly</li>
+                      <li className="flex items-start gap-2 text-sm text-muted-foreground"><CheckCircle className="w-4 h-4 text-primary mt-0.5" /> Upload images, videos (MP4), and GIFs</li>
+                      <li className="flex items-start gap-2 text-sm text-muted-foreground"><CheckCircle className="w-4 h-4 text-primary mt-0.5" /> Preview content and schedule via calendar UI</li>
+                    </ul>
+                    <ul className="space-y-2">
+                      <li className="flex items-start gap-2 text-sm text-muted-foreground"><CheckCircle className="w-4 h-4 text-primary mt-0.5" /> Pay for time slots securely (Stripe/PayPal)</li>
+                      <li className="flex items-start gap-2 text-sm text-muted-foreground"><CheckCircle className="w-4 h-4 text-primary mt-0.5" /> Receive booking confirmations and receipts</li>
+                      <li className="flex items-start gap-2 text-sm text-muted-foreground"><CheckCircle className="w-4 h-4 text-primary mt-0.5" /> Audience targeting and A/B testing tools</li>
+                      <li className="flex items-start gap-2 text-sm text-muted-foreground"><CheckCircle className="w-4 h-4 text-primary mt-0.5" /> Performance and reach analytics</li>
+                    </ul>
+                  </div>
+
+                  <div>
+                    <h4 className="font-semibold mb-2">Workflow</h4>
+                    <ol className="list-decimal pl-5 space-y-1 text-sm text-muted-foreground">
+                      <li>Discover and select a screen (map, search, or QR scan).</li>
+                      <li>Upload media and auto-generate previews to verify fit.</li>
+                      <li>Choose date/time slots from the availability calendar.</li>
+                      <li>Confirm pricing and pay via Stripe/PayPal.</li>
+                      <li>Receive booking confirmation and receipt.</li>
+                      <li>Content is delivered to the screen at the scheduled time.</li>
+                      <li>Track performance and audience metrics post-broadcast.</li>
+                    </ol>
+                  </div>
                 </div>
               </TabsContent>
 
               <TabsContent value="screen_owner">
-                <div className="grid md:grid-cols-2 gap-4">
-                  <ul className="space-y-2">
-                    <li className="flex items-start gap-2 text-sm text-muted-foreground"><CheckCircle className="w-4 h-4 text-primary mt-0.5" /> Register screens via dongle or smart TV app</li>
-                    <li className="flex items-start gap-2 text-sm text-muted-foreground"><CheckCircle className="w-4 h-4 text-primary mt-0.5" /> Unique screen ID and QR code for discovery</li>
-                    <li className="flex items-start gap-2 text-sm text-muted-foreground"><CheckCircle className="w-4 h-4 text-primary mt-0.5" /> Set availability windows and pricing per slot</li>
-                    <li className="flex items-start gap-2 text-sm text-muted-foreground"><CheckCircle className="w-4 h-4 text-primary mt-0.5" /> Optional content approval workflows</li>
-                  </ul>
-                  <ul className="space-y-2">
-                    <li className="flex items-start gap-2 text-sm text-muted-foreground"><CheckCircle className="w-4 h-4 text-primary mt-0.5" /> Monitor device status, heartbeats, and commands</li>
-                    <li className="flex items-start gap-2 text-sm text-muted-foreground"><CheckCircle className="w-4 h-4 text-primary mt-0.5" /> Payout management and earnings dashboard</li>
-                    <li className="flex items-start gap-2 text-sm text-muted-foreground"><CheckCircle className="w-4 h-4 text-primary mt-0.5" /> Revenue optimization tools and insights</li>
-                    <li className="flex items-start gap-2 text-sm text-muted-foreground"><CheckCircle className="w-4 h-4 text-primary mt-0.5" /> Manage multi-screen networks</li>
-                  </ul>
+                <div className="space-y-8">
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <ul className="space-y-2">
+                      <li className="flex items-start gap-2 text-sm text-muted-foreground"><CheckCircle className="w-4 h-4 text-primary mt-0.5" /> Register screens via dongle or smart TV app</li>
+                      <li className="flex items-start gap-2 text-sm text-muted-foreground"><CheckCircle className="w-4 h-4 text-primary mt-0.5" /> Unique screen ID and QR code for discovery</li>
+                      <li className="flex items-start gap-2 text-sm text-muted-foreground"><CheckCircle className="w-4 h-4 text-primary mt-0.5" /> Set availability windows and pricing per slot</li>
+                      <li className="flex items-start gap-2 text-sm text-muted-foreground"><CheckCircle className="w-4 h-4 text-primary mt-0.5" /> Optional content approval workflows</li>
+                    </ul>
+                    <ul className="space-y-2">
+                      <li className="flex items-start gap-2 text-sm text-muted-foreground"><CheckCircle className="w-4 h-4 text-primary mt-0.5" /> Monitor device status, heartbeats, and commands</li>
+                      <li className="flex items-start gap-2 text-sm text-muted-foreground"><CheckCircle className="w-4 h-4 text-primary mt-0.5" /> Payout management and earnings dashboard</li>
+                      <li className="flex items-start gap-2 text-sm text-muted-foreground"><CheckCircle className="w-4 h-4 text-primary mt-0.5" /> Revenue optimization tools and insights</li>
+                      <li className="flex items-start gap-2 text-sm text-muted-foreground"><CheckCircle className="w-4 h-4 text-primary mt-0.5" /> Manage multi-screen networks</li>
+                    </ul>
+                  </div>
+
+                  <div>
+                    <h4 className="font-semibold mb-2">Workflow</h4>
+                    <ol className="list-decimal pl-5 space-y-1 text-sm text-muted-foreground">
+                      <li>Install the dongle or open the smart TV app and pair.</li>
+                      <li>Register to generate a unique Screen ID and QR code.</li>
+                      <li>Set screen name, location, availability, and pricing.</li>
+                      <li>Optionally enable content approval and moderation rules.</li>
+                      <li>Go live to receive booking requests and scheduled plays.</li>
+                      <li>Monitor device health/heartbeats; apply remote commands.</li>
+                      <li>Receive payouts on schedule and review earnings.</li>
+                    </ol>
+                  </div>
                 </div>
               </TabsContent>
 
               <TabsContent value="admin">
-                <div className="grid md:grid-cols-2 gap-4">
-                  <ul className="space-y-2">
-                    <li className="flex items-start gap-2 text-sm text-muted-foreground"><CheckCircle className="w-4 h-4 text-primary mt-0.5" /> Role and access management</li>
-                    <li className="flex items-start gap-2 text-sm text-muted-foreground"><CheckCircle className="w-4 h-4 text-primary mt-0.5" /> System health, geo status, and alerts</li>
-                    <li className="flex items-start gap-2 text-sm text-muted-foreground"><CheckCircle className="w-4 h-4 text-primary mt-0.5" /> Content moderation and policy enforcement</li>
-                    <li className="flex items-start gap-2 text-sm text-muted-foreground"><CheckCircle className="w-4 h-4 text-primary mt-0.5" /> Monetization controls and platform fee settings</li>
-                  </ul>
-                  <ul className="space-y-2">
-                    <li className="flex items-start gap-2 text-sm text-muted-foreground"><CheckCircle className="w-4 h-4 text-primary mt-0.5" /> Performance analytics and alerting</li>
-                    <li className="flex items-start gap-2 text-sm text-muted-foreground"><CheckCircle className="w-4 h-4 text-primary mt-0.5" /> Infrastructure and configuration management</li>
-                    <li className="flex items-start gap-2 text-sm text-muted-foreground"><CheckCircle className="w-4 h-4 text-primary mt-0.5" /> Billing oversight, refunds, and disputes</li>
-                    <li className="flex items-start gap-2 text-sm text-muted-foreground"><CheckCircle className="w-4 h-4 text-primary mt-0.5" /> Audit logs and security controls</li>
-                  </ul>
+                <div className="space-y-8">
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <ul className="space-y-2">
+                      <li className="flex items-start gap-2 text-sm text-muted-foreground"><CheckCircle className="w-4 h-4 text-primary mt-0.5" /> Role and access management</li>
+                      <li className="flex items-start gap-2 text-sm text-muted-foreground"><CheckCircle className="w-4 h-4 text-primary mt-0.5" /> System health, geo status, and alerts</li>
+                      <li className="flex items-start gap-2 text-sm text-muted-foreground"><CheckCircle className="w-4 h-4 text-primary mt-0.5" /> Content moderation and policy enforcement</li>
+                      <li className="flex items-start gap-2 text-sm text-muted-foreground"><CheckCircle className="w-4 h-4 text-primary mt-0.5" /> Monetization controls and platform fee settings</li>
+                    </ul>
+                    <ul className="space-y-2">
+                      <li className="flex items-start gap-2 text-sm text-muted-foreground"><CheckCircle className="w-4 h-4 text-primary mt-0.5" /> Performance analytics and alerting</li>
+                      <li className="flex items-start gap-2 text-sm text-muted-foreground"><CheckCircle className="w-4 h-4 text-primary mt-0.5" /> Infrastructure and configuration management</li>
+                      <li className="flex items-start gap-2 text-sm text-muted-foreground"><CheckCircle className="w-4 h-4 text-primary mt-0.5" /> Billing oversight, refunds, and disputes</li>
+                      <li className="flex items-start gap-2 text-sm text-muted-foreground"><CheckCircle className="w-4 h-4 text-primary mt-0.5" /> Audit logs and security controls</li>
+                    </ul>
+                  </div>
+
+                  <div>
+                    <h4 className="font-semibold mb-2">Workflow</h4>
+                    <ol className="list-decimal pl-5 space-y-1 text-sm text-muted-foreground">
+                      <li>Configure platform fees, roles, and RLS-driven policies.</li>
+                      <li>Monitor system health, performance, and geo coverage.</li>
+                      <li>Oversee content moderation and handle escalations.</li>
+                      <li>Review payments, refunds, and screen-owner payouts.</li>
+                      <li>Audit security events and investigate alerts/anomalies.</li>
+                      <li>Publish platform analytics and KPIs for stakeholders.</li>
+                    </ol>
+                  </div>
                 </div>
               </TabsContent>
             </Tabs>
