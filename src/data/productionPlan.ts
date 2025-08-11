@@ -170,8 +170,8 @@ export const phases: Phase[] = [
     phase: "Phase 4: Scalability & Performance",
     duration: "4-6 weeks",
     priority: "High",
-    status: "Completed",
-    progress: 100,
+    status: "In Progress",
+    progress: 80,
     items: [
       {
         category: "Database Optimization",
@@ -208,6 +208,29 @@ export const phases: Phase[] = [
           "Optimize API rate limiting",
         ],
         estimated: "1-2 weeks",
+      },
+      {
+        category: "Status Update (App-side implemented)",
+        icon: Bell,
+        tasks: [
+          "Cron jobs: perf-alerts hourly, system-health 10m, retention 02:00 UTC, MV refresh 15m",
+          "Web Vitals telemetry sampling wired to Supabase",
+          "Frontend error reporting with batching to Supabase",
+          "RLS hardening and MV access restrictions",
+        ],
+        estimated: "Done",
+      },
+      {
+        category: "Remaining (External Infra)",
+        icon: Globe,
+        tasks: [
+          "Provision read replicas in Supabase and test failover",
+          "Configure global CDN for Supabase Storage/media",
+          "Set up load balancer and autoscaling for frontend hosting",
+          "Enable geo routing and health checks at edge",
+          "Tune connection pooling (PgBouncer) for high concurrency",
+        ],
+        estimated: "Ops window",
       },
     ],
   },
