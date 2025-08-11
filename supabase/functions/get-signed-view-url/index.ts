@@ -118,8 +118,36 @@ serve(async (req) => {
       signedUrl = data?.signedUrl ?? null;
     }
 
+    // Optional: compute CDN URL variant if configured in app_settings
+    let cdnUrl: string | null = null;
+    try {
+      const { data: settings } = await admin
+        .from('app_settings')
+        .select('key, value')
+        .eq('key', 'cdn_base_url')
+        .maybeSingle();
+
+      const cdnBase = (settings?.value as { url?: string } | null)?.url || (settings?.value as string | null);
+      const originUrl = signedUrl || publicUrl;
+      if (originUrl && cdnBase) {
+        try {
+          const u = new URL(originUrl);
+          // Preserve the full path and query, just swap the origin
+          const cdn = new URL(cdnBase);
+          u.protocol = cdn.protocol;
+          u.host = cdn.host;
+          cdnUrl = u.toString();
+        } catch (_) {
+          cdnUrl = null;
+        }
+      }
+    } catch (_) {
+      // ignore cdn compute errors
+    }
+
     const responseBody = {
-      url: signedUrl || publicUrl,
+      origin_url: signedUrl || publicUrl,
+      cdn_url: cdnUrl,
       bucket,
       file_path,
       expires_in,

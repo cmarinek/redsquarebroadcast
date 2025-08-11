@@ -60,3 +60,10 @@ verify_jwt = false
 [functions.frontend-error]
 verify_jwt = false
 
+# External infra helpers
+[functions.infra-config]
+verify_jwt = false
+
+[functions.geo-health]
+verify_jwt = false
+

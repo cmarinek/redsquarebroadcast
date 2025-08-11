@@ -197,6 +197,40 @@ const ProductionPlan = () => {
         </div>
       </section>
 
+      {/* What's Left: Phase 4 External Infra */}
+      <section className="py-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-10">
+            <h2 className="text-3xl font-bold mb-3">What's Left in Phase 4</h2>
+            <p className="text-muted-foreground">External infrastructure tasks to complete scalability rollout.</p>
+          </div>
+          {(() => {
+            const phase4 = phases.find(p => p.phase.startsWith("Phase 4"));
+            const external = phase4?.items.find(i => i.category.includes("Remaining (External Infra)"));
+            const tasks = external?.tasks || [];
+            return (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Globe className="w-5 h-5 text-primary" /> External Infrastructure
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ul className="grid md:grid-cols-2 gap-3">
+                    {tasks.map((t, i) => (
+                      <li key={i} className="flex items-start gap-2 text-sm text-muted-foreground">
+                        <AlertTriangle className="w-4 h-4 text-primary mt-0.5" />
+                        <span>{t}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </CardContent>
+              </Card>
+            );
+          })()}
+        </div>
+      </section>
+
       {/* Implementation Phases */}
       <section className="py-24">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
