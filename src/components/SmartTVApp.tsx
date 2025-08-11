@@ -33,6 +33,7 @@ export function SmartTVApp() {
   const [pairingCode, setPairingCode] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [focusIdx, setFocusIdx] = useState(0);
+  const [deviceId, setDeviceId] = useState('');
   
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const settingsBtnRef = useRef<HTMLButtonElement | null>(null);
@@ -187,6 +188,7 @@ export function SmartTVApp() {
       localStorage.setItem('tv_device_id', id);
     }
     deviceIdRef.current = id;
+    setDeviceId(id);
   }, []);
 
   const handleMetrics = async (m: PlayerMetrics) => {
@@ -479,7 +481,7 @@ export function SmartTVApp() {
             <div className="text-center">
               <p className="text-sm text-muted-foreground mb-2">Scan to open pairing</p>
               <div className="inline-block p-3 rounded-lg border">
-                <QRCode value={`${window.location.origin}/device-setup`} size={128} />
+                <QRCode value={`${window.location.origin}/device-setup?device_id=${encodeURIComponent(deviceId)}`} size={128} />
               </div>
               <p className="text-xs text-muted-foreground mt-2">Open on your phone to generate or enter the pairing code</p>
             </div>

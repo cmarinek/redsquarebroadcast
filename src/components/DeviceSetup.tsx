@@ -177,6 +177,17 @@ export function DeviceSetup() {
     if (!linkCanonical.parentNode) document.head.appendChild(linkCanonical);
   }, []);
 
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const d = params.get('device_id');
+    const s = params.get('screen_id');
+    const p = params.get('pair');
+    if (d) setDeviceId(d);
+    if (s) setScreenId(s);
+    if (p) setPairingCode(p.toUpperCase());
+    if (d || p) setSetupType('smart_tv');
+  }, []);
+
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       <div className="text-center">
