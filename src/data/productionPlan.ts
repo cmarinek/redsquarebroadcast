@@ -36,7 +36,7 @@ export const phases: Phase[] = [
     duration: "4-6 weeks",
     priority: "Critical",
     status: "In Progress",
-    progress: 30,
+    progress: 70,
     items: [
       {
         category: "Authentication & Authorization",
@@ -170,8 +170,8 @@ export const phases: Phase[] = [
     phase: "Phase 4: Scalability & Performance",
     duration: "4-6 weeks",
     priority: "High",
-    status: "Planning",
-    progress: 0,
+    status: "In Progress",
+    progress: 20,
     items: [
       {
         category: "Database Optimization",
@@ -254,8 +254,8 @@ export const phases: Phase[] = [
     phase: "Phase 6: Monitoring & Operations",
     duration: "3-4 weeks",
     priority: "Medium",
-    status: "Planning",
-    progress: 0,
+    status: "In Progress",
+    progress: 85,
     items: [
       {
         category: "Observability",
