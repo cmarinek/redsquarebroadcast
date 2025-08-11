@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { supabase } from "@/integrations/supabase/client";
+import { optimizeImageUrl } from "@/utils/media";
 import { useToast } from "@/hooks/use-toast";
 import { Layout } from "@/components/Layout";
 import { useAuth } from "@/context/AuthContext";
@@ -200,9 +201,10 @@ const Profile = () => {
                   <div className="w-20 h-20 bg-gradient-primary rounded-full flex items-center justify-center">
                     {profile?.avatar_url ? (
                       <img 
-                        src={profile.avatar_url} 
-                        alt="Profile" 
+                        src={optimizeImageUrl(profile?.avatar_url, { w: 80, h: 80, q: 70 })}
+                        alt="User profile avatar"
                         className="w-20 h-20 rounded-full object-cover"
+                        loading="lazy"
                       />
                     ) : (
                       <User className="w-8 h-8 text-white" />

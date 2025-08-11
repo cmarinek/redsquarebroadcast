@@ -307,6 +307,7 @@ export const ContentApprovalWorkflows = ({ screens }: ContentApprovalWorkflowsPr
                         src={item.content.file_url}
                         alt={item.content.file_name}
                         className="w-16 h-16 object-cover rounded border"
+                        loading="lazy"
                       />
                     ) : (
                       <div className="w-16 h-16 bg-muted rounded border flex items-center justify-center">
@@ -364,6 +365,7 @@ export const ContentApprovalWorkflows = ({ screens }: ContentApprovalWorkflowsPr
                                   src={selectedItem.content.file_url}
                                   alt={selectedItem.content.file_name}
                                   className="max-w-full max-h-96 mx-auto rounded border"
+                                  loading="lazy"
                                 />
                               ) : selectedItem.content.file_type.startsWith('video/') ? (
                                 <video
