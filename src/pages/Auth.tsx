@@ -168,6 +168,21 @@ const Auth = () => {
     }
   };
 
+  const signInWithLinkedIn = async () => {
+    setLoading(true);
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'linkedin_oidc',
+        options: { redirectTo: `${window.location.origin}/` }
+      });
+      if (error) setError(error.message);
+    } catch (err) {
+      setError('LinkedIn sign-in failed. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleResetPassword = async () => {
     if (!email) {
       setError("Please enter your email above, then click Forgot password.");
@@ -312,6 +327,15 @@ const Auth = () => {
                     >
                       Continue with Facebook
                     </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="w-full"
+                      onClick={signInWithLinkedIn}
+                      disabled={loading}
+                    >
+                      Continue with LinkedIn
+                    </Button>
                   </div>
                 </TabsContent>
 
@@ -447,9 +471,18 @@ const Auth = () => {
                       className="w-full"
                       onClick={signInWithFacebook}
                       disabled={loading}
-                    >
-                      Continue with Facebook
-                    </Button>
+                      >
+                        Continue with Facebook
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="w-full"
+                        onClick={signInWithLinkedIn}
+                        disabled={loading}
+                      >
+                        Continue with LinkedIn
+                      </Button>
                   </div>
                 </TabsContent>
               </Tabs>
@@ -458,6 +491,10 @@ const Auth = () => {
 
           <p className="text-center text-sm text-muted-foreground mt-6">
             By creating an account, you agree to our Terms of Service and Privacy Policy.
+          </p>
+          <p className="text-center text-xs text-muted-foreground mt-2">
+            Social sign-in requires provider setup in Supabase. Verify providers at
+            <a className="underline ml-1" href="https://supabase.com/dashboard/project/hqeyyutbuxhyildsasqq/auth/providers" target="_blank" rel="noreferrer">Auth Providers</a>.
           </p>
         </div>
       </div>

@@ -187,6 +187,9 @@ const AdminDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("overview");
+
+  const [rlsResults, setRlsResults] = useState<{ name: string; ok: boolean; detail?: string }[]>([]);
+  const [rlsRunning, setRlsRunning] = useState(false);
   
   // Prevent repeated fetching and allow suspending on error
   const fetchAttemptedRef = useRef(false);
@@ -682,6 +685,39 @@ const AdminDashboard = () => {
     }
   };
 
+  const runRlsChecks = async () => {
+    setRlsRunning(true);
+    const results: { name: string; ok: boolean; detail?: string }[] = [];
+    try {
+      const admin = isAdmin();
+
+      // Check 1: admin_analytics is protected for non-admins
+      const sel = await supabase.from('admin_analytics').select('id').limit(1);
+      if (admin) {
+        results.push({ name: 'admin_analytics readable by admin', ok: !sel.error, detail: sel.error?.message });
+      } else {
+        const protectedOk = !!sel.error || (Array.isArray(sel.data) && sel.data.length === 0);
+        results.push({ name: 'admin_analytics protected for non-admin', ok: protectedOk, detail: sel.error?.message });
+      }
+
+      // Check 2: INSERT with foreign user_id should be denied by RLS (idempotency_keys)
+      const fakeUser = '00000000-0000-0000-0000-000000000000';
+      const key = 'probe_' + Math.random().toString(36).slice(2);
+      const ins = await supabase.from('idempotency_keys').insert({
+        idempotency_key: key,
+        function_name: 'rls_probe',
+        user_id: fakeUser,
+        status: 'processed'
+      });
+      const denied = !!ins.error;
+      results.push({ name: 'deny insert with mismatched user_id', ok: denied, detail: ins.error?.message });
+    } catch (e: any) {
+      results.push({ name: 'unexpected error running checks', ok: false, detail: e?.message });
+    } finally {
+      setRlsResults(results);
+      setRlsRunning(false);
+    }
+  };
   const filteredUsers = users.filter(user =>
     user.display_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     user.roles.join(',').toLowerCase().includes(searchQuery.toLowerCase())
@@ -1163,6 +1199,30 @@ const AdminDashboard = () => {
 
               <TabsContent value="security" className="mt-0 p-6">
                 <div className="space-y-6">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-lg">RLS Policy Checks</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="flex items-center gap-3 mb-3">
+                        <Button onClick={runRlsChecks} disabled={rlsRunning} variant="outline" size="sm">
+                          {rlsRunning ? 'Running…' : 'Run RLS Checks'}
+                        </Button>
+                      </div>
+                      <div className="space-y-2">
+                        {rlsResults.map((r, i) => (
+                          <div key={i} className="text-sm flex items-center justify-between">
+                            <span>{r.name}</span>
+                            <span className={r.ok ? 'text-emerald-600' : 'text-red-600'}>{r.ok ? 'PASS' : 'FAIL'}</span>
+                          </div>
+                        ))}
+                        {rlsResults.length === 0 && (
+                          <div className="text-sm text-muted-foreground">No results yet. Click Run to verify.</div>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+
                   <div className="flex items-center justify-between">
                     <h3 className="text-lg font-semibold">Security Alerts & Monitoring</h3>
                     <Badge variant={securityAlerts.filter(a => !a.resolved).length > 0 ? "destructive" : "default"}>
