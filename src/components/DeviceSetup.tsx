@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -135,6 +135,18 @@ export function DeviceSetup() {
   const currentSteps = setupType === 'dongle' ? dongleSteps : tvSteps;
   const completedSteps = currentSteps.filter(step => step.completed).length;
   const progress = (completedSteps / currentSteps.length) * 100;
+
+  useEffect(() => {
+    document.title = 'Device Setup & Pairing | Red Square';
+    const metaDesc = document.querySelector('meta[name="description"]') || document.createElement('meta');
+    metaDesc.setAttribute('name', 'description');
+    metaDesc.setAttribute('content', 'Pair your Red Square TV or dongle and register your screen.');
+    if (!metaDesc.parentNode) document.head.appendChild(metaDesc);
+    const linkCanonical = document.querySelector('link[rel="canonical"]') || document.createElement('link');
+    linkCanonical.setAttribute('rel', 'canonical');
+    linkCanonical.setAttribute('href', window.location.origin + '/device-setup');
+    if (!linkCanonical.parentNode) document.head.appendChild(linkCanonical);
+  }, []);
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">

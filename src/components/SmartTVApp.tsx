@@ -8,7 +8,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { PlayerSDK, PlayerMetrics } from '@/player/PlayerSDK';
 import { getSignedViewUrl } from '@/utils/media';
-
+import QRCode from 'react-qr-code';
 interface TVAppState {
   isConnected: boolean;
   screenId: string;
@@ -474,6 +474,14 @@ export function SmartTVApp() {
               >
                 {isLoading ? 'Connecting...' : 'Connect to Network'}
               </Button>
+            </div>
+
+            <div className="text-center">
+              <p className="text-sm text-muted-foreground mb-2">Scan to open pairing</p>
+              <div className="inline-block p-3 rounded-lg border">
+                <QRCode value={`${window.location.origin}/device-setup`} size={128} />
+              </div>
+              <p className="text-xs text-muted-foreground mt-2">Open on your phone to generate or enter the pairing code</p>
             </div>
 
             <div className="pt-4 border-t text-center">
