@@ -33,7 +33,12 @@ export class PlayerSDK {
   async load(url: string) {
     this.destroyEngines();
 
-    if (url.endsWith('.m3u8')) {
+    // Determine file extension ignoring query params
+    const path = (() => {
+      try { return new URL(url).pathname; } catch { return url.split('?')[0]; }
+    })();
+
+    if (path.endsWith('.m3u8')) {
       if (Hls.isSupported()) {
         this.hls = new Hls({
           enableWorker: true,
@@ -48,7 +53,7 @@ export class PlayerSDK {
       } else if (this.video.canPlayType('application/vnd.apple.mpegurl')) {
         this.video.src = url;
       }
-    } else if (url.endsWith('.mpd')) {
+    } else if (path.endsWith('.mpd')) {
       this.dash = dashjs.MediaPlayer().create();
       this.dash.initialize(this.video, url, true);
       (this.dash as any).updateSettings({

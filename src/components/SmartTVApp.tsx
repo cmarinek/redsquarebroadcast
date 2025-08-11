@@ -7,6 +7,7 @@ import { Tv, Wifi, Settings, Download, QrCode, Play, Pause } from 'lucide-react'
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { PlayerSDK, PlayerMetrics } from '@/player/PlayerSDK';
+import { getSignedViewUrl } from '@/utils/media';
 
 interface TVAppState {
   isConnected: boolean;
@@ -133,16 +134,25 @@ export function SmartTVApp() {
     }
   };
 
-  const handleContentUpdate = (payload: any) => {
+  const handleContentUpdate = async (payload: any) => {
     if (payload.eventType === 'INSERT' && payload.new.scheduled_time <= new Date().toISOString()) {
-      setTvState(prev => ({
-        ...prev,
-        currentContent: payload.new.content_url,
-        isPlaying: true
-      }));
+      const ref: string = payload.new.content_url;
+      const signed = await resolvePlaybackUrl(ref);
+      setTvState(prev => ({ ...prev, currentContent: signed || ref, isPlaying: true }));
       toast.success('New content received');
     }
   };
+
+  async function resolvePlaybackUrl(ref: string): Promise<string | null> {
+    try {
+      if (!ref) return null;
+      if (/^https?:\/\//i.test(ref)) return ref; // already URL
+      const filePath = ref.startsWith('content/') ? ref.slice('content/'.length) : ref;
+      return await getSignedViewUrl('content', filePath, 600);
+    } catch {
+      return null;
+    }
+  }
 
   const sendHeartbeat = async (screenId: string) => {
     try {
@@ -221,9 +231,11 @@ export function SmartTVApp() {
           .limit(1);
 
         if (!error && data && data[0] && !canceled) {
+          const ref = data[0].content_url as string;
+          const signed = await resolvePlaybackUrl(ref);
           setTvState(prev => ({
             ...prev,
-            currentContent: data[0].content_url,
+            currentContent: signed || ref,
             isPlaying: true,
           }));
         }

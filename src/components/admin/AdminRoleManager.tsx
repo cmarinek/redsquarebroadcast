@@ -13,6 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Shield, UserCog, Search } from "lucide-react";
+import { optimizeImageUrl } from "@/utils/media";
 
 type ProfileRow = {
   user_id: string;
@@ -225,7 +226,7 @@ export function AdminRoleManager() {
                     <TableCell>
                       <div className="flex items-center gap-3">
                         <Avatar className="h-8 w-8">
-                          <AvatarImage src={row.avatar_url ?? undefined} />
+                          <AvatarImage src={optimizeImageUrl(row.avatar_url, { w: 64, h: 64, q: 70 }) ?? undefined} />
                           <AvatarFallback>
                             {(row.display_name?.[0] ?? row.user_id?.[0] ?? "U").toUpperCase()}
                           </AvatarFallback>
