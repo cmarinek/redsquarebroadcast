@@ -307,11 +307,15 @@ const Dashboard = () => {
                     
                     {showQRCode === screen.id && (
                       <div className="flex justify-center p-4 bg-white rounded-lg">
-                        <img 
-                          src={screen.qr_code_url} 
-                          alt={`QR Code for ${screen.screen_name}`}
-                          className="w-32 h-32"
-                        />
+                      <img 
+                        src={screen.qr_code_url} 
+                        alt={`QR Code for ${screen.screen_name}`}
+                        className="w-32 h-32"
+                        loading="lazy"
+                        decoding="async"
+                        width={128}
+                        height={128}
+                      />
                       </div>
                     )}
                   </div>

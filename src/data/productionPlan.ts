@@ -171,7 +171,7 @@ export const phases: Phase[] = [
     duration: "4-6 weeks",
     priority: "High",
     status: "In Progress",
-    progress: 80,
+    progress: 90,
     items: [
       {
         category: "Database Optimization",
