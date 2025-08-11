@@ -31,6 +31,9 @@ export function DeviceSetup() {
   const [screenId, setScreenId] = useState('');
   const [pairingCode, setPairingCode] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [screenName, setScreenName] = useState('');
+  const [deviceId, setDeviceId] = useState('');
+  const [isBinding, setIsBinding] = useState(false);
   
   const [dongleSteps, setDongleSteps] = useState<SetupStep[]>([
     {
@@ -113,6 +116,32 @@ export function DeviceSetup() {
       toast.error('Failed to generate pairing code');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const confirmBinding = async () => {
+    if (!screenId.trim() || !deviceId.trim()) {
+      toast.error('Please enter both Screen ID and Device ID');
+      return;
+    }
+    setIsBinding(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('device-bind-screen', {
+        body: {
+          device_id: deviceId.trim(),
+          screen_id: screenId.trim(),
+          screen_name: screenName.trim() || undefined,
+        },
+      });
+      if (error) throw error as any;
+      toast.success('Device successfully bound to screen');
+      // Mark the appropriate final step as complete
+      completeStep(setupType === 'dongle' ? 'register' : 'pair');
+    } catch (error) {
+      console.error('Error binding device to screen:', error);
+      toast.error('Failed to bind device to screen');
+    } finally {
+      setIsBinding(false);
     }
   };
 
@@ -309,6 +338,22 @@ export function DeviceSetup() {
                   />
                 </div>
                 <div>
+                  <label className="text-sm font-medium">Screen Name (optional)</label>
+                  <Input
+                    placeholder="Friendly name (e.g., Lobby TV)"
+                    value={screenName}
+                    onChange={(e) => setScreenName(e.target.value)}
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-medium">Device ID</label>
+                  <Input
+                    placeholder="Enter device ID from TV/dongle"
+                    value={deviceId}
+                    onChange={(e) => setDeviceId(e.target.value)}
+                  />
+                </div>
+                <div>
                   <label className="text-sm font-medium">Pairing Code</label>
                   <div className="flex gap-2">
                     <Input
@@ -325,6 +370,15 @@ export function DeviceSetup() {
                     </Button>
                   </div>
                 </div>
+              </div>
+
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                <Button onClick={confirmBinding} disabled={isBinding || !screenId || !deviceId}>
+                  {isBinding ? 'Confirming…' : 'Confirm Binding'}
+                </Button>
+                <p className="text-sm text-muted-foreground">
+                  Ensure your TV app shows the same Device ID. You can scan the QR to open pairing on mobile.
+                </p>
               </div>
 
               {pairingCode && (
