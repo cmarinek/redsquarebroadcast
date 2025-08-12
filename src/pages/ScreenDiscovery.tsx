@@ -8,13 +8,9 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { Layout } from "@/components/Layout";
-import { MapContainer, TileLayer, CircleMarker, Popup } from "react-leaflet";
+import MapboxMap from "@/components/maps/MapboxMap";
 import { QrScanner } from "@yudiel/react-qr-scanner";
 
-// Type workaround for react-leaflet props in this setup
-const AnyMapContainer = MapContainer as any;
-const AnyTileLayer = TileLayer as any;
-const AnyCircleMarker = CircleMarker as any;
 
 interface Screen {
   id: string;
@@ -166,46 +162,14 @@ const orderedScreens = [...filteredScreens].sort((a, b) => {
             </Button>
           </div>
 
-          {/* Map */}
           <Card className="mb-8">
             <CardContent className="p-0">
               <div className="h-64 rounded-lg overflow-hidden">
-                <AnyMapContainer
-                  center={coords ? [coords.lat, coords.lng] : [37.7749, -122.4194] as any}
-                  zoom={13}
-                  style={{ height: '100%', width: '100%' }}
-                >
-                  <AnyTileLayer
-                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                  />
-
-                  {coords && (
-                    <AnyCircleMarker
-                      center={[coords.lat, coords.lng] as any}
-                      radius={8}
-                      pathOptions={{ color: 'hsl(var(--accent))', fillColor: 'hsl(var(--accent))', fillOpacity: 0.7 }}
-                    >
-                      <Popup>You are here</Popup>
-                    </AnyCircleMarker>
-                  )}
-
-                  {screens.filter((s) => s.latitude != null && s.longitude != null).map((s) => (
-                    <AnyCircleMarker
-                      key={s.id}
-                      center={[s.latitude as number, s.longitude as number] as any}
-                      radius={7}
-                      pathOptions={{ color: 'hsl(var(--primary))', fillColor: 'hsl(var(--primary))', fillOpacity: 0.7 }}
-                    >
-                      <Popup>
-                        <div className="space-y-2">
-                          <div className="font-medium">{s.screen_name || 'Digital Screen'}</div>
-                          <div className="text-sm text-muted-foreground">{s.location || 'Location not specified'}</div>
-                          <Button size="sm" onClick={() => navigate(`/screen/${s.id}`)}>View</Button>
-                        </div>
-                      </Popup>
-                    </AnyCircleMarker>
-                  ))}
-                </AnyMapContainer>
+                <MapboxMap
+                  coords={coords}
+                  screens={screens}
+                  onSelectScreen={(id) => navigate(`/screen/${id}`)}
+                />
               </div>
             </CardContent>
           </Card>
