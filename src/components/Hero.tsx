@@ -61,7 +61,7 @@ export const Hero = () => {
             {/* Floating UI elements */}
             <div className="absolute -top-4 -right-4 bg-card border border-border rounded-lg p-4 shadow-lg animate-float">
               <div className="flex items-center space-x-2">
-                <div className="w-3 h-3 bg-primary rounded-full animate-pulse"></div>
+                <div className="w-3 h-3 bg-primary rounded-full animate-pulse-slow"></div>
                 <span className="text-sm font-medium">Live Broadcast</span>
               </div>
             </div>
