@@ -110,8 +110,9 @@ export default {
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
 				'accordion-up': 'accordion-up 0.2s ease-out',
-				'glow-pulse': 'glow-pulse 2s ease-in-out infinite',
-				'float': 'float 3s ease-in-out infinite'
+					'glow-pulse': 'glow-pulse 2s ease-in-out infinite',
+					'glow-pulse-slow': 'glow-pulse 3.2s ease-in-out infinite',
+					'float': 'float 3s ease-in-out infinite'
 			},
 			backgroundImage: {
 				'gradient-primary': 'var(--gradient-primary)',
