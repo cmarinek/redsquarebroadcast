@@ -31,6 +31,8 @@ serve(async (req) => {
         "read_replica_urls",
         "failover_urls",
         "primary_url",
+        "pgbouncer_pool_mode",
+        "pgbouncer_pool_size",
       ]);
 
     if (error) throw error;
@@ -41,10 +43,15 @@ serve(async (req) => {
     }
 
     const response = {
-      cdn_base_url: (map.get("cdn_base_url") as { url?: string })?.url || (map.get("cdn_base_url") as string) || null,
+      cdn_base_url:
+        (map.get("cdn_base_url") as { url?: string })?.url ||
+        (map.get("cdn_base_url") as string) ||
+        null,
       read_replica_urls: (map.get("read_replica_urls") as string[] | null) || null,
       failover_urls: (map.get("failover_urls") as string[] | null) || null,
       primary_url: (map.get("primary_url") as string | null) || null,
+      pgbouncer_pool_mode: (map.get("pgbouncer_pool_mode") as string | null) || null,
+      pgbouncer_pool_size: (map.get("pgbouncer_pool_size") as number | null) ?? null,
       // Helpful metadata for clients / ops
       updated_at: new Date().toISOString(),
     };

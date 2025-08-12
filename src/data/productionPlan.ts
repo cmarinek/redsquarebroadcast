@@ -170,8 +170,8 @@ export const phases: Phase[] = [
     phase: "Phase 4: Scalability & Performance",
     duration: "4-6 weeks",
     priority: "High",
-    status: "In Progress",
-    progress: 80,
+    status: "Completed",
+    progress: 100,
     items: [
       {
         category: "Database Optimization",
@@ -230,7 +230,7 @@ export const phases: Phase[] = [
           "Enable geo routing and health checks at edge",
           "Tune connection pooling (PgBouncer) for high concurrency",
         ],
-        estimated: "Ops window",
+        estimated: "Done",
       },
     ],
   },
