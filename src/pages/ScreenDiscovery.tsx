@@ -22,6 +22,8 @@ interface Screen {
   location: string | null;
   pricing_cents: number | null;
   status: string;
+  latitude: number | null;
+  longitude: number | null;
 }
 
 export default function ScreenDiscovery() {
@@ -50,7 +52,7 @@ export default function ScreenDiscovery() {
     try {
       let query = supabase
         .from("screens")
-        .select("id, screen_name, location, pricing_cents, status")
+        .select("id, screen_name, location, pricing_cents, status, latitude, longitude")
         .eq("status", "active")
         .limit(50);
 
@@ -99,7 +101,19 @@ export default function ScreenDiscovery() {
     screen.id.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const orderedScreens = [...filteredScreens];
+const distanceOf = (s: Screen) => (
+  coords && s.latitude != null && s.longitude != null
+    ? distanceKm(coords, { lat: s.latitude, lng: s.longitude })
+    : null
+);
+const orderedScreens = [...filteredScreens].sort((a, b) => {
+  const da = distanceOf(a);
+  const db = distanceOf(b);
+  if (da === null && db === null) return 0;
+  if (da === null) return 1;
+  if (db === null) return -1;
+  return (da as number) - (db as number);
+});
 
   const handleQRScan = () => setShowScanner(true);
 
@@ -175,7 +189,22 @@ export default function ScreenDiscovery() {
                     </AnyCircleMarker>
                   )}
 
-                  {/* Screen markers omitted – precise coordinates not available */}
+                  {screens.filter((s) => s.latitude != null && s.longitude != null).map((s) => (
+                    <AnyCircleMarker
+                      key={s.id}
+                      center={[s.latitude as number, s.longitude as number] as any}
+                      radius={7}
+                      pathOptions={{ color: 'hsl(var(--primary))', fillColor: 'hsl(var(--primary))', fillOpacity: 0.7 }}
+                    >
+                      <Popup>
+                        <div className="space-y-2">
+                          <div className="font-medium">{s.screen_name || 'Digital Screen'}</div>
+                          <div className="text-sm text-muted-foreground">{s.location || 'Location not specified'}</div>
+                          <Button size="sm" onClick={() => navigate(`/screen/${s.id}`)}>View</Button>
+                        </div>
+                      </Popup>
+                    </AnyCircleMarker>
+                  ))}
                 </AnyMapContainer>
               </div>
             </CardContent>
@@ -223,7 +252,7 @@ export default function ScreenDiscovery() {
               </Card>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {filteredScreens.map((screen) => (
+                {orderedScreens.map((screen) => (
                   <Card key={screen.id} className="hover:shadow-lg transition-shadow cursor-pointer">
                     <CardHeader>
                       <div className="flex justify-between items-start">
@@ -234,6 +263,11 @@ export default function ScreenDiscovery() {
                           <CardDescription className="flex items-center gap-1 mt-1">
                             <MapPin className="h-4 w-4" />
                             {screen.location || 'Location not specified'}
+                            {coords && screen.latitude != null && screen.longitude != null && (
+                              <span className="ml-2 text-xs text-muted-foreground">
+                                {distanceKm(coords, { lat: screen.latitude, lng: screen.longitude }).toFixed(1)} km away
+                              </span>
+                            )}
                           </CardDescription>
                         </div>
                         <Badge variant="secondary">

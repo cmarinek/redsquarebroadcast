@@ -966,7 +966,9 @@ export type Database = {
           currency: string | null
           group_id: string | null
           id: string
+          latitude: number | null
           location: string | null
+          longitude: number | null
           owner_user_id: string
           pairing_code: string | null
           platform_fee_percent: number | null
@@ -984,7 +986,9 @@ export type Database = {
           currency?: string | null
           group_id?: string | null
           id: string
+          latitude?: number | null
           location?: string | null
+          longitude?: number | null
           owner_user_id: string
           pairing_code?: string | null
           platform_fee_percent?: number | null
@@ -1002,7 +1006,9 @@ export type Database = {
           currency?: string | null
           group_id?: string | null
           id?: string
+          latitude?: number | null
           location?: string | null
+          longitude?: number | null
           owner_user_id?: string
           pairing_code?: string | null
           platform_fee_percent?: number | null
