@@ -87,10 +87,33 @@ const MapboxMap: React.FC<Props> = ({ coords, screens, onSelectScreen }) => {
     map.addControl(new mapboxgl.NavigationControl({ visualizePitch: true }), "top-right");
     const geolocate = new mapboxgl.GeolocateControl({
       positionOptions: { enableHighAccuracy: true },
-      trackUserLocation: false,
-      showAccuracyCircle: false,
+      trackUserLocation: true,
+      showAccuracyCircle: true,
     });
     map.addControl(geolocate, "top-right");
+
+    // Wire up geolocate events so the button actually recenters and shows a marker
+    geolocate.on("geolocate", (e: any) => {
+      const { longitude, latitude } = e?.coords || {};
+      if (longitude != null && latitude != null) {
+        if (!userMarkerRef.current) {
+          userMarkerRef.current = new mapboxgl.Marker({ color: "#22c55e" })
+            .setLngLat([longitude, latitude])
+            .setPopup(new mapboxgl.Popup({ offset: 24 }).setText("You are here"))
+            .addTo(map);
+        } else {
+          userMarkerRef.current.setLngLat([longitude, latitude]);
+        }
+        map.easeTo({ center: [longitude, latitude], zoom: Math.max(map.getZoom(), 13) });
+        hasCenteredOnUser.current = true;
+        setError(null);
+      }
+    });
+
+    geolocate.on("error", (err: any) => {
+      console.warn("Geolocate error:", err);
+      setError("Location blocked or unavailable. Check permissions.");
+    });
 
     setLoading(false);
     map.on('dragstart', () => { hasCenteredOnUser.current = true; });
