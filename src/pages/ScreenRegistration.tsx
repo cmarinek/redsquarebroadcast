@@ -50,6 +50,8 @@ const ScreenRegistration = () => {
           owner_user_id: user.id,
           screen_name: formData.screen_name || null,
           location: [formData.address, formData.city].filter(Boolean).join(', '),
+          latitude: formData.location_lat ? parseFloat(formData.location_lat) : null,
+          longitude: formData.location_lng ? parseFloat(formData.location_lng) : null,
           pricing_cents: parseInt(formData.price_per_hour || '0', 10) * 100,
           availability_start: formData.availability_start,
           availability_end: formData.availability_end,
