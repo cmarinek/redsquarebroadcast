@@ -22,28 +22,49 @@ const MapboxMap: React.FC<Props> = ({ coords, screens, onSelectScreen }) => {
   const mapRef = useRef<MapboxMapType | null>(null);
   const userMarkerRef = useRef<mapboxgl.Marker | null>(null);
   const [tokenReady, setTokenReady] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Fetch Mapbox public token from Edge Function
+  // Fetch Mapbox public token with fallbacks (URL param, localStorage, edge function)
   useEffect(() => {
     let mounted = true;
     (async () => {
       try {
-        const { data, error } = await supabase.functions.invoke("get-mapbox-token");
-        if (error) throw error;
-        const token = (data as any)?.token as string | undefined;
-        if (token) {
-          mapboxgl.accessToken = token;
-          if (mounted) setTokenReady(true);
-        } else {
-          console.error("Mapbox token missing from edge function response");
+        const urlToken = typeof window !== 'undefined' ? new URL(window.location.href).searchParams.get('mapbox') : null;
+        const lsToken = typeof window !== 'undefined' ? localStorage.getItem('mapbox_public_token') : null;
+        const firstToken = urlToken || lsToken;
+
+        if (firstToken) {
+          mapboxgl.accessToken = firstToken;
+          if (mounted) { setTokenReady(true); setLoading(false); setError(null); }
+          return;
         }
+
+        let token: string | undefined;
+        let lastErr: any = null;
+        for (let i = 0; i < 3; i++) {
+          const { data, error } = await supabase.functions.invoke("get-mapbox-token");
+          if (!error) {
+            token = (data as any)?.token as string | undefined;
+            if (token) break;
+          } else {
+            lastErr = error;
+          }
+          await new Promise((r) => setTimeout(r, 400 * Math.pow(2, i)));
+        }
+
+        if (!token) throw lastErr || new Error("No token returned");
+
+        mapboxgl.accessToken = token;
+        if (mounted) { setTokenReady(true); setError(null); }
       } catch (e) {
         console.error("Failed to get Mapbox token:", e);
+        if (mounted) setError("Map service temporarily unavailable.");
+      } finally {
+        if (mounted) setLoading(false);
       }
     })();
-    return () => {
-      mounted = false;
-    };
+    return () => { mounted = false; };
   }, []);
 
   // Initialize map
@@ -62,6 +83,7 @@ const MapboxMap: React.FC<Props> = ({ coords, screens, onSelectScreen }) => {
     });
 
     map.addControl(new mapboxgl.NavigationControl({ visualizePitch: true }), "top-right");
+    setLoading(false);
 
     map.on("load", () => {
       // Screens source with clustering
@@ -218,7 +240,18 @@ const MapboxMap: React.FC<Props> = ({ coords, screens, onSelectScreen }) => {
     }
   }, [coords]);
 
-  return <div ref={containerRef} className="h-full w-full" />;
+  return (
+    <div className="relative h-full w-full">
+      <div ref={containerRef} className="h-full w-full" />
+      {(loading || error) && (
+        <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+          <div className="rounded-md bg-background/80 px-3 py-2 text-sm text-foreground shadow">
+            {loading ? "Loading map..." : "Map unavailable. Retrying soon or refresh."}
+          </div>
+        </div>
+      )}
+    </div>
+  );
 };
 
 export default MapboxMap;
