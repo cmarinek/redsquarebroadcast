@@ -21,10 +21,10 @@ export const Footer = () => {
           <div className="space-y-4">
             <h3 className="text-lg font-semibold text-foreground">Platform</h3>
             <ul className="space-y-2 text-muted-foreground">
-              <li><a href="#" className="hover:text-foreground transition-colors">For Advertisers</a></li>
-              <li><a href="#" className="hover:text-foreground transition-colors">For Screen Owners</a></li>
-              <li><a href="#" className="hover:text-foreground transition-colors">Hardware Solutions</a></li>
-              <li><a href="#" className="hover:text-foreground transition-colors">API Documentation</a></li>
+              <li><Link to="/my-campaigns" className="hover:text-foreground transition-colors">For Advertisers</Link></li>
+              <li><Link to="/my-screens" className="hover:text-foreground transition-colors">For Screen Owners</Link></li>
+              <li><Link to="/device-setup" className="hover:text-foreground transition-colors">Hardware Solutions</Link></li>
+              <li><Link to="/how-it-works" className="hover:text-foreground transition-colors">API Documentation</Link></li>
             </ul>
           </div>
 
@@ -32,11 +32,11 @@ export const Footer = () => {
           <div className="space-y-4">
             <h3 className="text-lg font-semibold text-foreground">Support</h3>
             <ul className="space-y-2 text-muted-foreground">
-              <li><a href="#" className="hover:text-foreground transition-colors">Help Center</a></li>
-              <li><a href="#" className="hover:text-foreground transition-colors">Getting Started</a></li>
+              <li><Link to="/how-it-works" className="hover:text-foreground transition-colors">Help Center</Link></li>
+              <li><Link to="/how-it-works" className="hover:text-foreground transition-colors">Getting Started</Link></li>
               <li><Link to="/production-plan" className="hover:text-foreground transition-colors">Production Plan</Link></li>
-              <li><a href="#" className="hover:text-foreground transition-colors">Technical Support</a></li>
-              <li><a href="#" className="hover:text-foreground transition-colors">Contact Sales</a></li>
+              <li><a href="mailto:support@redsquare.app" className="hover:text-foreground transition-colors">Technical Support</a></li>
+              <li><a href="mailto:support@redsquare.app" className="hover:text-foreground transition-colors">Contact Sales</a></li>
             </ul>
           </div>
 
@@ -46,11 +46,11 @@ export const Footer = () => {
             <div className="space-y-3">
               <div className="flex items-center space-x-2 text-muted-foreground">
                 <Mail className="w-4 h-4" />
-                <span>support@redsquare.app</span>
+                <a href="mailto:support@redsquare.app" className="hover:text-foreground transition-colors">support@redsquare.app</a>
               </div>
               <div className="flex items-center space-x-2 text-muted-foreground">
                 <Phone className="w-4 h-4" />
-                <span>(215) 397-5797</span>
+                <a href="tel:+12153975797" className="hover:text-foreground transition-colors">(215) 397-5797</a>
               </div>
               <div className="flex items-center space-x-2 text-muted-foreground">
                 <MapPin className="w-4 h-4" />
