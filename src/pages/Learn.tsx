@@ -131,7 +131,7 @@ const Learn = () => {
                   <TabsTrigger value="owners">Screen Owners</TabsTrigger>
                 </TabsList>
 
-                <TabsContent value="broadcasters" className="mt-6">
+                <TabsContent value="broadcasters" className="mt-6 space-y-8">
                   <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
                     {broadcasterFeatures.map((f) => (
                       <Card key={f.title} className="h-full">
@@ -147,9 +147,28 @@ const Learn = () => {
                       </Card>
                     ))}
                   </div>
+
+                  <div>
+                    <h3 className="text-2xl font-semibold text-foreground">Broadcaster Journey</h3>
+                    <ol className="mt-4 space-y-3">
+                      {broadcasterJourney.map((s, i) => (
+                        <li key={s.title} className="flex gap-4">
+                          <div className="w-8 h-8 rounded-full bg-accent text-accent-foreground flex items-center justify-center font-semibold">
+                            {i + 1}
+                          </div>
+                          <Card className="flex-1">
+                            <CardHeader className="py-3">
+                              <CardTitle className="text-base">{s.title}</CardTitle>
+                            </CardHeader>
+                            <CardContent className="pt-0 pb-3 text-sm text-muted-foreground">{s.detail}</CardContent>
+                          </Card>
+                        </li>
+                      ))}
+                    </ol>
+                  </div>
                 </TabsContent>
 
-                <TabsContent value="owners" className="mt-6">
+                <TabsContent value="owners" className="mt-6 space-y-8">
                   <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
                     {ownerFeatures.map((f) => (
                       <Card key={f.title} className="h-full">
@@ -165,55 +184,30 @@ const Learn = () => {
                       </Card>
                     ))}
                   </div>
+
+                  <div>
+                    <h3 className="text-2xl font-semibold text-foreground">Screen Owner Journey</h3>
+                    <ol className="mt-4 space-y-3">
+                      {ownerJourney.map((s, i) => (
+                        <li key={s.title} className="flex gap-4">
+                          <div className="w-8 h-8 rounded-full bg-accent text-accent-foreground flex items-center justify-center font-semibold">
+                            {i + 1}
+                          </div>
+                          <Card className="flex-1">
+                            <CardHeader className="py-3">
+                              <CardTitle className="text-base">{s.title}</CardTitle>
+                            </CardHeader>
+                            <CardContent className="pt-0 pb-3 text-sm text-muted-foreground">{s.detail}</CardContent>
+                          </Card>
+                        </li>
+                      ))}
+                    </ol>
+                  </div>
                 </TabsContent>
               </Tabs>
             </div>
           </section>
 
-          {/* User journeys */}
-          <section className="py-12 md:py-20 border-t border-border">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-              <div className="grid lg:grid-cols-2 gap-10 items-start">
-                <article>
-                  <h3 className="text-2xl font-semibold text-foreground">Broadcaster Journey</h3>
-                  <ol className="mt-4 space-y-3">
-                    {broadcasterJourney.map((s, i) => (
-                      <li key={s.title} className="flex gap-4">
-                        <div className="w-8 h-8 rounded-full bg-accent text-accent-foreground flex items-center justify-center font-semibold">
-                          {i + 1}
-                        </div>
-                        <Card className="flex-1">
-                          <CardHeader className="py-3">
-                            <CardTitle className="text-base">{s.title}</CardTitle>
-                          </CardHeader>
-                          <CardContent className="pt-0 pb-3 text-sm text-muted-foreground">{s.detail}</CardContent>
-                        </Card>
-                      </li>
-                    ))}
-                  </ol>
-                </article>
-
-                <article>
-                  <h3 className="text-2xl font-semibold text-foreground">Screen Owner Journey</h3>
-                  <ol className="mt-4 space-y-3">
-                    {ownerJourney.map((s, i) => (
-                      <li key={s.title} className="flex gap-4">
-                        <div className="w-8 h-8 rounded-full bg-accent text-accent-foreground flex items-center justify-center font-semibold">
-                          {i + 1}
-                        </div>
-                        <Card className="flex-1">
-                          <CardHeader className="py-3">
-                            <CardTitle className="text-base">{s.title}</CardTitle>
-                          </CardHeader>
-                          <CardContent className="pt-0 pb-3 text-sm text-muted-foreground">{s.detail}</CardContent>
-                        </Card>
-                      </li>
-                    ))}
-                  </ol>
-                </article>
-              </div>
-            </div>
-          </section>
 
           {/* Value propositions */}
           <section className="py-12 md:py-20 border-t border-border">
