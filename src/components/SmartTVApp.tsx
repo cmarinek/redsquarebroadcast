@@ -170,13 +170,13 @@ export function SmartTVApp() {
           device_id: deviceIdRef.current,
           screen_id: screenId,
           status: tvState.isPlaying ? 'playing' : 'idle',
+          provisioning_token: tvState.connectionCode,
         },
       });
     } catch (error) {
       console.error('Error sending heartbeat:', error);
     }
   };
-
   // Unified playback via PlayerSDK (HLS, DASH, MP4)
   const sdkRef = useRef<PlayerSDK | null>(null);
   const deviceIdRef = useRef<string>('');

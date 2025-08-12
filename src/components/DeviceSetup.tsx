@@ -126,7 +126,44 @@ export function DeviceSetup() {
     }
     setIsBinding(true);
     try {
-      const { data, error } = await supabase.functions.invoke('device-bind-screen', {
+      const { data: auth } = await supabase.auth.getUser();
+      if (!auth?.user) throw new Error('You must be signed in to bind a device');
+      const uid = auth.user.id;
+
+      // Ensure a device record exists and is owned by this user (RLS-safe)
+      const { data: existing, error: fetchErr } = await supabase
+        .from('devices')
+        .select('id, owner_user_id')
+        .eq('device_id', deviceId.trim())
+        .maybeSingle();
+      if (fetchErr) throw fetchErr as any;
+
+      if (!existing) {
+        const { error: insErr } = await supabase
+          .from('devices')
+          .insert({
+            device_id: deviceId.trim(),
+            owner_user_id: uid,
+            status: 'paired',
+            screen_id: screenId.trim(),
+            screen_name: screenName.trim() || null,
+          } as any);
+        if (insErr) throw insErr as any;
+      } else if (!existing.owner_user_id || existing.owner_user_id === uid) {
+        // Try to claim/update the device to this user and link screen
+        await supabase
+          .from('devices')
+          .update({
+            owner_user_id: uid,
+            status: 'paired',
+            screen_id: screenId.trim(),
+            screen_name: screenName.trim() || null,
+          } as any)
+          .eq('device_id', deviceId.trim());
+      }
+
+      // Finalize binding server-side
+      const { error } = await supabase.functions.invoke('device-bind-screen', {
         body: {
           device_id: deviceId.trim(),
           screen_id: screenId.trim(),
@@ -134,6 +171,7 @@ export function DeviceSetup() {
         },
       });
       if (error) throw error as any;
+
       toast.success('Device successfully bound to screen');
       // Mark the appropriate final step as complete
       completeStep(setupType === 'dongle' ? 'register' : 'pair');
@@ -144,7 +182,6 @@ export function DeviceSetup() {
       setIsBinding(false);
     }
   };
-
   const completeStep = (stepId: string) => {
     if (setupType === 'dongle') {
       setDongleSteps(prev => 
