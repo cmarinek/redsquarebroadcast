@@ -60,33 +60,48 @@ export const PayoutManagement = ({ screens }: PayoutManagementProps) => {
   });
   const [isPayoutDialogOpen, setIsPayoutDialogOpen] = useState(false);
   const [payoutAmount, setPayoutAmount] = useState<number>(0);
+  const [breakdown, setBreakdown] = useState<Array<{ screen_id: string; screen_name?: string | null; gross_cents: number; owner_cents: number; platform_fee_cents: number }>>([]);
+  const [feePercentLabel, setFeePercentLabel] = useState<number>(15);
 
   useEffect(() => {
-    fetchPayoutData();
+    refreshData();
   }, []);
 
   useEffect(() => {
-    calculateEarnings();
-  }, [screens]);
+    refreshData();
+  }, [selectedPeriod?.from, selectedPeriod?.to]);
 
-  const fetchPayoutData = async () => {
+  const refreshData = async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('payout_requests')
-        .select('*')
-        .order('requested_at', { ascending: false });
-
+      // Fetch aggregated earnings and payout history from edge function
+      const { data, error } = await supabase.functions.invoke('owner-earnings', {
+        body: {
+          period_start: selectedPeriod?.from ? format(selectedPeriod.from, 'yyyy-MM-dd') : undefined,
+          period_end: selectedPeriod?.to ? format(selectedPeriod.to, 'yyyy-MM-dd') : undefined,
+        }
+      });
       if (error) throw error;
 
-      const processedRequests: PayoutRequest[] = (data || []).map(request => ({
-        ...request,
-        status: request.status as 'pending' | 'processing' | 'completed' | 'failed'
-      }));
-      
-      setPayoutRequests(processedRequests);
+      const totals = data?.totals || { gross_cents: 0, owner_cents: 0, platform_fee_cents: 0 };
+      const pending = data?.payout?.pending_cents || 0;
+      const paid = data?.payout?.completed_cents || 0;
+      setPayoutRequests((data?.payout_requests || []) as PayoutRequest[]);
+      setBreakdown((data?.breakdown_by_screen || []) as any[]);
+
+      const feePct = totals.gross_cents > 0 ? Math.round((totals.platform_fee_cents / Math.max(1, totals.gross_cents)) * 100) : 0;
+      setFeePercentLabel(feePct);
+
+      setEarnings({
+        total_earnings: totals.gross_cents,
+        pending_earnings: pending,
+        paid_earnings: paid,
+        current_balance: Math.max(0, (totals.owner_cents || 0) - paid - pending)
+      });
+
+      setPayoutAmount(Math.max(0, ((totals.owner_cents || 0) - paid - pending)) / 100);
     } catch (error) {
-      console.error("Error fetching payout data:", error);
+      console.error("Error refreshing earnings:", error);
       toast({
         title: "Error loading payout data",
         description: "Please try again.",
@@ -95,29 +110,6 @@ export const PayoutManagement = ({ screens }: PayoutManagementProps) => {
     } finally {
       setLoading(false);
     }
-  };
-
-  const calculateEarnings = () => {
-    const totalRevenue = screens.reduce((sum, screen) => sum + screen.revenue_this_month, 0);
-    const platformFee = totalRevenue * 0.15; // 15% platform fee
-    const netEarnings = totalRevenue - platformFee;
-    
-    const paidAmount = payoutRequests
-      .filter(req => req.status === 'completed')
-      .reduce((sum, req) => sum + req.amount, 0);
-    
-    const pendingAmount = payoutRequests
-      .filter(req => req.status === 'pending' || req.status === 'processing')
-      .reduce((sum, req) => sum + req.amount, 0);
-
-    setEarnings({
-      total_earnings: totalRevenue,
-      pending_earnings: pendingAmount,
-      paid_earnings: paidAmount,
-      current_balance: Math.max(0, netEarnings - paidAmount - pendingAmount)
-    });
-
-    setPayoutAmount(Math.max(0, netEarnings - paidAmount - pendingAmount) / 100);
   };
 
   const requestPayout = async () => {
@@ -148,8 +140,7 @@ export const PayoutManagement = ({ screens }: PayoutManagementProps) => {
       });
 
       setIsPayoutDialogOpen(false);
-      fetchPayoutData();
-      calculateEarnings();
+      await refreshData();
     } catch (error) {
       console.error("Error requesting payout:", error);
       toast({
@@ -193,17 +184,16 @@ export const PayoutManagement = ({ screens }: PayoutManagementProps) => {
   };
 
   const exportEarningsReport = () => {
-    // Mock CSV generation
     const csvContent = [
-      ['Date', 'Screen', 'Revenue', 'Platform Fee', 'Net Earnings'],
-      ...screens.map(screen => [
+      ['Date', 'Screen', 'Gross', 'Platform Fee', 'Net Earnings'],
+      ...breakdown.map(row => [
         format(new Date(), 'yyyy-MM-dd'),
-        screen.screen_name,
-        `$${(screen.revenue_this_month / 100).toFixed(2)}`,
-        `$${(screen.revenue_this_month * 0.15 / 100).toFixed(2)}`,
-        `$${(screen.revenue_this_month * 0.85 / 100).toFixed(2)}`
+        screens.find(s => s.id === row.screen_id)?.screen_name || row.screen_name || 'Screen',
+        `$${(row.gross_cents / 100).toFixed(2)}`,
+        `$${(row.platform_fee_cents / 100).toFixed(2)}`,
+        `$${(row.owner_cents / 100).toFixed(2)}`
       ])
-    ].map(row => row.join(',')).join('\n');
+    ].map(r => r.join(',')).join('\n');
 
     const blob = new Blob([csvContent], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
@@ -275,7 +265,7 @@ export const PayoutManagement = ({ screens }: PayoutManagementProps) => {
                         ${payoutAmount.toFixed(2)}
                       </div>
                       <p className="text-sm text-muted-foreground">
-                        After 15% platform fee
+                        After {feePercentLabel}% platform fee
                       </p>
                     </div>
                     <Button 
@@ -364,31 +354,38 @@ export const PayoutManagement = ({ screens }: PayoutManagementProps) => {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {screens.map((screen) => {
-              const revenue = screen.revenue_this_month / 100;
-              const platformFee = revenue * 0.15;
-              const netEarnings = revenue - platformFee;
-              const percentage = earnings.total_earnings > 0 ? (screen.revenue_this_month / earnings.total_earnings) * 100 : 0;
+            {breakdown.length > 0 ? (
+              <div className="space-y-4">
+                {breakdown.map((item) => {
+                  const revenue = item.gross_cents / 100;
+                  const netEarnings = item.owner_cents / 100;
+                  const platformFee = item.platform_fee_cents / 100;
+                  const percentage = earnings.total_earnings > 0 ? (item.gross_cents / earnings.total_earnings) * 100 : 0;
+                  const screenName = screens.find(s => s.id === item.screen_id)?.screen_name || item.screen_name || 'Screen';
 
-              return (
-                <div key={screen.id} className="p-4 border border-border rounded-lg">
-                  <div className="flex items-center justify-between mb-2">
-                    <h4 className="font-semibold">{screen.screen_name}</h4>
-                    <div className="text-right">
-                      <span className="font-medium">${revenue.toFixed(2)}</span>
-                      <p className="text-sm text-muted-foreground">
-                        Net: ${netEarnings.toFixed(2)}
-                      </p>
+                  return (
+                    <div key={item.screen_id} className="p-4 border border-border rounded-lg">
+                      <div className="flex items-center justify-between mb-2">
+                        <h4 className="font-semibold">{screenName}</h4>
+                        <div className="text-right">
+                          <span className="font-medium">${revenue.toFixed(2)}</span>
+                          <p className="text-sm text-muted-foreground">
+                            Net: ${netEarnings.toFixed(2)}
+                          </p>
+                        </div>
+                      </div>
+                      <Progress value={percentage} className="h-2" />
+                      <div className="flex justify-between text-sm text-muted-foreground mt-1">
+                        <span>{percentage.toFixed(1)}% of total</span>
+                        <span>Fee: ${platformFee.toFixed(2)}</span>
+                      </div>
                     </div>
-                  </div>
-                  <Progress value={percentage} className="h-2" />
-                  <div className="flex justify-between text-sm text-muted-foreground mt-1">
-                    <span>{percentage.toFixed(1)}% of total</span>
-                    <span>Fee: ${platformFee.toFixed(2)}</span>
-                  </div>
-                </div>
-              );
-            })}
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="text-sm text-muted-foreground">No earnings for the selected period.</div>
+            )}
           </div>
         </CardContent>
       </Card>

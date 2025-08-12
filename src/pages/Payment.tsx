@@ -38,7 +38,7 @@ export default function Payment() {
   const [searchParams] = useSearchParams();
   const { toast } = useToast();
   const { user } = useAuth();
-  
+  const [platformFeeFraction, setPlatformFeeFraction] = useState<number>(0.10);
   const bookingId = searchParams.get('bookingId');
   const [booking, setBooking] = useState<BookingDetails | null>(null);
   const [loading, setLoading] = useState(true);
@@ -69,7 +69,7 @@ export default function Payment() {
       if (bookingErr || !bookingRow) throw bookingErr || new Error('Booking not found');
 
       const [{ data: screenRow }, { data: contentRow }] = await Promise.all([
-        supabase.from('screens').select('screen_name, location').eq('id', bookingRow.screen_id).maybeSingle(),
+        supabase.from('screens').select('screen_name, location, platform_fee_percent, currency').eq('id', bookingRow.screen_id).maybeSingle(),
         supabase.from('content_uploads').select('file_name, file_type').eq('id', bookingRow.content_upload_id).maybeSingle(),
       ]);
 
@@ -82,6 +82,11 @@ export default function Payment() {
         },
         content: contentRow ? { file_name: contentRow.file_name, file_type: contentRow.file_type } : undefined,
       };
+
+      // Derive platform fee fraction from screen (fallback 10%)
+      const rawFee = (screenRow as any)?.platform_fee_percent;
+      const fraction = typeof rawFee === 'number' ? (rawFee > 1 ? rawFee / 100 : rawFee) : 0.10;
+      setPlatformFeeFraction(fraction);
 
       setBooking(assembled);
     } catch (error) {
@@ -250,11 +255,11 @@ export default function Payment() {
                   </div>
                   <div className="flex justify-between">
                     <span>Base rate:</span>
-                    <span>${(((booking.amount_cents || 0) * 0.90) / 100).toFixed(2)}</span>
+                    <span>${(((booking.amount_cents || 0) * (1 - platformFeeFraction)) / 100).toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span>Platform fee (10%):</span>
-                    <span>${(((booking.amount_cents || 0) * 0.10) / 100).toFixed(2)}</span>
+                    <span>Platform fee ({Math.round(platformFeeFraction * 100)}%):</span>
+                    <span>${(((booking.amount_cents || 0) * platformFeeFraction) / 100).toFixed(2)}</span>
                   </div>
                   <Separator />
                   <div className="flex justify-between font-medium text-base">
