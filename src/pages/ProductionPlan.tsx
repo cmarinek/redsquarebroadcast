@@ -1,5 +1,5 @@
 import { Navigation } from "@/components/Navigation";
-import { Footer } from "@/components/Footer";
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useEffect } from "react";
 import { Badge } from "@/components/ui/badge";
@@ -614,7 +614,7 @@ const ProductionPlan = () => {
         </div>
       </section>
 
-      <Footer />
+      
     </div>
   );
 };

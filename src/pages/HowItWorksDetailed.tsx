@@ -1,5 +1,5 @@
 import { Navigation } from "@/components/Navigation";
-import { Footer } from "@/components/Footer";
+
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { 
@@ -335,7 +335,7 @@ const HowItWorksDetailed = () => {
         </div>
       </section>
 
-      <Footer />
+      
     </div>
   );
 };
