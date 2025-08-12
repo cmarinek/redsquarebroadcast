@@ -83,11 +83,22 @@ const MapboxMap: React.FC<Props> = ({ coords, screens, onSelectScreen }) => {
       attributionControl: true,
     });
 
+    // Navigation & geolocate controls
     map.addControl(new mapboxgl.NavigationControl({ visualizePitch: true }), "top-right");
+    const geolocate = new mapboxgl.GeolocateControl({
+      positionOptions: { enableHighAccuracy: true },
+      trackUserLocation: false,
+      showAccuracyCircle: false,
+    });
+    map.addControl(geolocate, "top-right");
+
     setLoading(false);
     map.on('dragstart', () => { hasCenteredOnUser.current = true; });
 
     map.on("load", () => {
+      if (!coords) {
+        try { geolocate.trigger(); } catch {}
+      }
       // Screens source with clustering
       const features = (screens || [])
         .filter((s) => s.latitude != null && s.longitude != null)

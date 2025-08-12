@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { MapPin, Search, QrCode, Star, Clock, DollarSign } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -28,6 +28,7 @@ export default function ScreenDiscovery() {
   const [loading, setLoading] = useState(true);
   const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [showScanner, setShowScanner] = useState(false);
+  const watchIdRef = useRef<number | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -75,9 +76,22 @@ export default function ScreenDiscovery() {
     navigator.geolocation.getCurrentPosition(
       (pos) => setCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
       () => setCoords(null),
-      { enableHighAccuracy: true, timeout: 8000 }
+      { enableHighAccuracy: true, timeout: 15000 }
     );
+    // Live updates
+    try {
+      watchIdRef.current = navigator.geolocation.watchPosition(
+        (pos) => setCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+        () => {},
+        { enableHighAccuracy: true, maximumAge: 10000, timeout: 20000 }
+      );
+    } catch {}
   };
+  useEffect(() => {
+    return () => {
+      if (watchIdRef.current != null) navigator.geolocation.clearWatch(watchIdRef.current);
+    };
+  }, []);
 
   // Haversine distance in km
   const distanceKm = (a: { lat: number; lng: number }, b: { lat: number; lng: number }) => {
