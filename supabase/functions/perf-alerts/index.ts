@@ -10,6 +10,7 @@ const corsHeaders = {
 interface AlertRequest {
   to?: string;
   source?: string;
+  force?: boolean;
 }
 
 function percentile(sorted: number[], p: number) {
@@ -33,7 +34,7 @@ serve(async (req) => {
       });
     }
 
-    const { to } = (await req.json().catch(() => ({}))) as AlertRequest;
+    const { to, source, force } = (await req.json().catch(() => ({}))) as AlertRequest;
     const supabase = createClient(SUPABASE_URL, SERVICE_KEY);
 
     const sinceIso = new Date(Date.now() - 60 * 60 * 1000).toISOString();
@@ -84,6 +85,8 @@ serve(async (req) => {
       timestamp: new Date().toISOString(),
       summary,
       breaches,
+      source: source ?? null,
+      force: !!force,
     };
 
     // Persist breaches to admin_security_alerts (aggregate entry)
@@ -106,7 +109,7 @@ serve(async (req) => {
 
     // Optionally send email
     const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
-    if (RESEND_API_KEY && to && breaches.length > 0) {
+    if (RESEND_API_KEY && to && (breaches.length > 0 || force)) {
       const resend = new Resend(RESEND_API_KEY);
       const html = `
         <h2>Performance Alerts</h2>
