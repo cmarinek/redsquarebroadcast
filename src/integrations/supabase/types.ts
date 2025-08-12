@@ -868,6 +868,54 @@ export type Database = {
           },
         ]
       }
+      payout_requests: {
+        Row: {
+          amount: number
+          created_at: string
+          currency: string
+          earnings_period_end: string
+          earnings_period_start: string
+          id: string
+          metadata: Json | null
+          processed_at: string | null
+          requested_at: string
+          screen_owner_id: string
+          status: string
+          stripe_payout_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          currency?: string
+          earnings_period_end: string
+          earnings_period_start: string
+          id?: string
+          metadata?: Json | null
+          processed_at?: string | null
+          requested_at?: string
+          screen_owner_id: string
+          status?: string
+          stripe_payout_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          currency?: string
+          earnings_period_end?: string
+          earnings_period_start?: string
+          id?: string
+          metadata?: Json | null
+          processed_at?: string | null
+          requested_at?: string
+          screen_owner_id?: string
+          status?: string
+          stripe_payout_id?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       performance_metrics: {
         Row: {
           actor: string | null
@@ -906,6 +954,7 @@ export type Database = {
           has_completed_broadcaster_onboarding: boolean
           has_completed_screen_owner_onboarding: boolean
           role: string
+          stripe_account_id: string | null
           updated_at: string
           user_id: string
         }
@@ -916,6 +965,7 @@ export type Database = {
           has_completed_broadcaster_onboarding?: boolean
           has_completed_screen_owner_onboarding?: boolean
           role?: string
+          stripe_account_id?: string | null
           updated_at?: string
           user_id: string
         }
@@ -926,6 +976,7 @@ export type Database = {
           has_completed_broadcaster_onboarding?: boolean
           has_completed_screen_owner_onboarding?: boolean
           role?: string
+          stripe_account_id?: string | null
           updated_at?: string
           user_id?: string
         }
