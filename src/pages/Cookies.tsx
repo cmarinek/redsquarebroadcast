@@ -59,7 +59,7 @@ export default function Cookies() {
 
         <section className="space-y-3">
           <h2 className="text-xl font-semibold text-foreground">Contact</h2>
-          <p className="text-muted-foreground">Email: hello@redsquare.app • Phone: (215) 397-5797</p>
+          <p className="text-muted-foreground">Support: support@redsquare.app • Phone: (215) 397-5797</p>
         </section>
       </main>
     </div>

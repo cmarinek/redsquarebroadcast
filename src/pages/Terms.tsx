@@ -115,7 +115,7 @@ export default function Terms() {
         <section className="space-y-3">
           <h2 className="text-xl font-semibold text-foreground">Contact</h2>
           <p className="text-muted-foreground">
-            Questions about these Terms? Email: hello@redsquare.app • Phone: (215) 397-5797
+            Questions about these Terms? Email: support@redsquare.app • Phone: (215) 397-5797
           </p>
           <p className="text-sm text-muted-foreground">
             See also our <Link to="/privacy" className="underline">Privacy Policy</Link> and <Link to="/cookies" className="underline">Cookie Policy</Link>.

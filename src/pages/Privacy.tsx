@@ -126,7 +126,7 @@ export default function Privacy() {
         <section className="space-y-3">
           <h2 className="text-xl font-semibold text-foreground">Contact Us</h2>
           <p className="text-muted-foreground">
-            Email: hello@redsquare.app • Phone: (215) 397-5797 • Location: San Francisco, CA
+            Email: support@redsquare.app • Phone: (215) 397-5797 • Location: San Francisco, CA
           </p>
         </section>
       </main>
