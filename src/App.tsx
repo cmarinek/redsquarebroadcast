@@ -30,6 +30,7 @@ const AdminProjectOverview = lazy(() => import("./pages/AdminProjectOverview"));
 const Subscription = lazy(() => import("./pages/Subscription"));
 const AdminPerformance = lazy(() => import("./pages/AdminPerformance"));
 const AdminMonetization = lazy(() => import("./pages/AdminMonetization"));
+const AdminOpsInfra = lazy(() => import("./pages/AdminOpsInfra"));
 const Privacy = lazy(() => import("./pages/Privacy"));
 const Terms = lazy(() => import("./pages/Terms"));
 const Cookies = lazy(() => import("./pages/Cookies"));
@@ -53,6 +54,7 @@ const App = () => (
               <Route path="/admin/overview" element={<AdminProjectOverview />} />
               <Route path="/admin/performance" element={<AdminRoute><AdminPerformance /></AdminRoute>} />
               <Route path="/admin/monetization" element={<AdminRoute><AdminMonetization /></AdminRoute>} />
+              <Route path="/admin/ops-infra" element={<AdminRoute><AdminOpsInfra /></AdminRoute>} />
               <Route path="/my-campaigns" element={<BroadcasterDashboard />} />
               <Route path="/my-screens" element={<ScreenOwnerDashboard />} />
               <Route path="/profile" element={<Profile />} />

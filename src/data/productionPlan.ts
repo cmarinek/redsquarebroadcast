@@ -170,8 +170,8 @@ export const phases: Phase[] = [
     phase: "Phase 4: Scalability & Performance",
     duration: "4-6 weeks",
     priority: "High",
-    status: "Completed",
-    progress: 100,
+    status: "In Progress",
+    progress: 80,
     items: [
       {
         category: "Database Optimization",
