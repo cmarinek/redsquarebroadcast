@@ -191,7 +191,7 @@ export const DeviceMonitoring = ({ screens }: DeviceMonitoringProps) => {
     });
   };
 
-  const sendCommand = async (command: 'play' | 'pause' | 'load', payload?: any) => {
+  const sendCommand = async (command: 'play' | 'pause' | 'load' | 'restart' | 'prefetch', payload?: any) => {
     if (!selectedScreen) {
       toast({ title: 'Select a screen first', variant: 'destructive' });
       return;
@@ -332,10 +332,12 @@ export const DeviceMonitoring = ({ screens }: DeviceMonitoringProps) => {
               <div className="flex gap-3">
                 <Button variant="secondary" onClick={() => sendCommand('play')}>Play</Button>
                 <Button variant="outline" onClick={() => sendCommand('pause')}>Pause</Button>
+                <Button variant="outline" onClick={() => sendCommand('restart')}>Restart</Button>
               </div>
               <div className="flex-1 flex gap-3">
                 <Input placeholder="Media URL (.m3u8, .mpd, .mp4, image)" value={loadUrl} onChange={(e)=>setLoadUrl(e.target.value)} />
                 <Button onClick={handleLoad}>Load</Button>
+                <Button variant="outline" onClick={() => sendCommand('prefetch', { url: loadUrl })} disabled={!loadUrl}>Prefetch</Button>
               </div>
             </CardContent>
           </Card>
@@ -383,7 +385,7 @@ export const DeviceMonitoring = ({ screens }: DeviceMonitoringProps) => {
                   <div>
                     <p className="text-sm font-medium text-muted-foreground">Uptime</p>
                     <p className="text-2xl font-bold">
-                      {currentDevice ? formatUptime(currentDevice.uptime) : '0h 0m'}
+                      {currentDevice ? formatUptime(Number((currentDevice as any).uptime || 0)) : '0h 0m'}
                     </p>
                   </div>
                   <Clock className="h-8 w-8 text-muted-foreground" />
@@ -429,7 +431,7 @@ export const DeviceMonitoring = ({ screens }: DeviceMonitoringProps) => {
                   <div>
                     <h4 className="font-semibold">{currentDevice.current_content}</h4>
                     <p className="text-sm text-muted-foreground">
-                      Last updated: {format(new Date(currentDevice.last_heartbeat), 'MMM d, h:mm a')}
+                      Last updated: {format(new Date((currentDevice as any).last_heartbeat || (currentDevice as any).last_seen || currentDevice.updated_at || currentDevice.created_at), 'MMM d, h:mm a')}
                     </p>
                   </div>
                 </div>
@@ -535,12 +537,14 @@ export const DeviceMonitoring = ({ screens }: DeviceMonitoringProps) => {
                       <div className="flex-1">
                         <div className="flex items-center gap-2">
                           <span className="font-medium capitalize">{status.status}</span>
-                          <Badge variant="outline" className="text-xs">
-                            {status.connection_type}
-                          </Badge>
+                          {status.connection_type && (
+                            <Badge variant="outline" className="text-xs">
+                              {status.connection_type}
+                            </Badge>
+                          )}
                         </div>
                         <p className="text-sm text-muted-foreground">
-                          Signal: {status.signal_strength}% • Uptime: {formatUptime(status.uptime)}
+                          Signal: {typeof (status as any).signal_strength === 'number' ? (status as any).signal_strength : 0}% • Last Seen: {format(new Date((status as any).last_seen || status.updated_at || status.created_at), 'MMM d, h:mm a')}
                         </p>
                       </div>
                       <div className="text-right">
