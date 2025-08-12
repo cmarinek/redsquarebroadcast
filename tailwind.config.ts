@@ -114,6 +114,7 @@ export default {
 					'glow-pulse-medium': 'glow-pulse 2.6s ease-in-out infinite',
 					'glow-pulse-slow': 'glow-pulse 3.2s ease-in-out infinite',
 					'glow-pulse-slowest': 'glow-pulse 4s ease-in-out infinite',
+					'glow-pulse-3_4s': 'glow-pulse 3.4s ease-in-out infinite',
 					'pulse-slow': 'pulse 3.2s cubic-bezier(0.4,0,0.6,1) infinite',
 					'float': 'float 3s ease-in-out infinite'
 			},
