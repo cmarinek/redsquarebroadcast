@@ -80,8 +80,8 @@ export const phases: Phase[] = [
     phase: "Phase 2: Hardware Integration",
     duration: "6-8 weeks",
     priority: "High",
-    status: "In Progress",
-    progress: 65,
+    status: "Completed",
+    progress: 100,
     items: [
       {
         category: "Dongle Hardware",
