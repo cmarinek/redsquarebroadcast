@@ -1,9 +1,7 @@
 import { Monitor, Mail, Phone, MapPin } from "lucide-react";
 import { Link } from "react-router-dom";
-
 export const Footer = () => {
-  return (
-    <footer className="bg-secondary/30 border-t border-border">
+  return <footer className="bg-secondary/30 border-t border-border">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="grid md:grid-cols-4 gap-8">
           {/* Brand */}
@@ -64,9 +62,7 @@ export const Footer = () => {
 
         <div className="mt-12 pt-8 border-t border-border">
           <div className="flex flex-col md:flex-row justify-between items-center">
-            <p className="text-muted-foreground">
-              © 2024 Red Square. All rights reserved.
-            </p>
+            <p className="text-muted-foreground">© 2025 Red Square. All rights reserved.</p>
             <div className="flex space-x-6 mt-4 md:mt-0">
               <a href="#" className="text-muted-foreground hover:text-foreground transition-colors">
                 Privacy Policy
@@ -81,6 +77,5 @@ export const Footer = () => {
           </div>
         </div>
       </div>
-    </footer>
-  );
+    </footer>;
 };
