@@ -88,66 +88,93 @@ const ScreenOwnerDashboard = () => {
       // Fetch screens owned by the user
       const { data: screensData, error: screensError } = await supabase
         .from('screens')
-        .select('*')
-        .eq('owner_id', user.id);
-
+        .select('id, screen_name, location, status, price_per_10s_cents, pricing_cents')
+        .eq('owner_user_id', user!.id);
       if (screensError) throw screensError;
 
-      // Fetch device status for screens
       const screenIds = screensData?.map(s => s.id) || [];
+
+      // Fetch latest device status for those screens
       const { data: deviceData } = await supabase
         .from('device_status')
-        .select('screen_id, status, uptime')
+        .select('screen_id, status')
         .in('screen_id', screenIds);
 
-      // Fetch recent bookings for revenue calculation
+      // Time window: current month
+      const now = new Date();
+      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+      const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
+      const startISO = startOfMonth.toISOString();
+      const endISO = endOfMonth.toISOString();
+
+      // Fetch bookings for revenue + occupancy
       const { data: bookingsData } = await supabase
         .from('bookings')
-        .select('screen_id, total_amount, scheduled_date, payment_status')
+        .select('id, screen_id, start_time, duration_minutes')
         .in('screen_id', screenIds)
-        .gte('scheduled_date', new Date(new Date().setMonth(new Date().getMonth() - 1)).toISOString().split('T')[0]);
+        .gte('start_time', startISO)
+        .lte('start_time', endISO);
 
-      // Process data
-      const processedScreens: ScreenData[] = screensData?.map(screen => {
-        const deviceStatus = deviceData?.find(d => d.screen_id === screen.id);
-        const screenBookings = bookingsData?.filter(b => b.screen_id === screen.id && b.payment_status === 'paid') || [];
-        const revenue = screenBookings.reduce((sum, booking) => sum + (booking.total_amount || 0), 0);
-        
-        // Calculate occupancy rate (simplified)
-        const totalHours = 24 * 30; // 30 days
-        const bookedHours = screenBookings.length * 2; // Assume 2 hours per booking average
-        const occupancy = totalHours > 0 ? (bookedHours / totalHours) * 100 : 0;
+      const bookingIds = bookingsData?.map(b => b.id) || [];
+
+      // Fetch payments for those bookings
+      const { data: paymentsData } = await supabase
+        .from('payments')
+        .select('booking_id, owner_amount_cents, status')
+        .in('booking_id', bookingIds);
+
+      const ok = new Set(['completed', 'succeeded', 'paid']);
+      const paymentsByBooking = new Map<string, number>();
+      (paymentsData || []).forEach(p => {
+        if (ok.has((p.status || '').toLowerCase())) {
+          paymentsByBooking.set(p.booking_id, (paymentsByBooking.get(p.booking_id) || 0) + (p.owner_amount_cents || 0));
+        }
+      });
+
+      // Aggregate per screen
+      const processedScreens: ScreenData[] = (screensData || []).map(screen => {
+        const deviceStatus = (deviceData || []).find(d => d.screen_id === screen.id);
+        const screenBookings = (bookingsData || []).filter(b => b.screen_id === screen.id);
+
+        const revenueOwnerCents = screenBookings.reduce((sum, b) => sum + (paymentsByBooking.get(b.id) || 0), 0);
+        const totalBookedMinutes = screenBookings.reduce((sum, b) => sum + (b.duration_minutes || 0), 0);
+        const monthMinutes = (endOfMonth.getTime() - startOfMonth.getTime()) / 60000;
+        const occupancy = monthMinutes > 0 ? Math.min(100, (totalBookedMinutes / monthMinutes) * 100) : 0;
+
+        // Map status
+        const status: 'online' | 'offline' | 'maintenance' = deviceStatus
+          ? (deviceStatus.status === 'offline' ? 'offline' : 'online')
+          : (screen.status === 'active' ? 'offline' : 'maintenance');
 
         return {
           id: screen.id,
-          screen_name: screen.screen_name || 'Unnamed Screen',
-          address: screen.address || '',
-          city: screen.city || '',
-          price_per_hour: screen.price_per_hour || 0,
-          is_active: screen.is_active || false,
-          revenue_this_month: revenue,
-          occupancy_rate: Math.min(occupancy, 100),
-          status: deviceStatus?.status === 'online' ? 'online' : screen.is_active ? 'offline' : 'maintenance',
-          group_id: screen.group_id || null
+          screen_name: screen.screen_name || 'Digital Screen',
+          address: screen.location || '',
+          city: '',
+          price_per_hour: 0,
+          is_active: screen.status === 'active',
+          revenue_this_month: revenueOwnerCents,
+          occupancy_rate: Math.round(occupancy),
+          status,
+          group_id: undefined
         };
-      }) || [];
+      });
 
       setScreens(processedScreens);
 
-      // Calculate dashboard stats
-      const totalRevenue = processedScreens.reduce((sum, screen) => sum + screen.revenue_this_month, 0);
+      const totalRevenue = processedScreens.reduce((sum, s) => sum + s.revenue_this_month, 0);
       const activeScreensCount = processedScreens.filter(s => s.status === 'online').length;
-      const avgOccupancy = processedScreens.length > 0 
-        ? processedScreens.reduce((sum, s) => sum + s.occupancy_rate, 0) / processedScreens.length 
+      const avgOccupancy = processedScreens.length > 0
+        ? Math.round(processedScreens.reduce((sum, s) => sum + s.occupancy_rate, 0) / processedScreens.length)
         : 0;
 
       setStats({
         totalScreens: processedScreens.length,
         monthlyRevenue: totalRevenue,
-        totalViews: Math.floor(Math.random() * 50000) + 10000, // Mock data
-        averageOccupancy: Math.round(avgOccupancy),
+        totalViews: Math.floor(Math.random() * 50000) + 10000,
+        averageOccupancy: avgOccupancy,
         activeScreens: activeScreensCount,
-        pendingPayouts: Math.floor(totalRevenue * 0.1) // Mock pending payouts
+        pendingPayouts: 0
       });
 
     } catch (error) {
