@@ -22,6 +22,8 @@ const MapboxMap: React.FC<Props> = ({ coords, screens, onSelectScreen }) => {
   const mapRef = useRef<MapboxMapType | null>(null);
   const userMarkerRef = useRef<mapboxgl.Marker | null>(null);
   const hasCenteredOnUser = useRef(false);
+  const geoClickTimeoutRef = useRef<number | null>(null);
+  const geoBtnHandlerRef = useRef<((e: Event) => void) | null>(null);
   const [tokenReady, setTokenReady] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -113,7 +115,64 @@ const MapboxMap: React.FC<Props> = ({ coords, screens, onSelectScreen }) => {
     geolocate.on("error", (err: any) => {
       console.warn("Geolocate error:", err);
       setError("Location blocked or unavailable. Check permissions.");
+      // Fallback to browser geolocation
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          (pos) => {
+            const { longitude, latitude } = pos.coords;
+            if (!userMarkerRef.current) {
+              userMarkerRef.current = new mapboxgl.Marker({ color: "#22c55e" })
+                .setLngLat([longitude, latitude])
+                .setPopup(new mapboxgl.Popup({ offset: 24 }).setText("You are here"))
+                .addTo(map);
+            } else {
+              userMarkerRef.current.setLngLat([longitude, latitude]);
+            }
+            map.easeTo({ center: [longitude, latitude], zoom: Math.max(map.getZoom(), 13) });
+            hasCenteredOnUser.current = true;
+          },
+          () => {},
+          { enableHighAccuracy: true, timeout: 10000 }
+        );
+      }
     });
+
+    // Attach a click fallback on the control button in case geolocate stalls
+    const attachGeoBtnFallback = () => {
+      const btn = containerRef.current?.querySelector(".mapboxgl-ctrl-geolocate") as HTMLButtonElement | null;
+      if (!btn || geoBtnHandlerRef.current) return;
+      const handler = () => {
+        if (geoClickTimeoutRef.current) {
+          window.clearTimeout(geoClickTimeoutRef.current);
+        }
+        geoClickTimeoutRef.current = window.setTimeout(() => {
+          if (!navigator.geolocation) return;
+          navigator.geolocation.getCurrentPosition(
+            (pos) => {
+              const { longitude, latitude } = pos.coords;
+              if (!userMarkerRef.current) {
+                userMarkerRef.current = new mapboxgl.Marker({ color: "#22c55e" })
+                  .setLngLat([longitude, latitude])
+                  .setPopup(new mapboxgl.Popup({ offset: 24 }).setText("You are here"))
+                  .addTo(map);
+              } else {
+                userMarkerRef.current.setLngLat([longitude, latitude]);
+              }
+              map.easeTo({ center: [longitude, latitude], zoom: Math.max(map.getZoom(), 13) });
+              hasCenteredOnUser.current = true;
+              setError(null);
+            },
+            () => {},
+            { enableHighAccuracy: true, timeout: 10000 }
+          );
+        }, 6000);
+      };
+      geoBtnHandlerRef.current = handler;
+      btn.addEventListener("click", handler);
+    };
+    attachGeoBtnFallback();
+    map.on("load", attachGeoBtnFallback);
+    map.on("idle", attachGeoBtnFallback);
 
     setLoading(false);
     map.on('dragstart', () => { hasCenteredOnUser.current = true; });
@@ -235,6 +294,15 @@ const MapboxMap: React.FC<Props> = ({ coords, screens, onSelectScreen }) => {
     mapRef.current = map;
 
     return () => {
+      if (geoClickTimeoutRef.current) {
+        window.clearTimeout(geoClickTimeoutRef.current);
+        geoClickTimeoutRef.current = null;
+      }
+      const btn = containerRef.current?.querySelector(".mapboxgl-ctrl-geolocate") as HTMLButtonElement | null;
+      if (btn && geoBtnHandlerRef.current) {
+        btn.removeEventListener("click", geoBtnHandlerRef.current);
+        geoBtnHandlerRef.current = null;
+      }
       userMarkerRef.current?.remove();
       map.remove();
       mapRef.current = null;
