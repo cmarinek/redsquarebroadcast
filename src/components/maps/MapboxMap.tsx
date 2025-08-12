@@ -21,6 +21,7 @@ const MapboxMap: React.FC<Props> = ({ coords, screens, onSelectScreen }) => {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<MapboxMapType | null>(null);
   const userMarkerRef = useRef<mapboxgl.Marker | null>(null);
+  const hasCenteredOnUser = useRef(false);
   const [tokenReady, setTokenReady] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -84,6 +85,7 @@ const MapboxMap: React.FC<Props> = ({ coords, screens, onSelectScreen }) => {
 
     map.addControl(new mapboxgl.NavigationControl({ visualizePitch: true }), "top-right");
     setLoading(false);
+    map.on('dragstart', () => { hasCenteredOnUser.current = true; });
 
     map.on("load", () => {
       // Screens source with clustering
@@ -226,6 +228,7 @@ const MapboxMap: React.FC<Props> = ({ coords, screens, onSelectScreen }) => {
     const map = mapRef.current;
     if (!map) return;
     if (coords) {
+      // Place or update user marker
       if (!userMarkerRef.current) {
         userMarkerRef.current = new mapboxgl.Marker({ color: "#22c55e" })
           .setLngLat([coords.lng, coords.lat])
@@ -233,6 +236,11 @@ const MapboxMap: React.FC<Props> = ({ coords, screens, onSelectScreen }) => {
           .addTo(map);
       } else {
         userMarkerRef.current.setLngLat([coords.lng, coords.lat]);
+      }
+      // Recenter to user's location once when it's first available
+      if (!hasCenteredOnUser.current) {
+        map.easeTo({ center: [coords.lng, coords.lat], zoom: Math.max(map.getZoom(), 13) });
+        hasCenteredOnUser.current = true;
       }
     } else {
       userMarkerRef.current?.remove();
