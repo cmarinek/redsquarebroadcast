@@ -55,10 +55,24 @@ serve(async (req) => {
       stack: e.stack ? String(e.stack).slice(0, 8000) : null,
       path: e.path ?? null,
       session_id: e.session_id ?? null,
-      user_agent: e.user_agent ?? null,
+      user_agent: e.user_agent ?? (req.headers.get('user-agent') || null),
       user_id: userId,
       created_at: e.created_at ?? now,
     }));
+
+    // Rate limit errors per session/user to avoid floods
+    try {
+      const key = `fe:${rows[0]?.session_id ?? userId ?? 'anon'}`;
+      const { data: allowed } = await supabase.rpc('check_rate_limit', { _key: key, _limit: 50, _window_seconds: 300 });
+      if (allowed === false) {
+        return new Response(JSON.stringify({ ok: false, error: 'rate_limited' }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 429,
+        });
+      }
+    } catch (_) {
+      // proceed if rate-limit rpc fails
+    }
 
     const { error } = await supabase.from("frontend_errors").insert(rows);
     if (error) {

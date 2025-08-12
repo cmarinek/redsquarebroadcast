@@ -46,6 +46,7 @@ export const handler = async (req: Request): Promise<Response> => {
 
     const rows = normalized
       .filter((e: any) => e && typeof e.metric_name === 'string' && typeof e.value !== 'undefined')
+      .slice(0, 50)
       .map((e: any) => ({
         metric_name: String(e.metric_name),
         value: typeof e.value === 'number' ? e.value : Number(e.value),
@@ -60,6 +61,17 @@ export const handler = async (req: Request): Promise<Response> => {
 
     if (!rows.length) {
       return new Response(JSON.stringify({ ok: true, inserted: 0 }), { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
+
+    // Basic rate limiting per session/ip to protect the table
+    const rlKey = `ft:${session_id ?? ip ?? 'unknown'}`;
+    try {
+      const { data: allowed } = await supabase.rpc('check_rate_limit', { _key: rlKey, _limit: 120, _window_seconds: 60 });
+      if (allowed === false) {
+        return new Response(JSON.stringify({ ok: false, error: 'rate_limited' }), { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      }
+    } catch (rlErr) {
+      console.warn('rate limit rpc failed, continuing permissively');
     }
 
     const { error } = await supabase.from('frontend_metrics').insert(rows);
