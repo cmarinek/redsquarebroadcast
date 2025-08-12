@@ -30,6 +30,9 @@ const AdminProjectOverview = lazy(() => import("./pages/AdminProjectOverview"));
 const Subscription = lazy(() => import("./pages/Subscription"));
 const AdminPerformance = lazy(() => import("./pages/AdminPerformance"));
 const AdminMonetization = lazy(() => import("./pages/AdminMonetization"));
+const Privacy = lazy(() => import("./pages/Privacy"));
+const Terms = lazy(() => import("./pages/Terms"));
+const Cookies = lazy(() => import("./pages/Cookies"));
 import AdminRoute from "@/components/routing/AdminRoute";
 
 const queryClient = new QueryClient();
@@ -66,6 +69,9 @@ const App = () => (
               <Route path="/smart-tv" element={<SmartTVApp />} />
               <Route path="/tv" element={<SmartTVApp />} />
               <Route path="/subscription" element={<Subscription />} />
+              <Route path="/privacy" element={<Privacy />} />
+              <Route path="/terms" element={<Terms />} />
+              <Route path="/cookies" element={<Cookies />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
