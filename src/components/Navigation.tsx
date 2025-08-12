@@ -167,6 +167,9 @@ export const Navigation = () => {
                   <Link to="/how-it-works">How It Works</Link>
                 </Button>
                 <Button variant="outline" asChild>
+                  <Link to="/learn">Learn</Link>
+                </Button>
+                <Button variant="outline" asChild>
                   <Link to="/discover">Find Screens</Link>
                 </Button>
                 <Button variant="outline" asChild>
@@ -246,6 +249,9 @@ export const Navigation = () => {
                 </> : <>
                   <Button variant="outline" asChild className="w-full justify-start">
                     <Link to="/how-it-works">How It Works</Link>
+                  </Button>
+                  <Button variant="outline" asChild className="w-full justify-start">
+                    <Link to="/learn">Learn</Link>
                   </Button>
                   <Button variant="outline" asChild className="w-full justify-start">
                     <Link to="/discover">Find Screens</Link>
