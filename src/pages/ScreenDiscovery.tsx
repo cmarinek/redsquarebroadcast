@@ -10,6 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Layout } from "@/components/Layout";
 import MapboxMap from "@/components/maps/MapboxMap";
 import { QrScanner } from "@yudiel/react-qr-scanner";
+import SEO from "@/components/SEO";
 
 
 interface Screen {
@@ -148,6 +149,7 @@ const orderedScreens = [...filteredScreens].sort((a, b) => {
 
   return (
     <Layout>
+      <SEO title="Discover Screens Nearby | Red Square" description="Find digital screens by proximity, scan QR codes, or search by city, name, or ID." path="/discover" />
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-8">

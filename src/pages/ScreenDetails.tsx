@@ -8,6 +8,7 @@ import { Separator } from "@/components/ui/separator";
 import { supabase } from "@/integrations/supabase/client";
 import { Navigation } from "@/components/Navigation";
 import QRCode from "react-qr-code";
+import SEO from "@/components/SEO";
 
 interface Screen {
   id: string;
@@ -85,7 +86,7 @@ export default function ScreenDetails() {
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
-      
+      <SEO title={`${screen.screen_name || 'Digital Screen'} | Red Square`} description={`Book this screen in ${screen.location || 'your city'} — hourly pricing and availability.`} path={`/screen/${screen.id}`} />
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto">
           {/* Header */}
