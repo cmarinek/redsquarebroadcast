@@ -44,6 +44,7 @@ import { ABTestingTools } from "@/components/broadcaster/ABTestingTools";
 import MobileAppIntegration from "@/components/broadcaster/MobileAppIntegration";
 import { format, isAfter, isBefore, addDays } from "date-fns";
 import { getSignedViewUrl } from "@/utils/media";
+import BroadcasterSetupGuide from "@/components/broadcaster/BroadcasterSetupGuide";
 
 interface BookingData {
   id: string;
@@ -423,8 +424,9 @@ const BroadcasterDashboard = () => {
             </div>
             
             <Tabs value={filterTab} onValueChange={setFilterTab} className="mt-4">
-              <TabsList className="grid w-full grid-cols-6 lg:w-auto">
+              <TabsList className="grid w-full grid-cols-7 lg:w-auto">
                 <TabsTrigger value="overview">Overview</TabsTrigger>
+                <TabsTrigger value="setup-guide">Setup Guide</TabsTrigger>
                 <TabsTrigger value="analytics">Analytics</TabsTrigger>
                 <TabsTrigger value="scheduling">Scheduling</TabsTrigger>
                 <TabsTrigger value="targeting">Targeting</TabsTrigger>
@@ -438,6 +440,9 @@ const BroadcasterDashboard = () => {
             <Tabs value={filterTab} className="w-full">
               <TabsContent value="overview" className="mt-0">
                 {renderCampaignsList(filterBookings(bookings))}
+              </TabsContent>
+              <TabsContent value="setup-guide" className="mt-6">
+                <BroadcasterSetupGuide />
               </TabsContent>
               <TabsContent value="analytics" className="mt-6">
                 <AdvancedAnalyticsDashboard bookings={bookings} />

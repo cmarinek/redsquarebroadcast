@@ -34,6 +34,7 @@ import { PayoutManagement } from "@/components/screen-owner/PayoutManagement";
 import { AvailabilityManager } from "@/components/screen-owner/AvailabilityManager";
 import { useUserRoles } from "@/hooks/useUserRoles";
 import AdminRoleManager from "@/components/admin/AdminRoleManager";
+import ScreenOwnerSetupGuide from "@/components/screen-owner/ScreenOwnerSetupGuide";
 
 interface ScreenData {
   id: string;
@@ -316,8 +317,9 @@ const ScreenOwnerDashboard = () => {
 
         {/* Main Content Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-7">
+          <TabsList className="grid w-full grid-cols-8">
             <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="setup-guide">Setup Guide</TabsTrigger>
             <TabsTrigger value="revenue">Revenue</TabsTrigger>
             <TabsTrigger value="monitoring">Monitoring</TabsTrigger>
             <TabsTrigger value="network">Network</TabsTrigger>
@@ -381,6 +383,10 @@ const ScreenOwnerDashboard = () => {
                 </div>
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="setup-guide">
+            <ScreenOwnerSetupGuide />
           </TabsContent>
 
           <TabsContent value="revenue">
