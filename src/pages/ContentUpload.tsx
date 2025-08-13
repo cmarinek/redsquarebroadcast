@@ -1,13 +1,18 @@
 import { useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Upload, Image, Video, FileText, X, Play, Pause } from "lucide-react";
+import { Upload, Image, Video, FileText, X, Play, Pause, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Layout } from "@/components/Layout";
+import { LoadingOverlay } from "@/components/ui/loading-spinner";
+import { useFormValidation } from "@/hooks/useFormValidation";
+import { contentUploadSchema, moderationChecks } from "@/utils/validation";
+import { z } from "zod";
 
 interface UploadedFile {
   file: File;
@@ -25,33 +30,60 @@ export default function ContentUpload() {
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [videoPlaying, setVideoPlaying] = useState(false);
+  const [validationErrors, setValidationErrors] = useState<string[]>([]);
   const videoRef = useRef<HTMLVideoElement>(null);
+  
+  const { validateForm } = useFormValidation(contentUploadSchema);
+
+  const validateFile = (file: File): string[] => {
+    const errors: string[] = [];
+    
+    // File type validation
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'video/mp4'];
+    if (!allowedTypes.includes(file.type)) {
+      errors.push("Invalid file type. Please upload JPG, PNG, GIF, or MP4 files only.");
+    }
+
+    // File size validation
+    if (file.size > 50 * 1024 * 1024) {
+      errors.push("File too large. Maximum size is 50MB.");
+    }
+
+    // Content moderation checks
+    const filenameIssues = moderationChecks.filename(file.name);
+    const fileSizeIssues = moderationChecks.fileSize(file.size, file.type);
+    
+    errors.push(...filenameIssues, ...fileSizeIssues);
+
+    // Additional validation using Zod schema
+    try {
+      contentUploadSchema.parse({ file });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        errors.push(...error.errors.map(err => err.message));
+      }
+    }
+
+    return errors;
+  };
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
-    // Validate file type
-    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'video/mp4'];
-    if (!allowedTypes.includes(file.type)) {
+    // Validate file
+    const errors = validateFile(file);
+    if (errors.length > 0) {
+      setValidationErrors(errors);
       toast({
-        title: "Invalid file type",
-        description: "Please upload JPG, PNG, GIF, or MP4 files only.",
+        title: "File validation failed",
+        description: errors[0],
         variant: "destructive"
       });
       return;
     }
 
-    // Validate file size (50MB max)
-    if (file.size > 50 * 1024 * 1024) {
-      toast({
-        title: "File too large",
-        description: "Please upload files smaller than 50MB.",
-        variant: "destructive"
-      });
-      return;
-    }
-
+    setValidationErrors([]);
     const preview = URL.createObjectURL(file);
     const type = file.type.startsWith('image/') ? 
       (file.type === 'image/gif' ? 'gif' : 'image') : 'video';
@@ -82,6 +114,8 @@ export default function ContentUpload() {
 
     setUploading(true);
     setUploadProgress(0);
+    
+    let progressInterval: NodeJS.Timeout | null = null;
 
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -97,10 +131,9 @@ export default function ContentUpload() {
       // Using signed upload URLs; server will generate the final file path
 
       // Simulate upload progress
-      const progressInterval = setInterval(() => {
+      progressInterval = setInterval(() => {
         setUploadProgress(prev => {
           if (prev >= 90) {
-            clearInterval(progressInterval);
             return 90;
           }
           return prev + 10;
@@ -127,7 +160,7 @@ export default function ContentUpload() {
         body: uploadedFile.file,
       });
 
-      clearInterval(progressInterval);
+      if (progressInterval) clearInterval(progressInterval);
       setUploadProgress(100);
 
       // Save content metadata to database
@@ -147,18 +180,31 @@ export default function ContentUpload() {
       if (contentError) throw contentError;
 
       // Kick off post-upload processing (moderation, thumbnails/transcode)
-      await supabase.functions.invoke('post-upload-process', {
+      const { data: moderationResult, error: moderationError } = await supabase.functions.invoke('content-moderation', {
         body: {
-          bucket: 'content',
           file_path: (signed as any).path,
           content_type: uploadedFile.file.type,
-          file_size: uploadedFile.file.size,
+          file_name: uploadedFile.file.name,
         },
       });
 
+      if (moderationError) {
+        console.warn('Moderation check failed:', moderationError);
+      }
+
+      // Check moderation results
+      if (moderationResult && !moderationResult.approved) {
+        toast({
+          title: "Content not approved",
+          description: `Your content was rejected: ${moderationResult.issues?.join(', ') || 'Content policy violation'}`,
+          variant: "destructive"
+        });
+        return;
+      }
+
       toast({
         title: "Content uploaded successfully!",
-        description: "Proceeding to scheduling..."
+        description: moderationResult?.approved ? "Content approved and ready for scheduling" : "Proceeding to scheduling..."
       });
 
       // Navigate to scheduling with content ID
@@ -166,38 +212,65 @@ export default function ContentUpload() {
         navigate(`/book/${screenId}/schedule?contentId=${contentData.id}`);
       }, 1000);
 
-    } catch (error) {
+    } catch (error: any) {
       console.error('Upload error:', error);
+      
+      const errorMessage = error?.message || 'Unknown error occurred';
+      const isNetworkError = error?.code === 'NETWORK_ERROR' || !navigator.onLine;
+      
       toast({
         title: "Upload failed",
-        description: "Please try again.",
+        description: isNetworkError 
+          ? "Network error. Please check your connection and try again."
+          : `Upload error: ${errorMessage}`,
         variant: "destructive"
       });
     } finally {
+      if (progressInterval) clearInterval(progressInterval);
       setUploading(false);
+      setUploadProgress(0);
     }
   };
 
   return (
     <Layout>
-      <div className="container mx-auto px-4 py-8">
-        <div className="max-w-2xl mx-auto">
-          <div className="mb-8">
-            <Button 
-              variant="ghost" 
-              onClick={() => navigate(`/screen/${screenId}`)}
-              className="mb-4"
-            >
-              ← Back to Screen Details
-            </Button>
-            
-            <h1 className="text-3xl font-bold text-foreground mb-2">
-              Upload Your Content
-            </h1>
-            <p className="text-muted-foreground">
-              Upload images, videos, or GIFs to broadcast on the selected screen
-            </p>
-          </div>
+      <LoadingOverlay isLoading={uploading} loadingText="Uploading and processing content...">
+        <div className="container mx-auto px-4 py-8">
+          <div className="max-w-2xl mx-auto">
+            <div className="mb-8">
+              <Button 
+                variant="ghost" 
+                onClick={() => navigate(`/screen/${screenId}`)}
+                className="mb-4"
+                disabled={uploading}
+              >
+                ← Back to Screen Details
+              </Button>
+              
+              <h1 className="text-3xl font-bold text-foreground mb-2">
+                Upload Your Content
+              </h1>
+              <p className="text-muted-foreground">
+                Upload images, videos, or GIFs to broadcast on the selected screen
+              </p>
+            </div>
+
+            {/* Validation Errors Display */}
+            {validationErrors.length > 0 && (
+              <Alert variant="destructive" className="mb-6">
+                <AlertTriangle className="h-4 w-4" />
+                <AlertDescription>
+                  <div>
+                    <strong>Content Validation Issues:</strong>
+                    <ul className="list-disc list-inside mt-2 space-y-1">
+                      {validationErrors.map((error, index) => (
+                        <li key={index} className="text-sm">{error}</li>
+                      ))}
+                    </ul>
+                  </div>
+                </AlertDescription>
+              </Alert>
+            )}
 
           {!uploadedFile ? (
             <Card>
@@ -351,9 +424,10 @@ export default function ContentUpload() {
                 </Button>
               </div>
             </div>
-          )}
+            )}
+          </div>
         </div>
-      </div>
+      </LoadingOverlay>
     </Layout>
   );
 }

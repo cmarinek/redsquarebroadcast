@@ -311,6 +311,45 @@ export type Database = {
         }
         Relationships: []
       }
+      content_moderation_logs: {
+        Row: {
+          approved: boolean
+          confidence_score: number | null
+          content_type: string | null
+          created_at: string
+          file_name: string | null
+          file_path: string
+          id: string
+          issues: string[] | null
+          moderation_result: Json | null
+          reviewed_at: string
+        }
+        Insert: {
+          approved?: boolean
+          confidence_score?: number | null
+          content_type?: string | null
+          created_at?: string
+          file_name?: string | null
+          file_path: string
+          id?: string
+          issues?: string[] | null
+          moderation_result?: Json | null
+          reviewed_at?: string
+        }
+        Update: {
+          approved?: boolean
+          confidence_score?: number | null
+          content_type?: string | null
+          created_at?: string
+          file_name?: string | null
+          file_path?: string
+          id?: string
+          issues?: string[] | null
+          moderation_result?: Json | null
+          reviewed_at?: string
+        }
+        Relationships: []
+      }
       content_schedule: {
         Row: {
           content_url: string
@@ -352,6 +391,8 @@ export type Database = {
           file_size: number
           file_type: string
           id: string
+          moderation_notes: string | null
+          moderation_status: string | null
           screen_id: string | null
           updated_at: string
           user_id: string
@@ -363,6 +404,8 @@ export type Database = {
           file_size: number
           file_type: string
           id?: string
+          moderation_notes?: string | null
+          moderation_status?: string | null
           screen_id?: string | null
           updated_at?: string
           user_id: string
@@ -374,6 +417,8 @@ export type Database = {
           file_size?: number
           file_type?: string
           id?: string
+          moderation_notes?: string | null
+          moderation_status?: string | null
           screen_id?: string | null
           updated_at?: string
           user_id?: string
