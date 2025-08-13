@@ -1,638 +1,629 @@
 import { useState, useEffect } from "react";
-import { 
-  Target,
-  Users,
-  MapPin,
-  User,
-  TrendingUp,
-  Plus,
-  Edit,
-  Trash2,
-  Eye,
-  Filter,
-  Search
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Target, Users, MapPin, Clock, Smartphone, TrendingUp, Filter } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Slider } from "@/components/ui/slider";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 
-interface AudienceSegment {
+interface AudienceTarget {
   id: string;
-  segment_name: string;
-  description: string;
-  criteria: {
-    location?: string[];
-    demographics?: {
-      age_range?: [number, number];
-      gender?: string[];
-      income_level?: string[];
-    };
+  campaign_id?: string;
+  booking_id?: string;
+  target_demographics: {
+    age_range?: [number, number];
+    gender?: 'male' | 'female' | 'all';
     interests?: string[];
-    behavior?: {
-      device_usage?: string[];
-      time_preferences?: string[];
-      engagement_level?: string;
-    };
+    income_range?: string;
+    education_level?: string;
   };
-  screen_match_count: number;
-  estimated_reach: number;
-  created_at: string;
+  location_radius_km?: number;
+  location_lat?: number;
+  location_lng?: number;
+  time_slots: Array<{
+    day: string;
+    start_time: string;
+    end_time: string;
+  }>;
+  device_types: string[];
 }
 
-interface AudienceTargetingProps {
-  screens: Array<{ id: string; screen_name: string; city: string; address: string; }>;
+interface TargetingFormData {
+  demographics: {
+    age_range: [number, number];
+    gender: 'male' | 'female' | 'all';
+    interests: string[];
+    income_range: string;
+    education_level: string;
+  };
+  location: {
+    radius_km: number;
+    latitude?: number;
+    longitude?: number;
+    use_current_location: boolean;
+  };
+  timing: {
+    time_slots: Array<{
+      day: string;
+      start_time: string;
+      end_time: string;
+      enabled: boolean;
+    }>;
+    peak_hours_only: boolean;
+  };
+  devices: string[];
 }
 
-export const AudienceTargeting = ({ screens }: AudienceTargetingProps) => {
+const AudienceTargeting = () => {
+  const { user } = useAuth();
   const { toast } = useToast();
-  const [segments, setSegments] = useState<AudienceSegment[]>([]);
+  const [targets, setTargets] = useState<AudienceTarget[]>([]);
   const [loading, setLoading] = useState(false);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [editingSegment, setEditingSegment] = useState<AudienceSegment | null>(null);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [segmentForm, setSegmentForm] = useState({
-    segment_name: '',
-    description: '',
-    location: [] as string[],
-    age_min: '',
-    age_max: '',
-    gender: [] as string[],
-    income_level: [] as string[],
-    interests: [] as string[],
-    device_usage: [] as string[],
-    time_preferences: [] as string[],
-    engagement_level: ''
+  const [formData, setFormData] = useState<TargetingFormData>({
+    demographics: {
+      age_range: [18, 65],
+      gender: 'all',
+      interests: [],
+      income_range: 'all',
+      education_level: 'all'
+    },
+    location: {
+      radius_km: 10,
+      use_current_location: false
+    },
+    timing: {
+      time_slots: [
+        { day: 'monday', start_time: '09:00', end_time: '17:00', enabled: true },
+        { day: 'tuesday', start_time: '09:00', end_time: '17:00', enabled: true },
+        { day: 'wednesday', start_time: '09:00', end_time: '17:00', enabled: true },
+        { day: 'thursday', start_time: '09:00', end_time: '17:00', enabled: true },
+        { day: 'friday', start_time: '09:00', end_time: '17:00', enabled: true },
+        { day: 'saturday', start_time: '10:00', end_time: '16:00', enabled: false },
+        { day: 'sunday', start_time: '10:00', end_time: '16:00', enabled: false }
+      ],
+      peak_hours_only: false
+    },
+    devices: ['smartphone', 'tablet', 'desktop']
   });
 
-  const availableCities = Array.from(new Set(screens.map(s => s.city))).sort();
-  
   const interestOptions = [
-    'Technology', 'Fashion', 'Food & Dining', 'Sports', 'Entertainment',
-    'Travel', 'Health & Fitness', 'Business', 'Education', 'Automotive',
-    'Real Estate', 'Finance', 'Art & Culture', 'Music', 'Gaming'
+    'Technology', 'Fashion', 'Sports', 'Travel', 'Food & Dining', 
+    'Entertainment', 'Health & Fitness', 'Business', 'Education',
+    'Automotive', 'Real Estate', 'Finance', 'Gaming', 'Music',
+    'Art & Culture', 'Home & Garden', 'Parenting', 'Pets'
   ];
 
-  const demographicOptions = {
-    gender: ['Male', 'Female', 'Other'],
-    income_level: ['Low Income', 'Middle Income', 'High Income', 'Premium'],
-    device_usage: ['Mobile Heavy', 'Desktop Focused', 'Multi-Device', 'Smart TV'],
-    time_preferences: ['Morning (6-12)', 'Afternoon (12-18)', 'Evening (18-24)', 'Late Night (24-6)'],
-    engagement_level: ['High', 'Medium', 'Low']
-  };
+  const deviceOptions = [
+    { id: 'smartphone', label: 'Smartphones', icon: '📱' },
+    { id: 'tablet', label: 'Tablets', icon: '📱' },
+    { id: 'desktop', label: 'Desktop/Laptop', icon: '💻' },
+    { id: 'smart_tv', label: 'Smart TV', icon: '📺' },
+    { id: 'digital_signage', label: 'Digital Signage', icon: '🖥️' }
+  ];
 
   useEffect(() => {
-    fetchSegments();
-  }, []);
+    if (user) {
+      fetchTargets();
+    }
+  }, [user]);
 
-  const fetchSegments = async () => {
+  const fetchTargets = async () => {
+    if (!user) return;
+
     setLoading(true);
     try {
       const { data, error } = await supabase
-        .from('audience_segments')
+        .from('audience_targets')
         .select('*')
-        .order('created_at', { ascending: false });
+        .or(`campaign_id.in.(${await getUserCampaignIds()}),booking_id.in.(${await getUserBookingIds()})`);
 
       if (error) throw error;
-
-      const processedSegments: AudienceSegment[] = data?.map(segment => ({
-        ...segment,
-        criteria: segment.criteria as any,
-        description: segment.description || '',
-        screen_match_count: Math.floor(Math.random() * screens.length) + 1,
-        estimated_reach: Math.floor(Math.random() * 50000) + 1000
-      })) || [];
-
-      setSegments(processedSegments);
+      setTargets(data || []);
     } catch (error) {
-      console.error("Error fetching segments:", error);
-      toast({
-        title: "Error loading audience segments",
-        description: "Please try again.",
-        variant: "destructive"
-      });
+      console.error('Error fetching targets:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  const createOrUpdateSegment = async () => {
-    if (!segmentForm.segment_name.trim()) {
-      toast({
-        title: "Missing information",
-        description: "Please provide a segment name.",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const criteria = {
-        location: segmentForm.location,
-        demographics: {
-          age_range: segmentForm.age_min && segmentForm.age_max 
-            ? [parseInt(segmentForm.age_min), parseInt(segmentForm.age_max)]
-            : undefined,
-          gender: segmentForm.gender,
-          income_level: segmentForm.income_level
-        },
-        interests: segmentForm.interests,
-        behavior: {
-          device_usage: segmentForm.device_usage,
-          time_preferences: segmentForm.time_preferences,
-          engagement_level: segmentForm.engagement_level || undefined
-        }
-      };
-
-      const segmentData = {
-        segment_name: segmentForm.segment_name,
-        description: segmentForm.description,
-        criteria,
-        user_id: (await supabase.auth.getUser()).data.user?.id
-      };
-
-      let error;
-      if (editingSegment) {
-        ({ error } = await supabase
-          .from('audience_segments')
-          .update(segmentData)
-          .eq('id', editingSegment.id));
-      } else {
-        ({ error } = await supabase
-          .from('audience_segments')
-          .insert(segmentData));
-      }
-
-      if (error) throw error;
-
-      toast({
-        title: editingSegment ? "Segment updated" : "Segment created",
-        description: `"${segmentForm.segment_name}" has been ${editingSegment ? 'updated' : 'created'} successfully.`,
-      });
-
-      resetForm();
-      setIsDialogOpen(false);
-      fetchSegments();
-    } catch (error) {
-      console.error("Error saving segment:", error);
-      toast({
-        title: "Error saving segment",
-        description: "Please try again.",
-        variant: "destructive"
-      });
-    } finally {
-      setLoading(false);
-    }
+  const getUserCampaignIds = async (): Promise<string> => {
+    const { data } = await supabase
+      .from('ab_test_campaigns')
+      .select('id')
+      .eq('user_id', user?.id);
+    return (data || []).map(c => c.id).join(',') || 'null';
   };
 
-  const deleteSegment = async (segmentId: string) => {
+  const getUserBookingIds = async (): Promise<string> => {
+    const { data } = await supabase
+      .from('bookings')
+      .select('id')
+      .eq('user_id', user?.id);
+    return (data || []).map(b => b.id).join(',') || 'null';
+  };
+
+  const saveTargeting = async () => {
+    if (!user) return;
+
     try {
+      const targetData = {
+        user_id: user.id,
+        target_demographics: formData.demographics,
+        location_radius_km: formData.location.radius_km,
+        location_lat: formData.location.latitude,
+        location_lng: formData.location.longitude,
+        time_slots: formData.timing.time_slots.filter(slot => slot.enabled).map(slot => ({
+          day: slot.day,
+          start_time: slot.start_time,
+          end_time: slot.end_time
+        })),
+        device_types: formData.devices
+      };
+
       const { error } = await supabase
-        .from('audience_segments')
-        .delete()
-        .eq('id', segmentId);
+        .from('audience_targets')
+        .insert(targetData);
 
       if (error) throw error;
 
       toast({
-        title: "Segment deleted",
-        description: "The audience segment has been deleted successfully.",
+        title: "Targeting saved",
+        description: "Your audience targeting preferences have been saved."
       });
 
-      fetchSegments();
+      fetchTargets();
     } catch (error) {
-      console.error("Error deleting segment:", error);
+      console.error('Error saving targeting:', error);
       toast({
-        title: "Error deleting segment",
+        title: "Error saving targeting",
         description: "Please try again.",
         variant: "destructive"
       });
     }
   };
 
-  const editSegment = (segment: AudienceSegment) => {
-    setEditingSegment(segment);
-    const criteria = segment.criteria;
-    setSegmentForm({
-      segment_name: segment.segment_name,
-      description: segment.description || '',
-      location: criteria.location || [],
-      age_min: criteria.demographics?.age_range?.[0]?.toString() || '',
-      age_max: criteria.demographics?.age_range?.[1]?.toString() || '',
-      gender: criteria.demographics?.gender || [],
-      income_level: criteria.demographics?.income_level || [],
-      interests: criteria.interests || [],
-      device_usage: criteria.behavior?.device_usage || [],
-      time_preferences: criteria.behavior?.time_preferences || [],
-      engagement_level: criteria.behavior?.engagement_level || ''
-    });
-    setIsDialogOpen(true);
-  };
-
-  const resetForm = () => {
-    setEditingSegment(null);
-    setSegmentForm({
-      segment_name: '',
-      description: '',
-      location: [],
-      age_min: '',
-      age_max: '',
-      gender: [],
-      income_level: [],
-      interests: [],
-      device_usage: [],
-      time_preferences: [],
-      engagement_level: ''
-    });
-  };
-
-  const updateArrayField = (field: keyof typeof segmentForm, value: string, checked: boolean) => {
-    setSegmentForm(prev => ({
+  const handleInterestToggle = (interest: string) => {
+    setFormData(prev => ({
       ...prev,
-      [field]: checked 
-        ? [...(prev[field] as string[]), value]
-        : (prev[field] as string[]).filter(item => item !== value)
+      demographics: {
+        ...prev.demographics,
+        interests: prev.demographics.interests.includes(interest)
+          ? prev.demographics.interests.filter(i => i !== interest)
+          : [...prev.demographics.interests, interest]
+      }
     }));
   };
 
-  const filteredSegments = segments.filter(segment =>
-    segment.segment_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    segment.description?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const handleDeviceToggle = (deviceId: string) => {
+    setFormData(prev => ({
+      ...prev,
+      devices: prev.devices.includes(deviceId)
+        ? prev.devices.filter(d => d !== deviceId)
+        : [...prev.devices, deviceId]
+    }));
+  };
+
+  const updateTimeSlot = (day: string, field: string, value: string | boolean) => {
+    setFormData(prev => ({
+      ...prev,
+      timing: {
+        ...prev.timing,
+        time_slots: prev.timing.time_slots.map(slot =>
+          slot.day === day ? { ...slot, [field]: value } : slot
+        )
+      }
+    }));
+  };
+
+  const getLocationFromBrowser = () => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setFormData(prev => ({
+            ...prev,
+            location: {
+              ...prev.location,
+              latitude: position.coords.latitude,
+              longitude: position.coords.longitude,
+              use_current_location: true
+            }
+          }));
+          toast({
+            title: "Location detected",
+            description: "Using your current location for targeting."
+          });
+        },
+        (error) => {
+          toast({
+            title: "Location access denied",
+            description: "Please enable location access or enter coordinates manually.",
+            variant: "destructive"
+          });
+        }
+      );
+    }
+  };
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <Card>
         <CardHeader>
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div>
-              <CardTitle className="flex items-center gap-2">
-                <Target className="h-5 w-5" />
-                Audience Targeting
-              </CardTitle>
-              <CardDescription>
-                Create detailed audience segments to target the right people with your content
-              </CardDescription>
-            </div>
-            <div className="flex items-center gap-3">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search segments..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10 w-64"
-                />
-              </div>
-              <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                <DialogTrigger asChild>
-                  <Button onClick={resetForm}>
-                    <Plus className="h-4 w-4 mr-2" />
-                    Create Segment
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-                  <DialogHeader>
-                    <DialogTitle>
-                      {editingSegment ? 'Edit Audience Segment' : 'Create Audience Segment'}
-                    </DialogTitle>
-                    <DialogDescription>
-                      Define targeting criteria to reach the right audience for your campaigns
-                    </DialogDescription>
-                  </DialogHeader>
-                  
-                  <Tabs defaultValue="basic" className="w-full">
-                    <TabsList className="grid w-full grid-cols-4">
-                      <TabsTrigger value="basic">Basic</TabsTrigger>
-                      <TabsTrigger value="location">Location</TabsTrigger>
-                      <TabsTrigger value="demographics">Demographics</TabsTrigger>
-                      <TabsTrigger value="behavior">Behavior</TabsTrigger>
-                    </TabsList>
-                    
-                    <TabsContent value="basic" className="space-y-4">
-                      <div>
-                        <Label htmlFor="segment_name">Segment Name</Label>
-                        <Input
-                          id="segment_name"
-                          value={segmentForm.segment_name}
-                          onChange={(e) => setSegmentForm(prev => ({ ...prev, segment_name: e.target.value }))}
-                          placeholder="e.g., Tech-Savvy Millennials"
-                        />
-                      </div>
-                      
-                      <div>
-                        <Label htmlFor="description">Description</Label>
-                        <Textarea
-                          id="description"
-                          value={segmentForm.description}
-                          onChange={(e) => setSegmentForm(prev => ({ ...prev, description: e.target.value }))}
-                          placeholder="Describe your target audience..."
-                          rows={3}
-                        />
-                      </div>
-                      
-                      <div>
-                        <Label>Interests</Label>
-                        <div className="grid gap-2 max-h-48 overflow-y-auto border rounded p-3">
-                          {interestOptions.map((interest) => (
-                            <div key={interest} className="flex items-center space-x-2">
-                              <Checkbox
-                                id={`interest-${interest}`}
-                                checked={segmentForm.interests.includes(interest)}
-                                onCheckedChange={(checked) => updateArrayField('interests', interest, checked as boolean)}
-                              />
-                              <Label htmlFor={`interest-${interest}`} className="text-sm">
-                                {interest}
-                              </Label>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    </TabsContent>
-                    
-                    <TabsContent value="location" className="space-y-4">
-                      <div>
-                        <Label>Target Cities</Label>
-                        <div className="grid gap-2 max-h-48 overflow-y-auto border rounded p-3">
-                          {availableCities.map((city) => (
-                            <div key={city} className="flex items-center space-x-2">
-                              <Checkbox
-                                id={`city-${city}`}
-                                checked={segmentForm.location.includes(city)}
-                                onCheckedChange={(checked) => updateArrayField('location', city, checked as boolean)}
-                              />
-                              <Label htmlFor={`city-${city}`} className="text-sm">
-                                {city}
-                              </Label>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    </TabsContent>
-                    
-                    <TabsContent value="demographics" className="space-y-4">
-                      <div>
-                        <Label>Age Range</Label>
-                        <div className="grid gap-3 md:grid-cols-2">
-                          <div>
-                            <Label htmlFor="age_min">Minimum Age</Label>
-                            <Input
-                              id="age_min"
-                              type="number"
-                              value={segmentForm.age_min}
-                              onChange={(e) => setSegmentForm(prev => ({ ...prev, age_min: e.target.value }))}
-                              placeholder="18"
-                              min="13"
-                              max="100"
-                            />
-                          </div>
-                          <div>
-                            <Label htmlFor="age_max">Maximum Age</Label>
-                            <Input
-                              id="age_max"
-                              type="number"
-                              value={segmentForm.age_max}
-                              onChange={(e) => setSegmentForm(prev => ({ ...prev, age_max: e.target.value }))}
-                              placeholder="65"
-                              min="13"
-                              max="100"
-                            />
-                          </div>
-                        </div>
-                      </div>
-                      
-                      <div>
-                        <Label>Gender</Label>
-                        <div className="flex gap-4">
-                          {demographicOptions.gender.map((gender) => (
-                            <div key={gender} className="flex items-center space-x-2">
-                              <Checkbox
-                                id={`gender-${gender}`}
-                                checked={segmentForm.gender.includes(gender)}
-                                onCheckedChange={(checked) => updateArrayField('gender', gender, checked as boolean)}
-                              />
-                              <Label htmlFor={`gender-${gender}`} className="text-sm">
-                                {gender}
-                              </Label>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                      
-                      <div>
-                        <Label>Income Level</Label>
-                        <div className="flex gap-4">
-                          {demographicOptions.income_level.map((level) => (
-                            <div key={level} className="flex items-center space-x-2">
-                              <Checkbox
-                                id={`income-${level}`}
-                                checked={segmentForm.income_level.includes(level)}
-                                onCheckedChange={(checked) => updateArrayField('income_level', level, checked as boolean)}
-                              />
-                              <Label htmlFor={`income-${level}`} className="text-sm">
-                                {level}
-                              </Label>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    </TabsContent>
-                    
-                    <TabsContent value="behavior" className="space-y-4">
-                      <div>
-                        <Label>Device Usage</Label>
-                        <div className="grid gap-2">
-                          {demographicOptions.device_usage.map((usage) => (
-                            <div key={usage} className="flex items-center space-x-2">
-                              <Checkbox
-                                id={`device-${usage}`}
-                                checked={segmentForm.device_usage.includes(usage)}
-                                onCheckedChange={(checked) => updateArrayField('device_usage', usage, checked as boolean)}
-                              />
-                              <Label htmlFor={`device-${usage}`} className="text-sm">
-                                {usage}
-                              </Label>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                      
-                      <div>
-                        <Label>Time Preferences</Label>
-                        <div className="grid gap-2">
-                          {demographicOptions.time_preferences.map((time) => (
-                            <div key={time} className="flex items-center space-x-2">
-                              <Checkbox
-                                id={`time-${time}`}
-                                checked={segmentForm.time_preferences.includes(time)}
-                                onCheckedChange={(checked) => updateArrayField('time_preferences', time, checked as boolean)}
-                              />
-                              <Label htmlFor={`time-${time}`} className="text-sm">
-                                {time}
-                              </Label>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                      
-                      <div>
-                        <Label>Engagement Level</Label>
-                        <Select value={segmentForm.engagement_level} onValueChange={(value) => setSegmentForm(prev => ({ ...prev, engagement_level: value }))}>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select engagement level" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {demographicOptions.engagement_level.map((level) => (
-                              <SelectItem key={level} value={level}>
-                                {level} Engagement
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </TabsContent>
-                  </Tabs>
-                  
-                  <div className="flex justify-end gap-3">
-                    <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
-                      Cancel
-                    </Button>
-                    <Button onClick={createOrUpdateSegment} disabled={loading}>
-                      {editingSegment ? 'Update Segment' : 'Create Segment'}
-                    </Button>
-                  </div>
-                </DialogContent>
-              </Dialog>
-            </div>
-          </div>
+          <CardTitle className="flex items-center gap-2">
+            <Target className="h-5 w-5" />
+            Audience Targeting
+          </CardTitle>
+          <CardDescription>
+            Define your target audience with precision to maximize campaign effectiveness
+          </CardDescription>
         </CardHeader>
       </Card>
 
-      {/* Segments List */}
-      <div className="grid gap-6 lg:grid-cols-2 xl:grid-cols-3">
-        {filteredSegments.map((segment) => (
-          <Card key={segment.id}>
+      <Tabs defaultValue="demographics" className="w-full">
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="demographics">Demographics</TabsTrigger>
+          <TabsTrigger value="location">Location</TabsTrigger>
+          <TabsTrigger value="timing">Timing</TabsTrigger>
+          <TabsTrigger value="devices">Devices</TabsTrigger>
+        </TabsList>
+
+        {/* Demographics Tab */}
+        <TabsContent value="demographics" className="space-y-6">
+          <Card>
             <CardHeader>
-              <div className="flex items-start justify-between">
-                <div>
-                  <CardTitle className="text-lg">{segment.segment_name}</CardTitle>
-                  {segment.description && (
-                    <CardDescription className="mt-1">
-                      {segment.description}
-                    </CardDescription>
-                  )}
-                </div>
-                <div className="flex items-center gap-1">
-                  <Button variant="ghost" size="sm" onClick={() => editSegment(segment)}>
-                    <Edit className="h-4 w-4" />
-                  </Button>
-                  <Button variant="ghost" size="sm" onClick={() => deleteSegment(segment.id)}>
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
+              <CardTitle className="flex items-center gap-2">
+                <Users className="h-5 w-5" />
+                Demographic Targeting
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* Age Range */}
+              <div className="space-y-3">
+                <Label>Age Range: {formData.demographics.age_range[0]} - {formData.demographics.age_range[1]} years</Label>
+                <Slider
+                  value={formData.demographics.age_range}
+                  onValueChange={(value) => setFormData(prev => ({
+                    ...prev,
+                    demographics: { ...prev.demographics, age_range: value as [number, number] }
+                  }))}
+                  min={13}
+                  max={80}
+                  step={1}
+                  className="w-full"
+                />
+              </div>
+
+              {/* Gender */}
+              <div className="space-y-3">
+                <Label>Gender</Label>
+                <Select 
+                  value={formData.demographics.gender} 
+                  onValueChange={(value: 'male' | 'female' | 'all') => 
+                    setFormData(prev => ({
+                      ...prev,
+                      demographics: { ...prev.demographics, gender: value }
+                    }))
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Genders</SelectItem>
+                    <SelectItem value="male">Male</SelectItem>
+                    <SelectItem value="female">Female</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Interests */}
+              <div className="space-y-3">
+                <Label>Interests ({formData.demographics.interests.length} selected)</Label>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                  {interestOptions.map(interest => (
+                    <div key={interest} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={interest}
+                        checked={formData.demographics.interests.includes(interest)}
+                        onCheckedChange={() => handleInterestToggle(interest)}
+                      />
+                      <Label htmlFor={interest} className="text-sm font-normal">
+                        {interest}
+                      </Label>
+                    </div>
+                  ))}
                 </div>
               </div>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {/* Criteria Summary */}
-                <div className="space-y-2">
-                  {segment.criteria.location && segment.criteria.location.length > 0 && (
-                    <div className="flex items-center gap-2">
-                      <MapPin className="h-4 w-4 text-muted-foreground" />
-                      <div className="flex flex-wrap gap-1">
-                        {segment.criteria.location.slice(0, 3).map((city) => (
-                          <Badge key={city} variant="outline" className="text-xs">
-                            {city}
-                          </Badge>
-                        ))}
-                        {segment.criteria.location.length > 3 && (
-                          <Badge variant="outline" className="text-xs">
-                            +{segment.criteria.location.length - 3} more
-                          </Badge>
-                        )}
-                      </div>
-                    </div>
-                  )}
-                  
-                  {segment.criteria.interests && segment.criteria.interests.length > 0 && (
-                    <div className="flex items-start gap-2">
-                      <User className="h-4 w-4 text-muted-foreground mt-0.5" />
-                      <div className="flex flex-wrap gap-1">
-                        {segment.criteria.interests.slice(0, 3).map((interest) => (
-                          <Badge key={interest} variant="secondary" className="text-xs">
-                            {interest}
-                          </Badge>
-                        ))}
-                        {segment.criteria.interests.length > 3 && (
-                          <Badge variant="secondary" className="text-xs">
-                            +{segment.criteria.interests.length - 3} more
-                          </Badge>
-                        )}
-                      </div>
-                    </div>
-                  )}
-                  
-                  {segment.criteria.demographics?.age_range && (
-                    <div className="flex items-center gap-2">
-                      <Users className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm text-muted-foreground">
-                        Age {segment.criteria.demographics.age_range[0]}-{segment.criteria.demographics.age_range[1]}
-                      </span>
-                    </div>
-                  )}
-                </div>
 
-                {/* Metrics */}
-                <div className="grid gap-3 grid-cols-2 pt-4 border-t">
-                  <div className="text-center">
-                    <p className="text-2xl font-bold text-emerald-600">{segment.screen_match_count}</p>
-                    <p className="text-xs text-muted-foreground">Matching Screens</p>
+              {/* Income Range */}
+              <div className="space-y-3">
+                <Label>Income Range</Label>
+                <Select 
+                  value={formData.demographics.income_range} 
+                  onValueChange={(value) => 
+                    setFormData(prev => ({
+                      ...prev,
+                      demographics: { ...prev.demographics, income_range: value }
+                    }))
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Income Levels</SelectItem>
+                    <SelectItem value="low">$0 - $30,000</SelectItem>
+                    <SelectItem value="medium">$30,000 - $75,000</SelectItem>
+                    <SelectItem value="high">$75,000 - $150,000</SelectItem>
+                    <SelectItem value="premium">$150,000+</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Education Level */}
+              <div className="space-y-3">
+                <Label>Education Level</Label>
+                <Select 
+                  value={formData.demographics.education_level} 
+                  onValueChange={(value) => 
+                    setFormData(prev => ({
+                      ...prev,
+                      demographics: { ...prev.demographics, education_level: value }
+                    }))
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Education Levels</SelectItem>
+                    <SelectItem value="high_school">High School</SelectItem>
+                    <SelectItem value="some_college">Some College</SelectItem>
+                    <SelectItem value="bachelors">Bachelor's Degree</SelectItem>
+                    <SelectItem value="masters">Master's Degree</SelectItem>
+                    <SelectItem value="phd">PhD/Doctorate</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Location Tab */}
+        <TabsContent value="location" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <MapPin className="h-5 w-5" />
+                Geographic Targeting
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* Current Location */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <Label>Use Current Location</Label>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={getLocationFromBrowser}
+                    disabled={formData.location.use_current_location}
+                  >
+                    {formData.location.use_current_location ? 'Location Set' : 'Get Location'}
+                  </Button>
+                </div>
+                {formData.location.use_current_location && (
+                  <div className="text-sm text-muted-foreground">
+                    Lat: {formData.location.latitude?.toFixed(4)}, 
+                    Lng: {formData.location.longitude?.toFixed(4)}
                   </div>
-                  <div className="text-center">
-                    <p className="text-2xl font-bold text-blue-600">
-                      {(segment.estimated_reach / 1000).toFixed(1)}K
-                    </p>
-                    <p className="text-xs text-muted-foreground">Est. Reach</p>
-                  </div>
+                )}
+              </div>
+
+              {/* Manual Coordinates */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Latitude</Label>
+                  <Input
+                    type="number"
+                    step="0.0001"
+                    placeholder="40.7128"
+                    value={formData.location.latitude || ''}
+                    onChange={(e) => setFormData(prev => ({
+                      ...prev,
+                      location: { ...prev.location, latitude: parseFloat(e.target.value) || undefined }
+                    }))}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Longitude</Label>
+                  <Input
+                    type="number"
+                    step="0.0001"
+                    placeholder="-74.0060"
+                    value={formData.location.longitude || ''}
+                    onChange={(e) => setFormData(prev => ({
+                      ...prev,
+                      location: { ...prev.location, longitude: parseFloat(e.target.value) || undefined }
+                    }))}
+                  />
+                </div>
+              </div>
+
+              {/* Radius */}
+              <div className="space-y-3">
+                <Label>Target Radius: {formData.location.radius_km} km</Label>
+                <Slider
+                  value={[formData.location.radius_km]}
+                  onValueChange={(value) => setFormData(prev => ({
+                    ...prev,
+                    location: { ...prev.location, radius_km: value[0] }
+                  }))}
+                  min={1}
+                  max={100}
+                  step={1}
+                  className="w-full"
+                />
+                <div className="flex justify-between text-sm text-muted-foreground">
+                  <span>1 km</span>
+                  <span>100 km</span>
                 </div>
               </div>
             </CardContent>
           </Card>
-        ))}
+        </TabsContent>
+
+        {/* Timing Tab */}
+        <TabsContent value="timing" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Clock className="h-5 w-5" />
+                Time-based Targeting
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* Time Slots */}
+              <div className="space-y-4">
+                <Label>Active Days & Hours</Label>
+                {formData.timing.time_slots.map((slot) => (
+                  <div key={slot.day} className="flex items-center gap-4 p-3 border rounded-lg">
+                    <Checkbox
+                      checked={slot.enabled}
+                      onCheckedChange={(checked) => updateTimeSlot(slot.day, 'enabled', checked)}
+                    />
+                    <div className="flex-1 capitalize font-medium">
+                      {slot.day}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Input
+                        type="time"
+                        value={slot.start_time}
+                        onChange={(e) => updateTimeSlot(slot.day, 'start_time', e.target.value)}
+                        disabled={!slot.enabled}
+                        className="w-24"
+                      />
+                      <span className="text-muted-foreground">to</span>
+                      <Input
+                        type="time"
+                        value={slot.end_time}
+                        onChange={(e) => updateTimeSlot(slot.day, 'end_time', e.target.value)}
+                        disabled={!slot.enabled}
+                        className="w-24"
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Peak Hours Option */}
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="peak_hours"
+                  checked={formData.timing.peak_hours_only}
+                  onCheckedChange={(checked) => setFormData(prev => ({
+                    ...prev,
+                    timing: { ...prev.timing, peak_hours_only: !!checked }
+                  }))}
+                />
+                <Label htmlFor="peak_hours">Focus on peak traffic hours only</Label>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Devices Tab */}
+        <TabsContent value="devices" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Smartphone className="h-5 w-5" />
+                Device Targeting
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="grid gap-3">
+                {deviceOptions.map((device) => (
+                  <div key={device.id} className="flex items-center space-x-3 p-3 border rounded-lg">
+                    <Checkbox
+                      id={device.id}
+                      checked={formData.devices.includes(device.id)}
+                      onCheckedChange={() => handleDeviceToggle(device.id)}
+                    />
+                    <div className="flex items-center gap-3 flex-1">
+                      <span className="text-2xl">{device.icon}</span>
+                      <Label htmlFor={device.id} className="font-medium">
+                        {device.label}
+                      </Label>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
+
+      {/* Save Button */}
+      <div className="flex justify-end">
+        <Button onClick={saveTargeting} className="px-8">
+          <Filter className="h-4 w-4 mr-2" />
+          Save Targeting Settings
+        </Button>
       </div>
 
-      {filteredSegments.length === 0 && (
+      {/* Existing Targets */}
+      {targets.length > 0 && (
         <Card>
-          <CardContent className="text-center py-12">
-            <Target className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-            <h3 className="text-lg font-semibold mb-2">
-              {searchQuery ? 'No matching segments found' : 'No audience segments created'}
-            </h3>
-            <p className="text-muted-foreground mb-4">
-              {searchQuery 
-                ? 'Try adjusting your search terms'
-                : 'Create targeted audience segments to improve your campaign performance'
-              }
-            </p>
-            {!searchQuery && (
-              <Button onClick={() => setIsDialogOpen(true)}>
-                <Plus className="h-4 w-4 mr-2" />
-                Create First Segment
-              </Button>
-            )}
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <TrendingUp className="h-5 w-5" />
+              Active Targeting Profiles
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-4">
+              {targets.slice(0, 3).map((target) => (
+                <div key={target.id} className="p-4 border rounded-lg">
+                  <div className="flex items-start justify-between">
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2">
+                        <Badge variant="secondary">
+                          {target.target_demographics.gender || 'All'} • 
+                          {target.target_demographics.age_range?.[0] || 18}-{target.target_demographics.age_range?.[1] || 65}
+                        </Badge>
+                        {target.location_radius_km && (
+                          <Badge variant="outline">
+                            {target.location_radius_km}km radius
+                          </Badge>
+                        )}
+                      </div>
+                      <div className="text-sm text-muted-foreground">
+                        {target.target_demographics.interests?.slice(0, 3).join(', ')}
+                        {(target.target_demographics.interests?.length || 0) > 3 && 
+                          ` +${(target.target_demographics.interests?.length || 0) - 3} more`
+                        }
+                      </div>
+                      <div className="text-sm text-muted-foreground">
+                        Devices: {target.device_types.join(', ')}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
           </CardContent>
         </Card>
       )}
     </div>
   );
 };
+
+export default AudienceTargeting;
