@@ -1,5 +1,6 @@
 import { ReactNode } from "react";
 import { Navigation } from "./Navigation";
+import { StatusIndicator } from "./StatusIndicator";
 
 interface LayoutProps {
   children: ReactNode;
@@ -10,6 +11,7 @@ export const Layout = ({ children, className = "" }: LayoutProps) => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
       <Navigation />
+      <StatusIndicator />
       <main className={`pt-16 ${className}`}>
         {children}
       </main>

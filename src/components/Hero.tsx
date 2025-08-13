@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
-import { Play, Monitor, Smartphone, Upload } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Play, Monitor, Smartphone, Upload, CheckCircle } from "lucide-react";
 import heroImage from "@/assets/hero-screen.jpg";
 import { Link } from "react-router-dom";
 export const Hero = () => {
@@ -17,6 +18,14 @@ export const Hero = () => {
         <div className="grid lg:grid-cols-2 gap-12 items-center">
           {/* Left Column - Content */}
           <div className="text-center lg:text-left">
+            {/* Live Badge */}
+            <div className="flex justify-center lg:justify-start mb-4">
+              <Badge className="bg-green-500/10 text-green-600 border-green-500/20 px-3 py-1">
+                <CheckCircle className="w-3 h-3 mr-1" />
+                Platform Live & Ready
+              </Badge>
+            </div>
+            
             <h1 className="text-5xl lg:text-7xl font-bold mb-6 leading-tight">
               <span className="text-foreground text-6xl">Public advertising,</span>
               <br />

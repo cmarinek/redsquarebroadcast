@@ -4,9 +4,12 @@ import { Features } from "@/components/Features";
 import { HowItWorks } from "@/components/HowItWorks";
 import { Dashboard } from "@/components/Dashboard";
 import { DeploymentGuide } from "@/components/deployment/DeploymentGuide";
+import { useDeploymentStatus } from "@/hooks/useDeploymentStatus";
 
 
 const Index = () => {
+  useDeploymentStatus();
+  
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
       <Layout className="pt-0">
