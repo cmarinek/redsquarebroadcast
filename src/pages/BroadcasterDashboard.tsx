@@ -39,9 +39,9 @@ import { Layout } from "@/components/Layout";
 import { useAuth } from "@/context/AuthContext";
 import { AdvancedAnalyticsDashboard } from "@/components/broadcaster/AdvancedAnalyticsDashboard";
 import { ContentSchedulingAutomation } from "@/components/broadcaster/ContentSchedulingAutomation";
-import { AudienceTargeting } from "@/components/broadcaster/AudienceTargeting";
+import AudienceTargeting from "@/components/broadcaster/AudienceTargeting";
 import { ABTestingTools } from "@/components/broadcaster/ABTestingTools";
-import { MobileAppIntegration } from "@/components/broadcaster/MobileAppIntegration";
+import MobileAppIntegration from "@/components/broadcaster/MobileAppIntegration";
 import { format, isAfter, isBefore, addDays } from "date-fns";
 import { getSignedViewUrl } from "@/utils/media";
 
@@ -446,10 +446,10 @@ const BroadcasterDashboard = () => {
                 <ContentSchedulingAutomation contentUploads={contentUploads} screens={screens} />
               </TabsContent>
               <TabsContent value="targeting" className="mt-6">
-                <AudienceTargeting screens={screens} />
+                <AudienceTargeting />
               </TabsContent>
               <TabsContent value="testing" className="mt-6">
-                <ABTestingTools contentUploads={contentUploads} screens={screens} audienceSegments={audienceSegments} />
+                <ABTestingTools />
               </TabsContent>
               <TabsContent value="mobile" className="mt-6">
                 <MobileAppIntegration />
