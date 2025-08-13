@@ -117,6 +117,57 @@ const Learn = () => {
         </header>
 
         <main>
+          {/* Vision section */}
+          <section className="py-12 md:py-20 border-t border-border">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+              <div className="max-w-4xl mx-auto text-center">
+                <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-6">
+                  What if every screen could tell a story?
+                </h2>
+                <div className="space-y-6 text-lg text-muted-foreground">
+                  <p>
+                    Imagine walking into your local coffee shop and seeing a neighbor's business promotion on the digital menu board. 
+                    Or discovering a community art project displayed on the gym's TV while you work out. Every day, millions of screens 
+                    sit idle or show generic content, while local creators, small businesses, and community organizers struggle to find 
+                    affordable ways to reach their audiences.
+                  </p>
+                  <p className="text-foreground font-medium">
+                    Red Square changes this by creating the world's first democratized screen advertising network.
+                  </p>
+                  <p>
+                    We're not just another ad platform. We're building infrastructure that turns every participating screen into 
+                    a canvas for local storytelling. A restaurant owner can promote tonight's special on nearby office building displays. 
+                    An artist can showcase their latest work across multiple venues. A nonprofit can rally support for community events 
+                    right where people gather. All without the gatekeepers, minimum spends, or complex contracts of traditional advertising.
+                  </p>
+                  <div className="grid md:grid-cols-3 gap-6 mt-8 text-base">
+                    <div className="bg-card/50 rounded-lg p-6 border">
+                      <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-4">
+                        <Users className="w-6 h-6 text-primary" />
+                      </div>
+                      <h3 className="font-semibold text-foreground mb-2">For Anyone</h3>
+                      <p className="text-sm">No minimums, no gatekeepers. Upload content and book time slots as easily as posting on social media.</p>
+                    </div>
+                    <div className="bg-card/50 rounded-lg p-6 border">
+                      <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-4">
+                        <MapPin className="w-6 h-6 text-primary" />
+                      </div>
+                      <h3 className="font-semibold text-foreground mb-2">Hyperlocal</h3>
+                      <p className="text-sm">Reach people in the exact locations that matter—gyms, cafes, lobbies, and community spaces.</p>
+                    </div>
+                    <div className="bg-card/50 rounded-lg p-6 border">
+                      <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-4">
+                        <Rocket className="w-6 h-6 text-primary" />
+                      </div>
+                      <h3 className="font-semibold text-foreground mb-2">Instant Impact</h3>
+                      <p className="text-sm">From idea to broadcast in minutes. Test, iterate, and measure real-world engagement immediately.</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
           {/* Features by role */}
           <section className="py-12 md:py-20 border-t border-border">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
