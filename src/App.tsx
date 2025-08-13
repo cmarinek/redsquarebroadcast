@@ -34,6 +34,7 @@ const Privacy = lazy(() => import("./pages/Privacy"));
 const Terms = lazy(() => import("./pages/Terms"));
 const Cookies = lazy(() => import("./pages/Cookies"));
 const Learn = lazy(() => import("./pages/Learn"));
+const MarketExpansion = lazy(() => import("./pages/MarketExpansion"));
 import AdminRoute from "@/components/routing/AdminRoute";
 
 const App = () => (
@@ -51,6 +52,7 @@ const App = () => (
         <Route path="/admin/performance" element={<AdminRoute><AdminPerformance /></AdminRoute>} />
         <Route path="/admin/monetization" element={<AdminRoute><AdminMonetization /></AdminRoute>} />
         <Route path="/admin/ops-infra" element={<AdminRoute><AdminOpsInfra /></AdminRoute>} />
+        <Route path="/admin/market-expansion" element={<AdminRoute><MarketExpansion /></AdminRoute>} />
         <Route path="/my-campaigns" element={<BroadcasterDashboard />} />
         <Route path="/my-screens" element={<ScreenOwnerDashboard />} />
         <Route path="/profile" element={<Profile />} />
