@@ -25,6 +25,7 @@ const Confirmation = lazy(() => import("./pages/Confirmation"));
 const HowItWorksDetailed = lazy(() => import("./pages/HowItWorksDetailed"));
 const ProductionPlan = lazy(() => import("./pages/ProductionPlan"));
 const AdminProjectOverview = lazy(() => import("./pages/AdminProjectOverview"));
+const AdminOperations = lazy(() => import("./pages/AdminOperations"));
 const Subscription = lazy(() => import("./pages/Subscription"));
 const AdminPerformance = lazy(() => import("./pages/AdminPerformance"));
 const AdminMonetization = lazy(() => import("./pages/AdminMonetization"));
@@ -46,6 +47,7 @@ const App = () => (
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/admin" element={<AdminDashboard />} />
         <Route path="/admin/overview" element={<AdminProjectOverview />} />
+        <Route path="/admin/operations" element={<AdminRoute><AdminOperations /></AdminRoute>} />
         <Route path="/admin/performance" element={<AdminRoute><AdminPerformance /></AdminRoute>} />
         <Route path="/admin/monetization" element={<AdminRoute><AdminMonetization /></AdminRoute>} />
         <Route path="/admin/ops-infra" element={<AdminRoute><AdminOpsInfra /></AdminRoute>} />
