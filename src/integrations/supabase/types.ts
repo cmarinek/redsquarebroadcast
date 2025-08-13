@@ -14,6 +14,150 @@ export type Database = {
   }
   public: {
     Tables: {
+      ab_test_campaigns: {
+        Row: {
+          confidence_level: number | null
+          created_at: string
+          description: string | null
+          end_date: string
+          id: string
+          name: string
+          start_date: string
+          status: string
+          target_metric: string
+          traffic_split: Json
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          confidence_level?: number | null
+          created_at?: string
+          description?: string | null
+          end_date: string
+          id?: string
+          name: string
+          start_date: string
+          status?: string
+          target_metric?: string
+          traffic_split?: Json
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          confidence_level?: number | null
+          created_at?: string
+          description?: string | null
+          end_date?: string
+          id?: string
+          name?: string
+          start_date?: string
+          status?: string
+          target_metric?: string
+          traffic_split?: Json
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      ab_test_results: {
+        Row: {
+          campaign_id: string
+          click_through_rate: number | null
+          conversion_rate: number | null
+          engagement_rate: number | null
+          id: string
+          impressions: number | null
+          recorded_at: string
+          screen_id: string
+          user_session: string | null
+          variant_id: string
+          views: number | null
+        }
+        Insert: {
+          campaign_id: string
+          click_through_rate?: number | null
+          conversion_rate?: number | null
+          engagement_rate?: number | null
+          id?: string
+          impressions?: number | null
+          recorded_at?: string
+          screen_id: string
+          user_session?: string | null
+          variant_id: string
+          views?: number | null
+        }
+        Update: {
+          campaign_id?: string
+          click_through_rate?: number | null
+          conversion_rate?: number | null
+          engagement_rate?: number | null
+          id?: string
+          impressions?: number | null
+          recorded_at?: string
+          screen_id?: string
+          user_session?: string | null
+          variant_id?: string
+          views?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ab_test_results_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "ab_test_campaigns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ab_test_results_variant_id_fkey"
+            columns: ["variant_id"]
+            isOneToOne: false
+            referencedRelation: "ab_test_variants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ab_test_variants: {
+        Row: {
+          allocation_percentage: number
+          campaign_id: string
+          content_upload_id: string | null
+          created_at: string
+          id: string
+          variant_name: string
+        }
+        Insert: {
+          allocation_percentage?: number
+          campaign_id: string
+          content_upload_id?: string | null
+          created_at?: string
+          id?: string
+          variant_name: string
+        }
+        Update: {
+          allocation_percentage?: number
+          campaign_id?: string
+          content_upload_id?: string | null
+          created_at?: string
+          id?: string
+          variant_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ab_test_variants_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "ab_test_campaigns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ab_test_variants_content_upload_id_fkey"
+            columns: ["content_upload_id"]
+            isOneToOne: false
+            referencedRelation: "content_uploads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       admin_analytics: {
         Row: {
           created_at: string
@@ -199,6 +343,53 @@ export type Database = {
           value?: Json
         }
         Relationships: []
+      }
+      audience_targets: {
+        Row: {
+          booking_id: string | null
+          campaign_id: string | null
+          created_at: string
+          device_types: string[] | null
+          id: string
+          location_lat: number | null
+          location_lng: number | null
+          location_radius_km: number | null
+          target_demographics: Json | null
+          time_slots: Json | null
+        }
+        Insert: {
+          booking_id?: string | null
+          campaign_id?: string | null
+          created_at?: string
+          device_types?: string[] | null
+          id?: string
+          location_lat?: number | null
+          location_lng?: number | null
+          location_radius_km?: number | null
+          target_demographics?: Json | null
+          time_slots?: Json | null
+        }
+        Update: {
+          booking_id?: string | null
+          campaign_id?: string | null
+          created_at?: string
+          device_types?: string[] | null
+          id?: string
+          location_lat?: number | null
+          location_lng?: number | null
+          location_radius_km?: number | null
+          target_demographics?: Json | null
+          time_slots?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "audience_targets_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       bookings: {
         Row: {
@@ -827,6 +1018,36 @@ export type Database = {
         }
         Relationships: []
       }
+      mobile_features: {
+        Row: {
+          created_at: string
+          feature_type: string
+          id: string
+          is_enabled: boolean | null
+          settings: Json | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          feature_type: string
+          id?: string
+          is_enabled?: boolean | null
+          settings?: Json | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          feature_type?: string
+          id?: string
+          is_enabled?: boolean | null
+          settings?: Json | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           created_at: string
@@ -1161,6 +1382,54 @@ export type Database = {
         }
         Relationships: []
       }
+      subscription_plans: {
+        Row: {
+          analytics_retention_days: number | null
+          created_at: string
+          currency: string
+          description: string | null
+          features: Json | null
+          id: string
+          interval_type: string
+          is_active: boolean | null
+          max_campaigns: number | null
+          max_screens: number | null
+          name: string
+          price_cents: number
+          stripe_price_id: string | null
+        }
+        Insert: {
+          analytics_retention_days?: number | null
+          created_at?: string
+          currency?: string
+          description?: string | null
+          features?: Json | null
+          id?: string
+          interval_type: string
+          is_active?: boolean | null
+          max_campaigns?: number | null
+          max_screens?: number | null
+          name: string
+          price_cents: number
+          stripe_price_id?: string | null
+        }
+        Update: {
+          analytics_retention_days?: number | null
+          created_at?: string
+          currency?: string
+          description?: string | null
+          features?: Json | null
+          id?: string
+          interval_type?: string
+          is_active?: boolean | null
+          max_campaigns?: number | null
+          max_screens?: number | null
+          name?: string
+          price_cents?: number
+          stripe_price_id?: string | null
+        }
+        Relationships: []
+      }
       tv_crashes: {
         Row: {
           app_version: string | null
@@ -1214,6 +1483,53 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      user_subscriptions: {
+        Row: {
+          created_at: string
+          current_period_end: string | null
+          current_period_start: string | null
+          id: string
+          plan_id: string
+          status: string
+          stripe_subscription_id: string | null
+          trial_end: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          current_period_end?: string | null
+          current_period_start?: string | null
+          id?: string
+          plan_id: string
+          status?: string
+          stripe_subscription_id?: string | null
+          trial_end?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          current_period_end?: string | null
+          current_period_start?: string | null
+          id?: string
+          plan_id?: string
+          status?: string
+          stripe_subscription_id?: string | null
+          trial_end?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_subscriptions_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "subscription_plans"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
