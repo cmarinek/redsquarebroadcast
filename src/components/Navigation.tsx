@@ -74,6 +74,9 @@ export const Navigation = () => {
                     <Button variant="outline" asChild>
                       <Link to="/admin/performance">Performance</Link>
                     </Button>
+                    <Button variant="outline" asChild>
+                      <Link to="/admin/documentation">Documentation</Link>
+                    </Button>
                   </>}
 
                 <RealTimeNotifications />
@@ -135,6 +138,12 @@ export const Navigation = () => {
                           <Link to="/admin/performance" className="flex items-center">
                             <Shield className="w-4 h-4 mr-2" />
                             Performance
+                          </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem asChild>
+                          <Link to="/admin/documentation" className="flex items-center">
+                            <Shield className="w-4 h-4 mr-2" />
+                            Documentation
                           </Link>
                         </DropdownMenuItem>
                       </>}
@@ -218,6 +227,9 @@ export const Navigation = () => {
                     </Button>
                     <Button variant="outline" asChild className="w-full justify-start">
                       <Link to="/admin/performance">Performance</Link>
+                    </Button>
+                    <Button variant="outline" asChild className="w-full justify-start">
+                      <Link to="/admin/documentation">Documentation</Link>
                     </Button>
                   </>}
 

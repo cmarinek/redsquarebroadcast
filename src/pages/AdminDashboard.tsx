@@ -42,7 +42,8 @@ import {
   UserX,
   AlertCircle,
   Info,
-  CheckSquare
+  CheckSquare,
+  Upload
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { AdminSystemHealth } from "@/components/admin/AdminSystemHealth";
@@ -882,12 +883,14 @@ const AdminDashboard = () => {
           <CardContent className="p-0">
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
               <div className="border-b">
-                <TabsList className="grid w-full grid-cols-6 h-auto p-0 bg-transparent">
+                <TabsList className="grid w-full grid-cols-7 h-auto p-0 bg-transparent">
                   <TabsTrigger value="overview" className="py-4">Overview</TabsTrigger>
                   <TabsTrigger value="users" className="py-4">Users ({stats.totalUsers})</TabsTrigger>
                   <TabsTrigger value="screens" className="py-4">Screens ({stats.totalScreens})</TabsTrigger>
                   <TabsTrigger value="bookings" className="py-4">Bookings ({stats.totalBookings})</TabsTrigger>
                   <TabsTrigger value="system" className="py-4">System Health</TabsTrigger>
+                  <TabsTrigger value="security" className="py-4">Security</TabsTrigger>
+                  <TabsTrigger value="documentation" className="py-4">Documentation</TabsTrigger>
                   <TabsTrigger value="security" className="py-4">Security</TabsTrigger>
                 </TabsList>
               </div>
@@ -1281,6 +1284,122 @@ const AdminDashboard = () => {
                       </Card>
                     )}
                   </div>
+                </div>
+              </TabsContent>
+
+              <TabsContent value="documentation" className="mt-0 p-6">
+                <div className="space-y-8">
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <h2 className="text-3xl font-bold mb-2">Red Square Documentation</h2>
+                      <p className="text-muted-foreground">Complete setup and user guides for screen owners and broadcasters</p>
+                    </div>
+                    <Button 
+                      onClick={() => window.open('/admin/documentation', '_blank')}
+                      className="flex items-center gap-2"
+                    >
+                      <Download className="w-4 h-4" />
+                      Open Full Manual
+                    </Button>
+                  </div>
+
+                  <div className="grid md:grid-cols-2 gap-6">
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                          <Monitor className="w-5 h-5 text-primary" />
+                          Screen Owner Setup Guide
+                        </CardTitle>
+                        <CardDescription>Complete guide for registering and managing digital screens</CardDescription>
+                      </CardHeader>
+                      <CardContent className="space-y-3">
+                        <div className="space-y-2">
+                          <h4 className="font-semibold text-sm">Quick Setup Steps:</h4>
+                          <ul className="text-sm text-muted-foreground space-y-1">
+                            <li>• Create account and register screens</li>
+                            <li>• Install Red Square dongle or Smart TV app</li>
+                            <li>• Configure pricing and availability</li>
+                            <li>• Start earning from broadcasts</li>
+                          </ul>
+                        </div>
+                        <Button variant="outline" size="sm" asChild>
+                          <Link to="/admin/documentation">View Complete Guide</Link>
+                        </Button>
+                      </CardContent>
+                    </Card>
+
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                          <Upload className="w-5 h-5 text-blue-600" />
+                          Broadcaster Guide
+                        </CardTitle>
+                        <CardDescription>Everything needed to create and broadcast content</CardDescription>
+                      </CardHeader>
+                      <CardContent className="space-y-3">
+                        <div className="space-y-2">
+                          <h4 className="font-semibold text-sm">Getting Started:</h4>
+                          <ul className="text-sm text-muted-foreground space-y-1">
+                            <li>• Upload images, videos, and GIFs</li>
+                            <li>• Discover screens via map or QR codes</li>
+                            <li>• Book time slots and make payments</li>
+                            <li>• Track campaign performance</li>
+                          </ul>
+                        </div>
+                        <Button variant="outline" size="sm" asChild>
+                          <Link to="/admin/documentation">View Complete Guide</Link>
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  </div>
+
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <Settings className="w-5 h-5 text-purple-600" />
+                        Technical Documentation
+                      </CardTitle>
+                      <CardDescription>Hardware specs, network requirements, and troubleshooting</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid md:grid-cols-3 gap-4">
+                        <div className="space-y-2">
+                          <h4 className="font-semibold text-sm">Hardware Requirements:</h4>
+                          <ul className="text-xs text-muted-foreground space-y-1">
+                            <li>• Red Square dongle or Smart TV</li>
+                            <li>• HDMI display (1080p minimum)</li>
+                            <li>• Stable internet (10+ Mbps)</li>
+                          </ul>
+                        </div>
+                        <div className="space-y-2">
+                          <h4 className="font-semibold text-sm">Supported Platforms:</h4>
+                          <ul className="text-xs text-muted-foreground space-y-1">
+                            <li>• Samsung Tizen Smart TVs</li>
+                            <li>• LG webOS Smart TVs</li>
+                            <li>• Android TV / Google TV</li>
+                            <li>• Apple TV (tvOS)</li>
+                          </ul>
+                        </div>
+                        <div className="space-y-2">
+                          <h4 className="font-semibold text-sm">Support:</h4>
+                          <ul className="text-xs text-muted-foreground space-y-1">
+                            <li>• 24/7 technical support</li>
+                            <li>• Hardware replacement</li>
+                            <li>• Remote troubleshooting</li>
+                            <li>• Business account support</li>
+                          </ul>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Alert>
+                    <Info className="h-4 w-4" />
+                    <AlertTitle>Download Complete Manual</AlertTitle>
+                    <AlertDescription>
+                      For offline access, you can download the complete Red Square documentation as a PDF manual that includes all setup guides, technical specifications, and troubleshooting information.
+                    </AlertDescription>
+                  </Alert>
                 </div>
               </TabsContent>
 
