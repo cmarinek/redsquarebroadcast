@@ -323,14 +323,18 @@ export type Database = {
         }
         Relationships: []
       }
-      apk_releases: {
+      app_releases: {
         Row: {
+          bundle_id: string | null
           created_at: string
           download_count: number
+          file_extension: string
           file_path: string
           file_size: number
           id: string
           is_active: boolean
+          minimum_os_version: string | null
+          platform: string
           release_notes: string | null
           updated_at: string
           uploaded_by: string
@@ -338,12 +342,16 @@ export type Database = {
           version_name: string
         }
         Insert: {
+          bundle_id?: string | null
           created_at?: string
           download_count?: number
+          file_extension?: string
           file_path: string
           file_size: number
           id?: string
           is_active?: boolean
+          minimum_os_version?: string | null
+          platform?: string
           release_notes?: string | null
           updated_at?: string
           uploaded_by: string
@@ -351,12 +359,16 @@ export type Database = {
           version_name: string
         }
         Update: {
+          bundle_id?: string | null
           created_at?: string
           download_count?: number
+          file_extension?: string
           file_path?: string
           file_size?: number
           id?: string
           is_active?: boolean
+          minimum_os_version?: string | null
+          platform?: string
           release_notes?: string | null
           updated_at?: string
           uploaded_by?: string
@@ -1628,7 +1640,7 @@ export type Database = {
         }
         Returns: boolean
       }
-      increment_apk_download_count: {
+      increment_app_download_count: {
         Args: { release_id: string }
         Returns: undefined
       }
