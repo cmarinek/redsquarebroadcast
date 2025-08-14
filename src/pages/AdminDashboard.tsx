@@ -43,10 +43,12 @@ import {
   AlertCircle,
   Info,
   CheckSquare,
-  Upload
+  Upload,
+  Smartphone
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { AdminSystemHealth } from "@/components/admin/AdminSystemHealth";
+import { APKManager } from "@/components/admin/APKManager";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -890,8 +892,10 @@ const AdminDashboard = () => {
                   <TabsTrigger value="bookings" className="py-4">Bookings ({stats.totalBookings})</TabsTrigger>
                   <TabsTrigger value="system" className="py-4">System Health</TabsTrigger>
                   <TabsTrigger value="security" className="py-4">Security</TabsTrigger>
-                  <TabsTrigger value="documentation" className="py-4">Documentation</TabsTrigger>
-                  <TabsTrigger value="security" className="py-4">Security</TabsTrigger>
+                  <TabsTrigger value="mobile" className="py-4">
+                    <Smartphone className="h-4 w-4 mr-2" />
+                    Mobile APK
+                  </TabsTrigger>
                 </TabsList>
               </div>
 
@@ -1401,6 +1405,10 @@ const AdminDashboard = () => {
                     </AlertDescription>
                   </Alert>
                 </div>
+              </TabsContent>
+
+              <TabsContent value="mobile" className="mt-0 p-6">
+                <APKManager />
               </TabsContent>
 
             </Tabs>
