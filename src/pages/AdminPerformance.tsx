@@ -326,7 +326,7 @@ const checkAlerts = async () => {
           )}
       </div>
       <div className="flex flex-wrap items-center justify-between mb-4 gap-2">
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <Button onClick={runLoadTest}>Run Load Test</Button>
           <Button variant="outline" onClick={purgeTelemetry}>Purge Telemetry (30d+)</Button>
           <Button variant="secondary" onClick={checkAlerts}>Check Alerts</Button>
