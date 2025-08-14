@@ -1617,16 +1617,24 @@ export type Database = {
         Returns: boolean
       }
       create_security_alert: {
-        Args: {
-          affected_user_id?: string
-          alert_type: string
-          ip_address?: unknown
-          message: string
-          metadata?: Json
-          severity: string
-          title: string
-          user_agent?: string
-        }
+        Args:
+          | {
+              affected_user_id?: string
+              alert_type: string
+              ip_address?: unknown
+              message: string
+              metadata?: Json
+              severity: string
+              title: string
+              user_agent?: string
+            }
+          | {
+              p_alert_type: string
+              p_message?: string
+              p_metadata?: Json
+              p_severity: string
+              p_title: string
+            }
         Returns: string
       }
       get_platform_analytics: {
@@ -1674,22 +1682,31 @@ export type Database = {
         Returns: number
       }
       record_analytics_metric: {
-        Args: {
-          metadata?: Json
-          metric_date?: string
-          metric_name: string
-          metric_value: number
-        }
-        Returns: undefined
+        Args:
+          | {
+              metadata?: Json
+              metric_date?: string
+              metric_name: string
+              metric_value: number
+            }
+          | { p_metadata?: Json; p_metric_name: string; p_value: number }
+        Returns: string
       }
       record_system_health: {
-        Args: {
-          error_message?: string
-          metadata?: Json
-          response_time_ms: number
-          service_name: string
-          status: string
-        }
+        Args:
+          | {
+              error_message?: string
+              metadata?: Json
+              response_time_ms: number
+              service_name: string
+              status: string
+            }
+          | {
+              p_details?: Json
+              p_response_time_ms?: number
+              p_service_name: string
+              p_status: string
+            }
         Returns: string
       }
       refresh_mv_screen_activity: {
