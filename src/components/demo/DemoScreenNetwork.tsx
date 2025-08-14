@@ -4,6 +4,23 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { MapPin, Monitor, Users, TrendingUp, Search, Filter, Globe } from "lucide-react";
+import MapboxMap from "@/components/maps/MapboxMap";
+
+// Mock screen data for global demonstration
+const mockScreens = [
+  { id: "nyc-1", screen_name: "Times Square LED", location: "Times Square, New York", latitude: 40.7589, longitude: -73.9851 },
+  { id: "nyc-2", screen_name: "Brooklyn Bridge Display", location: "Brooklyn, New York", latitude: 40.7061, longitude: -73.9969 },
+  { id: "lon-1", screen_name: "Piccadilly Digital", location: "London, UK", latitude: 51.5099, longitude: -0.1337 },
+  { id: "lon-2", screen_name: "Camden Market Screen", location: "London, UK", latitude: 51.5448, longitude: -0.1461 },
+  { id: "tok-1", screen_name: "Shibuya Crossing", location: "Tokyo, Japan", latitude: 35.6598, longitude: 139.7006 },
+  { id: "tok-2", screen_name: "Akihabara Display", location: "Tokyo, Japan", latitude: 35.6980, longitude: 139.7731 },
+  { id: "par-1", screen_name: "Champs-Élysées Screen", location: "Paris, France", latitude: 48.8738, longitude: 2.2950 },
+  { id: "ber-1", screen_name: "Brandenburg Gate Display", location: "Berlin, Germany", latitude: 52.5163, longitude: 13.3777 },
+  { id: "syd-1", screen_name: "Harbour Bridge LED", location: "Sydney, Australia", latitude: -33.8523, longitude: 151.2108 },
+  { id: "tor-1", screen_name: "CN Tower Display", location: "Toronto, Canada", latitude: 43.6426, longitude: -79.3871 },
+  { id: "la-1", screen_name: "Hollywood Boulevard", location: "Los Angeles, USA", latitude: 34.1016, longitude: -118.3406 },
+  { id: "sg-1", screen_name: "Marina Bay Screen", location: "Singapore", latitude: 1.2868, longitude: 103.8545 },
+];
 
 const networkStats = {
   totalScreens: 12547,
@@ -127,14 +144,14 @@ export const DemoScreenNetwork = () => {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="bg-muted/30 rounded-lg p-8 text-center">
-            <div className="w-full max-w-4xl mx-auto h-64 bg-gradient-to-br from-primary/10 to-primary/5 rounded-lg flex items-center justify-center">
-              <div className="text-center">
-                <Globe className="w-16 h-16 text-primary mx-auto mb-4" />
-                <p className="text-muted-foreground">Interactive world map would be displayed here</p>
-                <p className="text-sm text-muted-foreground mt-2">Showing real-time screen locations and activity</p>
-              </div>
-            </div>
+          <div className="h-96 rounded-lg overflow-hidden">
+            <MapboxMap 
+              coords={{ lat: 40.7128, lng: -74.0060 }} 
+              screens={mockScreens}
+              onSelectScreen={(screen) => {
+                console.log("Selected screen:", screen);
+              }}
+            />
           </div>
         </CardContent>
       </Card>
