@@ -7,7 +7,7 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
+  // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "13.0.4"
@@ -320,6 +320,48 @@ export type Database = {
           key?: string
           last_request_at?: string
           window_start?: string
+        }
+        Relationships: []
+      }
+      apk_releases: {
+        Row: {
+          created_at: string
+          download_count: number
+          file_path: string
+          file_size: number
+          id: string
+          is_active: boolean
+          release_notes: string | null
+          updated_at: string
+          uploaded_by: string
+          version_code: number
+          version_name: string
+        }
+        Insert: {
+          created_at?: string
+          download_count?: number
+          file_path: string
+          file_size: number
+          id?: string
+          is_active?: boolean
+          release_notes?: string | null
+          updated_at?: string
+          uploaded_by: string
+          version_code: number
+          version_name: string
+        }
+        Update: {
+          created_at?: string
+          download_count?: number
+          file_path?: string
+          file_size?: number
+          id?: string
+          is_active?: boolean
+          release_notes?: string | null
+          updated_at?: string
+          uploaded_by?: string
+          version_code?: number
+          version_name?: string
         }
         Relationships: []
       }
@@ -1564,14 +1606,14 @@ export type Database = {
       }
       create_security_alert: {
         Args: {
+          affected_user_id?: string
           alert_type: string
+          ip_address?: unknown
+          message: string
+          metadata?: Json
           severity: string
           title: string
-          message: string
-          affected_user_id?: string
-          ip_address?: unknown
           user_agent?: string
-          metadata?: Json
         }
         Returns: string
       }
@@ -1581,10 +1623,14 @@ export type Database = {
       }
       has_role: {
         Args: {
-          _user_id: string
           _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
         }
         Returns: boolean
+      }
+      increment_apk_download_count: {
+        Args: { release_id: string }
+        Returns: undefined
       }
       is_admin: {
         Args: Record<PropertyKey, never>
@@ -1594,11 +1640,11 @@ export type Database = {
         Args: {
           action: string
           admin_user_id?: string
-          target_type?: string
-          target_id?: string
-          old_values?: Json
-          new_values?: Json
           ip_address?: unknown
+          new_values?: Json
+          old_values?: Json
+          target_id?: string
+          target_type?: string
           user_agent?: string
         }
         Returns: string
@@ -1617,20 +1663,20 @@ export type Database = {
       }
       record_analytics_metric: {
         Args: {
+          metadata?: Json
+          metric_date?: string
           metric_name: string
           metric_value: number
-          metric_date?: string
-          metadata?: Json
         }
         Returns: undefined
       }
       record_system_health: {
         Args: {
-          service_name: string
-          status: string
-          response_time_ms: number
           error_message?: string
           metadata?: Json
+          response_time_ms: number
+          service_name: string
+          status: string
         }
         Returns: string
       }
