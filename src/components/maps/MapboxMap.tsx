@@ -81,7 +81,7 @@ const MapboxMap: React.FC<Props> = ({ coords, screens, onSelectScreen }) => {
       container: containerRef.current,
       style: "mapbox://styles/mapbox/light-v11",
       center,
-      zoom: coords ? 13 : 10,
+      zoom: coords ? 6 : 5,
       attributionControl: true,
     });
 
