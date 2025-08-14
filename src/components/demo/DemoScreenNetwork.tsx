@@ -49,12 +49,12 @@ const generateMockScreensAroundLocation = (centerCoords: {lat: number, lng: numb
   
   // Generate 50,000 screens in various clusters around the center location
   const totalScreens = 50000;
-  const clusterCount = 20; // Number of clusters to create
+  const clusterCount = 30; // More clusters for better spread
   const screensPerCluster = totalScreens / clusterCount;
   
   for (let cluster = 0; cluster < clusterCount; cluster++) {
-    // Create cluster centers within 50km radius of the center
-    const clusterRadius = 0.45; // degrees (~50km)
+    // Create cluster centers within 200km radius of the center (much wider spread)
+    const clusterRadius = 1.8; // degrees (~200km)
     const clusterLatOffset = (Math.random() - 0.5) * 2 * clusterRadius;
     const clusterLngOffset = (Math.random() - 0.5) * 2 * clusterRadius;
     
@@ -63,8 +63,8 @@ const generateMockScreensAroundLocation = (centerCoords: {lat: number, lng: numb
     
     // Generate screens within each cluster
     for (let i = 0; i < screensPerCluster; i++) {
-      // Random spread within cluster (5km radius)
-      const spreadRadius = 0.045; // degrees (~5km)
+      // Random spread within cluster (20km radius - much wider)
+      const spreadRadius = 0.18; // degrees (~20km)
       const latOffset = (Math.random() - 0.5) * 2 * spreadRadius;
       const lngOffset = (Math.random() - 0.5) * 2 * spreadRadius;
       
@@ -73,7 +73,7 @@ const generateMockScreensAroundLocation = (centerCoords: {lat: number, lng: numb
       screens.push({
         id: `screen-${screenId}`,
         screen_name: `${screenType} #${screenId}`,
-        location: `Local Area ${cluster + 1}`,
+        location: `Area ${cluster + 1}`,
         latitude: clusterCenterLat + latOffset,
         longitude: clusterCenterLng + lngOffset,
       });
