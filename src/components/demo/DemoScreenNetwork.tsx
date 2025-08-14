@@ -116,6 +116,27 @@ export const DemoScreenNetwork = () => {
   const [selectedRegion, setSelectedRegion] = useState<string>("all");
   const [filteredCities, setFilteredCities] = useState(cityData);
   const [realTimeStats, setRealTimeStats] = useState(networkStats);
+  const [userLocation, setUserLocation] = useState<{lat: number, lng: number} | null>(null);
+
+  // Philadelphia coordinates as fallback
+  const philadelphiaCoords = { lat: 39.9526, lng: -75.1652 };
+
+  // Try to get user location on component mount
+  useEffect(() => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setUserLocation({
+            lat: position.coords.latitude,
+            lng: position.coords.longitude
+          });
+        },
+        (error) => {
+          console.log("Geolocation not available, using Philadelphia fallback");
+        }
+      );
+    }
+  }, []);
 
   // Simulate real-time updates
   useEffect(() => {
@@ -209,7 +230,7 @@ export const DemoScreenNetwork = () => {
         <CardContent>
           <div className="h-96 rounded-lg overflow-hidden">
             <MapboxMap 
-              coords={{ lat: 40.7128, lng: -74.0060 }} 
+              coords={userLocation || philadelphiaCoords} 
               screens={mockScreens}
               onSelectScreen={(screen) => {
                 console.log("Selected screen:", screen);
