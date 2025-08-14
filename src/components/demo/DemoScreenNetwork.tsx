@@ -42,48 +42,55 @@ const screenTypes = [
   "Stadium Display", "Airport Screen", "Metro Display", "Bus Stop Screen", "Store Window"
 ];
 
-// Generate hundreds of thousands of screens distributed around major cities
-const generateMockScreens = () => {
+// Generate screens around user location or Philadelphia
+const generateMockScreensAroundLocation = (centerCoords: {lat: number, lng: number}) => {
   const screens = [];
   let screenId = 1;
   
-  majorCities.forEach(city => {
-    // Generate screens in clusters around each city
-    for (let i = 0; i < city.screens; i++) {
-      // Create clusters with some screens closer to city center, others in suburbs
-      const isSuburban = Math.random() > 0.6;
-      const radius = isSuburban ? 0.3 : 0.1; // degrees (~33km vs ~11km)
-      
-      // Random offset from city center
-      const latOffset = (Math.random() - 0.5) * 2 * radius;
-      const lngOffset = (Math.random() - 0.5) * 2 * radius;
+  // Generate 50,000 screens in various clusters around the center location
+  const totalScreens = 50000;
+  const clusterCount = 20; // Number of clusters to create
+  const screensPerCluster = totalScreens / clusterCount;
+  
+  for (let cluster = 0; cluster < clusterCount; cluster++) {
+    // Create cluster centers within 50km radius of the center
+    const clusterRadius = 0.45; // degrees (~50km)
+    const clusterLatOffset = (Math.random() - 0.5) * 2 * clusterRadius;
+    const clusterLngOffset = (Math.random() - 0.5) * 2 * clusterRadius;
+    
+    const clusterCenterLat = centerCoords.lat + clusterLatOffset;
+    const clusterCenterLng = centerCoords.lng + clusterLngOffset;
+    
+    // Generate screens within each cluster
+    for (let i = 0; i < screensPerCluster; i++) {
+      // Random spread within cluster (5km radius)
+      const spreadRadius = 0.045; // degrees (~5km)
+      const latOffset = (Math.random() - 0.5) * 2 * spreadRadius;
+      const lngOffset = (Math.random() - 0.5) * 2 * spreadRadius;
       
       const screenType = screenTypes[Math.floor(Math.random() * screenTypes.length)];
-      const locationSuffix = isSuburban ? "Suburbs" : "Downtown";
       
       screens.push({
         id: `screen-${screenId}`,
         screen_name: `${screenType} #${screenId}`,
-        location: `${city.name} ${locationSuffix}, ${city.country}`,
-        latitude: city.lat + latOffset,
-        longitude: city.lng + lngOffset,
+        location: `Local Area ${cluster + 1}`,
+        latitude: clusterCenterLat + latOffset,
+        longitude: clusterCenterLng + lngOffset,
       });
       
       screenId++;
     }
-  });
+  }
   
   return screens;
 };
 
-// Generate the massive screen network
-const mockScreens = generateMockScreens();
-
-const networkStats = {
-  totalScreens: mockScreens.length,
-  activeScreens: Math.floor(mockScreens.length * 0.92), // 92% uptime
-  totalCities: majorCities.length,
-  totalCountries: 25
+// Default network stats for initial load
+const defaultNetworkStats = {
+  totalScreens: 50000,
+  activeScreens: Math.floor(50000 * 0.92),
+  totalCities: 1,
+  totalCountries: 1
 };
 
 // Generate city performance data based on screen counts
@@ -98,7 +105,7 @@ const cityData = majorCities
     revenue: `$${Math.floor(city.screens * (2.8 + Math.random() * 1.2)).toLocaleString()}` // $2.80-4.00 per screen
   }));
 
-// Calculate screen type distribution from our generated data
+// Calculate screen type distribution based on 50k screens
 const screenTypeDistribution = [
   { type: "LED Billboards", percentage: 28 },
   { type: "Digital Displays", percentage: 24 },
@@ -108,18 +115,34 @@ const screenTypeDistribution = [
   { type: "Transit Screens", percentage: 7 }
 ].map(type => ({
   ...type,
-  count: Math.floor(mockScreens.length * (type.percentage / 100))
+  count: Math.floor(50000 * (type.percentage / 100))
 }));
 
 export const DemoScreenNetwork = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedRegion, setSelectedRegion] = useState<string>("all");
   const [filteredCities, setFilteredCities] = useState(cityData);
-  const [realTimeStats, setRealTimeStats] = useState(networkStats);
+  const [realTimeStats, setRealTimeStats] = useState(defaultNetworkStats);
   const [userLocation, setUserLocation] = useState<{lat: number, lng: number} | null>(null);
+  const [mockScreens, setMockScreens] = useState<any[]>([]);
 
   // Philadelphia coordinates as fallback
   const philadelphiaCoords = { lat: 39.9526, lng: -75.1652 };
+
+  // Generate screens based on location
+  useEffect(() => {
+    const centerCoords = userLocation || philadelphiaCoords;
+    const screens = generateMockScreensAroundLocation(centerCoords);
+    setMockScreens(screens);
+    
+    // Update stats based on generated screens
+    setRealTimeStats({
+      totalScreens: screens.length,
+      activeScreens: Math.floor(screens.length * 0.92),
+      totalCities: 1, // Local area
+      totalCountries: 1
+    });
+  }, [userLocation]);
 
   // Try to get user location on component mount
   useEffect(() => {
@@ -205,7 +228,7 @@ export const DemoScreenNetwork = () => {
         <Card className="border-muted/20">
           <CardContent className="p-6 text-center">
             <MapPin className="w-8 h-8 mx-auto mb-2 text-primary" />
-            <div className="text-2xl font-bold">{networkStats.totalCities}</div>
+            <div className="text-2xl font-bold">{realTimeStats.totalCities}</div>
             <div className="text-sm text-muted-foreground">Cities</div>
           </CardContent>
         </Card>
@@ -213,7 +236,7 @@ export const DemoScreenNetwork = () => {
         <Card className="border-muted/20">
           <CardContent className="p-6 text-center">
             <Globe className="w-8 h-8 mx-auto mb-2 text-primary" />
-            <div className="text-2xl font-bold">{networkStats.totalCountries}</div>
+            <div className="text-2xl font-bold">{realTimeStats.totalCountries}</div>
             <div className="text-sm text-muted-foreground">Countries</div>
           </CardContent>
         </Card>

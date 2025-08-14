@@ -252,7 +252,7 @@ const MapboxMap: React.FC<Props> = ({ coords, screens, onSelectScreen }) => {
         filter: ["!has", "point_count"],
         paint: {
           "circle-color": "#0ea5e9",
-          "circle-radius": 7,
+          "circle-radius": 4,
           "circle-stroke-width": 1,
           "circle-stroke-color": "#ffffff",
         },
