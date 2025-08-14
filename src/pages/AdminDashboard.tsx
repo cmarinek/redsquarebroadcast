@@ -48,7 +48,7 @@ import {
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { AdminSystemHealth } from "@/components/admin/AdminSystemHealth";
-import { APKManager } from "@/components/admin/APKManager";
+import { AppManager } from "@/components/admin/AppManager";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -894,7 +894,7 @@ const AdminDashboard = () => {
                   <TabsTrigger value="security" className="py-4">Security</TabsTrigger>
                   <TabsTrigger value="mobile" className="py-4">
                     <Smartphone className="h-4 w-4 mr-2" />
-                    Mobile APK
+                    Apps
                   </TabsTrigger>
                 </TabsList>
               </div>
@@ -1408,7 +1408,7 @@ const AdminDashboard = () => {
               </TabsContent>
 
               <TabsContent value="mobile" className="mt-0 p-6">
-                <APKManager />
+                <AppManager />
               </TabsContent>
 
             </Tabs>

@@ -1,51 +1,133 @@
 import { useState, useEffect } from "react";
-import { Download, Smartphone, Star, Shield, Zap } from "lucide-react";
+import { Download, Smartphone, Star, Shield, Zap, Monitor, Tv, Apple } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Layout } from "@/components/Layout";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 
-interface APKRelease {
+interface AppRelease {
   id: string;
   version_name: string;
   version_code: number;
+  platform: 'android' | 'ios' | 'tv';
+  file_extension: 'apk' | 'ipa' | 'zip';
   file_path: string;
   file_size: number;
   release_notes?: string;
   download_count: number;
+  minimum_os_version?: string;
+  bundle_id?: string;
   created_at: string;
 }
 
+const PLATFORM_CONFIG = {
+  android: {
+    icon: Smartphone,
+    name: 'Android',
+    bucket: 'apk-files',
+    fileExtension: 'APK',
+    instructions: [
+      { title: 'Enable Unknown Sources', desc: 'Go to Settings → Security → Unknown Sources and enable it.' },
+      { title: 'Download', desc: 'Tap the download button above to get the APK file.' },
+      { title: 'Install', desc: 'Open the downloaded file and follow the installation prompts.' },
+      { title: 'Launch', desc: 'Find Red Square in your app drawer and start broadcasting!' }
+    ],
+    requirements: [
+      'Android 7.0 (API level 24) or higher',
+      'At least 100 MB of available storage',
+      'Internet connection for content upload and discovery',
+      'Camera permission for QR code scanning (optional)',
+      'Location permission for nearby screen discovery (optional)'
+    ]
+  },
+  ios: {
+    icon: Apple,
+    name: 'iOS',
+    bucket: 'ios-files',
+    fileExtension: 'IPA',
+    instructions: [
+      { title: 'TestFlight or Enterprise', desc: 'This app requires TestFlight or enterprise distribution.' },
+      { title: 'Install TestFlight', desc: 'Download TestFlight from the App Store if not installed.' },
+      { title: 'Install Red Square', desc: 'Use the TestFlight link or enterprise certificate.' },
+      { title: 'Trust Developer', desc: 'Go to Settings → General → Profiles to trust the developer.' }
+    ],
+    requirements: [
+      'iOS 13.0 or higher',
+      'At least 100 MB of available storage',
+      'Internet connection for content upload and discovery',
+      'Camera permission for QR code scanning (optional)',
+      'Location permission for nearby screen discovery (optional)'
+    ]
+  },
+  tv: {
+    icon: Tv,
+    name: 'TV App',
+    bucket: 'tv-files',
+    fileExtension: 'ZIP',
+    instructions: [
+      { title: 'Download Package', desc: 'Download the TV app package from above.' },
+      { title: 'Extract Files', desc: 'Extract the ZIP file to a folder on your computer.' },
+      { title: 'Sideload to TV', desc: 'Use ADB or your TV\'s developer mode to install.' },
+      { title: 'Launch App', desc: 'Find Red Square in your TV\'s app list and start using it.' }
+    ],
+    requirements: [
+      'Android TV 9.0 or higher',
+      'Smart TV with web browser support',
+      'At least 200 MB of available storage',
+      'Internet connection (WiFi recommended)',
+      'Remote control or compatible input device'
+    ]
+  }
+} as const;
+
 const DownloadApp = () => {
   const { toast } = useToast();
-  const [latestRelease, setLatestRelease] = useState<APKRelease | null>(null);
+  const [releases, setReleases] = useState<Record<string, AppRelease | null>>({
+    android: null,
+    ios: null,
+    tv: null
+  });
   const [loading, setLoading] = useState(true);
-  const [downloading, setDownloading] = useState(false);
+  const [downloading, setDownloading] = useState<string | null>(null);
+  const [activePlatform, setActivePlatform] = useState<'android' | 'ios' | 'tv'>('android');
 
   useEffect(() => {
-    fetchLatestRelease();
+    fetchLatestReleases();
   }, []);
 
-  const fetchLatestRelease = async () => {
+  const fetchLatestReleases = async () => {
     try {
       const { data, error } = await supabase
-        .from('apk_releases')
+        .from('app_releases')
         .select('*')
         .eq('is_active', true)
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .maybeSingle();
+        .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setLatestRelease(data);
+
+      // Group by platform and get the latest for each
+      const latestByPlatform: Record<string, AppRelease | null> = {
+        android: null,
+        ios: null,
+        tv: null
+      };
+
+      (data || []).forEach((release: AppRelease) => {
+        if (!latestByPlatform[release.platform]) {
+          latestByPlatform[release.platform] = release;
+        }
+      });
+
+      setReleases(latestByPlatform);
     } catch (error) {
-      console.error("Error fetching latest release:", error);
+      console.error("Error fetching latest releases:", error);
       toast({
-        title: "Error fetching app",
+        title: "Error fetching apps",
         description: "Please try again later.",
         variant: "destructive"
       });
@@ -62,48 +144,209 @@ const DownloadApp = () => {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
-  const handleDownload = async () => {
-    if (!latestRelease) return;
+  const handleDownload = async (platform: 'android' | 'ios' | 'tv') => {
+    const release = releases[platform];
+    if (!release) return;
 
-    setDownloading(true);
+    const config = PLATFORM_CONFIG[platform];
+    setDownloading(platform);
+
     try {
       // Get signed URL for download
       const { data, error } = await supabase.storage
-        .from('apk-files')
-        .createSignedUrl(latestRelease.file_path, 3600); // 1 hour expiry
+        .from(config.bucket)
+        .createSignedUrl(release.file_path, 3600); // 1 hour expiry
 
       if (error) throw error;
 
       // Increment download count
-      await supabase.rpc('increment_apk_download_count', {
-        release_id: latestRelease.id
+      await supabase.rpc('increment_app_download_count', {
+        release_id: release.id
       });
 
       // Trigger download
       const link = document.createElement('a');
       link.href = data.signedUrl;
-      link.download = `RedSquare-v${latestRelease.version_name}.apk`;
+      link.download = `RedSquare-${platform}-v${release.version_name}.${release.file_extension.toLowerCase()}`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
 
       // Update local download count
-      setLatestRelease(prev => prev ? {...prev, download_count: prev.download_count + 1} : null);
+      setReleases(prev => ({
+        ...prev,
+        [platform]: prev[platform] ? {...prev[platform], download_count: prev[platform]!.download_count + 1} : null
+      }));
 
       toast({
         title: "Download started",
-        description: `RedSquare v${latestRelease.version_name} is downloading.`,
+        description: `RedSquare ${config.name} v${release.version_name} is downloading.`,
       });
     } catch (error) {
-      console.error("Error downloading APK:", error);
+      console.error(`Error downloading ${config.name} app:`, error);
       toast({
         title: "Download failed",
         description: "Please try again later.",
         variant: "destructive"
       });
     } finally {
-      setDownloading(false);
+      setDownloading(null);
     }
+  };
+
+  const renderPlatformContent = (platform: 'android' | 'ios' | 'tv') => {
+    const release = releases[platform];
+    const config = PLATFORM_CONFIG[platform];
+    const IconComponent = config.icon;
+
+    return (
+      <div className="space-y-8">
+        {loading ? (
+          <Card>
+            <CardContent className="p-8 text-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+              <p className="text-muted-foreground">Loading latest version...</p>
+            </CardContent>
+          </Card>
+        ) : release ? (
+          <Card className="border-2 border-primary/20">
+            <CardHeader className="text-center">
+              <div className="flex items-center justify-center gap-2 mb-2">
+                <Badge variant="default" className="px-3 py-1">Latest Version</Badge>
+                <Badge variant="outline">v{release.version_name}</Badge>
+              </div>
+              <CardTitle className="text-2xl flex items-center justify-center gap-2">
+                <IconComponent className="h-6 w-6" />
+                Red Square for {config.name}
+              </CardTitle>
+              <CardDescription className="text-lg">
+                Released {format(new Date(release.created_at), 'MMMM d, yyyy')}
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="text-center">
+                <Button
+                  size="lg"
+                  onClick={() => handleDownload(platform)}
+                  disabled={downloading === platform}
+                  className="px-8 py-4 text-lg"
+                >
+                  {downloading === platform ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      Downloading...
+                    </>
+                  ) : (
+                    <>
+                      <Download className="h-5 w-5 mr-2" />
+                      Download {config.fileExtension} ({formatFileSize(release.file_size)})
+                    </>
+                  )}
+                </Button>
+                <p className="text-sm text-muted-foreground mt-2">
+                  {release.download_count.toLocaleString()} downloads
+                </p>
+              </div>
+
+              {release.release_notes && (
+                <div className="bg-secondary/30 rounded-lg p-4">
+                  <h4 className="font-semibold mb-2">What's New:</h4>
+                  <p className="text-sm text-muted-foreground whitespace-pre-line">
+                    {release.release_notes}
+                  </p>
+                </div>
+              )}
+
+              {release.minimum_os_version && (
+                <div className="bg-secondary/30 rounded-lg p-4">
+                  <h4 className="font-semibold mb-2">Requirements:</h4>
+                  <p className="text-sm text-muted-foreground">
+                    Minimum OS Version: {release.minimum_os_version}
+                  </p>
+                  {release.bundle_id && (
+                    <p className="text-sm text-muted-foreground">
+                      Bundle ID: {release.bundle_id}
+                    </p>
+                  )}
+                </div>
+              )}
+
+              <div className="grid grid-cols-3 gap-4 text-center">
+                <div className="space-y-2">
+                  <Star className="h-5 w-5 text-yellow-500 mx-auto" />
+                  <p className="text-sm font-medium">Free to Use</p>
+                  <p className="text-xs text-muted-foreground">No subscription required</p>
+                </div>
+                <div className="space-y-2">
+                  <Shield className="h-5 w-5 text-green-500 mx-auto" />
+                  <p className="text-sm font-medium">Secure</p>
+                  <p className="text-xs text-muted-foreground">Safe & verified</p>
+                </div>
+                <div className="space-y-2">
+                  <Zap className="h-5 w-5 text-blue-500 mx-auto" />
+                  <p className="text-sm font-medium">Fast</p>
+                  <p className="text-xs text-muted-foreground">Quick broadcasts</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        ) : (
+          <Alert>
+            <IconComponent className="h-4 w-4" />
+            <AlertDescription>
+              No {config.name} release is currently available. Please check back later or contact support.
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {/* Installation Instructions */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Installation Instructions</CardTitle>
+            <CardDescription>
+              Follow these steps to install Red Square on your {config.name} device
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <ol className="list-decimal list-inside space-y-3 text-sm">
+              {config.instructions.map((step, index) => (
+                <li key={index}>
+                  <strong>{step.title}:</strong> {step.desc}
+                </li>
+              ))}
+            </ol>
+
+            <Alert>
+              <Shield className="h-4 w-4" />
+              <AlertDescription>
+                <strong>Security Note:</strong> Only download Red Square from this official page. 
+                {platform === 'android' && ' Disable "Unknown Sources" after installation for security.'}
+              </AlertDescription>
+            </Alert>
+          </CardContent>
+        </Card>
+
+        {/* System Requirements */}
+        <Card>
+          <CardHeader>
+            <CardTitle>System Requirements</CardTitle>
+            <CardDescription>
+              Make sure your device meets these requirements
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ul className="space-y-2 text-sm">
+              {config.requirements.map((requirement, index) => (
+                <li key={index} className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-primary rounded-full"></div>
+                  {requirement}
+                </li>
+              ))}
+            </ul>
+          </CardContent>
+        </Card>
+      </div>
+    );
   };
 
   return (
@@ -120,160 +363,40 @@ const DownloadApp = () => {
               Download Red Square
             </h1>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              Get the official Red Square mobile app for Android. Discover screens, upload content, 
-              and broadcast to digital displays near you.
+              Get the official Red Square apps for all your devices. Discover screens, upload content, 
+              and broadcast to digital displays anywhere.
             </p>
           </div>
 
-          <div className="max-w-2xl mx-auto space-y-8">
-            {loading ? (
-              <Card>
-                <CardContent className="p-8 text-center">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-                  <p className="text-muted-foreground">Loading latest version...</p>
-                </CardContent>
-              </Card>
-            ) : latestRelease ? (
-              <Card className="border-2 border-primary/20">
-                <CardHeader className="text-center">
-                  <div className="flex items-center justify-center gap-2 mb-2">
-                    <Badge variant="default" className="px-3 py-1">Latest Version</Badge>
-                    <Badge variant="outline">v{latestRelease.version_name}</Badge>
-                  </div>
-                  <CardTitle className="text-2xl">Red Square for Android</CardTitle>
-                  <CardDescription className="text-lg">
-                    Released {format(new Date(latestRelease.created_at), 'MMMM d, yyyy')}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  <div className="text-center">
-                    <Button
-                      size="lg"
-                      onClick={handleDownload}
-                      disabled={downloading}
-                      className="px-8 py-4 text-lg"
-                    >
-                      {downloading ? (
-                        <>
-                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                          Downloading...
-                        </>
-                      ) : (
-                        <>
-                          <Download className="h-5 w-5 mr-2" />
-                          Download APK ({formatFileSize(latestRelease.file_size)})
-                        </>
-                      )}
-                    </Button>
-                    <p className="text-sm text-muted-foreground mt-2">
-                      {latestRelease.download_count.toLocaleString()} downloads
-                    </p>
-                  </div>
+          <div className="max-w-4xl mx-auto">
+            <Tabs value={activePlatform} onValueChange={(value) => setActivePlatform(value as 'android' | 'ios' | 'tv')}>
+              <TabsList className="grid w-full grid-cols-3 mb-8">
+                <TabsTrigger value="android" className="flex items-center gap-2">
+                  <Smartphone className="h-4 w-4" />
+                  Android
+                </TabsTrigger>
+                <TabsTrigger value="ios" className="flex items-center gap-2">
+                  <Apple className="h-4 w-4" />
+                  iOS
+                </TabsTrigger>
+                <TabsTrigger value="tv" className="flex items-center gap-2">
+                  <Tv className="h-4 w-4" />
+                  TV App
+                </TabsTrigger>
+              </TabsList>
 
-                  {latestRelease.release_notes && (
-                    <div className="bg-secondary/30 rounded-lg p-4">
-                      <h4 className="font-semibold mb-2">What's New:</h4>
-                      <p className="text-sm text-muted-foreground whitespace-pre-line">
-                        {latestRelease.release_notes}
-                      </p>
-                    </div>
-                  )}
+              <TabsContent value="android">
+                {renderPlatformContent('android')}
+              </TabsContent>
 
-                  <div className="grid grid-cols-3 gap-4 text-center">
-                    <div className="space-y-2">
-                      <Star className="h-5 w-5 text-yellow-500 mx-auto" />
-                      <p className="text-sm font-medium">Free to Use</p>
-                      <p className="text-xs text-muted-foreground">No subscription required</p>
-                    </div>
-                    <div className="space-y-2">
-                      <Shield className="h-5 w-5 text-green-500 mx-auto" />
-                      <p className="text-sm font-medium">Secure</p>
-                      <p className="text-xs text-muted-foreground">Safe & verified</p>
-                    </div>
-                    <div className="space-y-2">
-                      <Zap className="h-5 w-5 text-blue-500 mx-auto" />
-                      <p className="text-sm font-medium">Fast</p>
-                      <p className="text-xs text-muted-foreground">Quick broadcasts</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ) : (
-              <Alert>
-                <Smartphone className="h-4 w-4" />
-                <AlertDescription>
-                  No app release is currently available. Please check back later or contact support.
-                </AlertDescription>
-              </Alert>
-            )}
+              <TabsContent value="ios">
+                {renderPlatformContent('ios')}
+              </TabsContent>
 
-            {/* Installation Instructions */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Installation Instructions</CardTitle>
-                <CardDescription>
-                  Follow these steps to install Red Square on your Android device
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <ol className="list-decimal list-inside space-y-3 text-sm">
-                  <li>
-                    <strong>Enable Unknown Sources:</strong> Go to Settings → Security → Unknown Sources and enable it.
-                  </li>
-                  <li>
-                    <strong>Download:</strong> Tap the download button above to get the APK file.
-                  </li>
-                  <li>
-                    <strong>Install:</strong> Open the downloaded file and follow the installation prompts.
-                  </li>
-                  <li>
-                    <strong>Launch:</strong> Find Red Square in your app drawer and start broadcasting!
-                  </li>
-                </ol>
-
-                <Alert>
-                  <Shield className="h-4 w-4" />
-                  <AlertDescription>
-                    <strong>Security Note:</strong> Only download Red Square from this official page. 
-                    Disable "Unknown Sources" after installation for security.
-                  </AlertDescription>
-                </Alert>
-              </CardContent>
-            </Card>
-
-            {/* System Requirements */}
-            <Card>
-              <CardHeader>
-                <CardTitle>System Requirements</CardTitle>
-                <CardDescription>
-                  Make sure your device meets these requirements
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-2 text-sm">
-                  <li className="flex items-center gap-2">
-                    <div className="w-2 h-2 bg-primary rounded-full"></div>
-                    Android 7.0 (API level 24) or higher
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <div className="w-2 h-2 bg-primary rounded-full"></div>
-                    At least 100 MB of available storage
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <div className="w-2 h-2 bg-primary rounded-full"></div>
-                    Internet connection for content upload and discovery
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <div className="w-2 h-2 bg-primary rounded-full"></div>
-                    Camera permission for QR code scanning (optional)
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <div className="w-2 h-2 bg-primary rounded-full"></div>
-                    Location permission for nearby screen discovery (optional)
-                  </li>
-                </ul>
-              </CardContent>
-            </Card>
+              <TabsContent value="tv">
+                {renderPlatformContent('tv')}
+              </TabsContent>
+            </Tabs>
           </div>
         </div>
       </div>
