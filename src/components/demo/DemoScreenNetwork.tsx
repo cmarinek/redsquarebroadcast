@@ -6,47 +6,110 @@ import { Input } from "@/components/ui/input";
 import { MapPin, Monitor, Users, TrendingUp, Search, Filter, Globe } from "lucide-react";
 import MapboxMap from "@/components/maps/MapboxMap";
 
-// Mock screen data for global demonstration
-const mockScreens = [
-  { id: "nyc-1", screen_name: "Times Square LED", location: "Times Square, New York", latitude: 40.7589, longitude: -73.9851 },
-  { id: "nyc-2", screen_name: "Brooklyn Bridge Display", location: "Brooklyn, New York", latitude: 40.7061, longitude: -73.9969 },
-  { id: "lon-1", screen_name: "Piccadilly Digital", location: "London, UK", latitude: 51.5099, longitude: -0.1337 },
-  { id: "lon-2", screen_name: "Camden Market Screen", location: "London, UK", latitude: 51.5448, longitude: -0.1461 },
-  { id: "tok-1", screen_name: "Shibuya Crossing", location: "Tokyo, Japan", latitude: 35.6598, longitude: 139.7006 },
-  { id: "tok-2", screen_name: "Akihabara Display", location: "Tokyo, Japan", latitude: 35.6980, longitude: 139.7731 },
-  { id: "par-1", screen_name: "Champs-Élysées Screen", location: "Paris, France", latitude: 48.8738, longitude: 2.2950 },
-  { id: "ber-1", screen_name: "Brandenburg Gate Display", location: "Berlin, Germany", latitude: 52.5163, longitude: 13.3777 },
-  { id: "syd-1", screen_name: "Harbour Bridge LED", location: "Sydney, Australia", latitude: -33.8523, longitude: 151.2108 },
-  { id: "tor-1", screen_name: "CN Tower Display", location: "Toronto, Canada", latitude: 43.6426, longitude: -79.3871 },
-  { id: "la-1", screen_name: "Hollywood Boulevard", location: "Los Angeles, USA", latitude: 34.1016, longitude: -118.3406 },
-  { id: "sg-1", screen_name: "Marina Bay Screen", location: "Singapore", latitude: 1.2868, longitude: 103.8545 },
+// Major metropolitan areas with their approximate coordinates and screen densities
+const majorCities = [
+  { name: "New York", lat: 40.7128, lng: -74.0060, screens: 45000, country: "USA" },
+  { name: "Los Angeles", lat: 34.0522, lng: -118.2437, screens: 32000, country: "USA" },
+  { name: "London", lat: 51.5074, lng: -0.1278, screens: 28000, country: "UK" },
+  { name: "Tokyo", lat: 35.6762, lng: 139.6503, screens: 41000, country: "Japan" },
+  { name: "Shanghai", lat: 31.2304, lng: 121.4737, screens: 38000, country: "China" },
+  { name: "Beijing", lat: 39.9042, lng: 116.4074, screens: 35000, country: "China" },
+  { name: "Paris", lat: 48.8566, lng: 2.3522, screens: 22000, country: "France" },
+  { name: "Berlin", lat: 52.5200, lng: 13.4050, screens: 18000, country: "Germany" },
+  { name: "Mumbai", lat: 19.0760, lng: 72.8777, screens: 25000, country: "India" },
+  { name: "Delhi", lat: 28.7041, lng: 77.1025, screens: 23000, country: "India" },
+  { name: "São Paulo", lat: -23.5505, lng: -46.6333, screens: 20000, country: "Brazil" },
+  { name: "Mexico City", lat: 19.4326, lng: -99.1332, screens: 19000, country: "Mexico" },
+  { name: "Sydney", lat: -33.8688, lng: 151.2093, screens: 15000, country: "Australia" },
+  { name: "Toronto", lat: 43.6532, lng: -79.3832, screens: 16000, country: "Canada" },
+  { name: "Dubai", lat: 25.2048, lng: 55.2708, screens: 12000, country: "UAE" },
+  { name: "Singapore", lat: 1.3521, lng: 103.8198, screens: 14000, country: "Singapore" },
+  { name: "Hong Kong", lat: 22.3193, lng: 114.1694, screens: 18000, country: "Hong Kong" },
+  { name: "Seoul", lat: 37.5665, lng: 126.9780, screens: 22000, country: "South Korea" },
+  { name: "Bangkok", lat: 13.7563, lng: 100.5018, screens: 16000, country: "Thailand" },
+  { name: "Istanbul", lat: 41.0082, lng: 28.9784, screens: 14000, country: "Turkey" },
+  { name: "Moscow", lat: 55.7558, lng: 37.6176, screens: 17000, country: "Russia" },
+  { name: "Madrid", lat: 40.4168, lng: -3.7038, screens: 13000, country: "Spain" },
+  { name: "Rome", lat: 41.9028, lng: 12.4964, screens: 11000, country: "Italy" },
+  { name: "Amsterdam", lat: 52.3676, lng: 4.9041, screens: 9000, country: "Netherlands" },
+  { name: "Stockholm", lat: 59.3293, lng: 18.0686, screens: 8000, country: "Sweden" },
 ];
 
-const networkStats = {
-  totalScreens: 12547,
-  activeScreens: 11892,
-  totalCities: 284,
-  totalCountries: 47
+// Screen type names for variety
+const screenTypes = [
+  "LED Billboard", "Digital Display", "Video Wall", "Interactive Kiosk", "Smart TV",
+  "Transit Screen", "Mall Display", "Street Panel", "Building Screen", "Bridge LED",
+  "Stadium Display", "Airport Screen", "Metro Display", "Bus Stop Screen", "Store Window"
+];
+
+// Generate hundreds of thousands of screens distributed around major cities
+const generateMockScreens = () => {
+  const screens = [];
+  let screenId = 1;
+  
+  majorCities.forEach(city => {
+    // Generate screens in clusters around each city
+    for (let i = 0; i < city.screens; i++) {
+      // Create clusters with some screens closer to city center, others in suburbs
+      const isSuburban = Math.random() > 0.6;
+      const radius = isSuburban ? 0.3 : 0.1; // degrees (~33km vs ~11km)
+      
+      // Random offset from city center
+      const latOffset = (Math.random() - 0.5) * 2 * radius;
+      const lngOffset = (Math.random() - 0.5) * 2 * radius;
+      
+      const screenType = screenTypes[Math.floor(Math.random() * screenTypes.length)];
+      const locationSuffix = isSuburban ? "Suburbs" : "Downtown";
+      
+      screens.push({
+        id: `screen-${screenId}`,
+        screen_name: `${screenType} #${screenId}`,
+        location: `${city.name} ${locationSuffix}, ${city.country}`,
+        latitude: city.lat + latOffset,
+        longitude: city.lng + lngOffset,
+      });
+      
+      screenId++;
+    }
+  });
+  
+  return screens;
 };
 
-const cityData = [
-  { city: "New York", country: "USA", screens: 1247, active: 1189, revenue: "$45,230" },
-  { city: "London", country: "UK", screens: 892, active: 847, revenue: "$28,940" },
-  { city: "Tokyo", country: "Japan", screens: 734, active: 698, revenue: "$31,580" },
-  { city: "Los Angeles", country: "USA", screens: 623, active: 594, revenue: "$22,150" },
-  { city: "Paris", country: "France", screens: 445, active: 421, revenue: "$18,670" },
-  { city: "Sydney", country: "Australia", screens: 387, active: 352, revenue: "$15,420" },
-  { city: "Berlin", country: "Germany", screens: 298, active: 276, revenue: "$12,890" },
-  { city: "Toronto", country: "Canada", screens: 234, active: 221, revenue: "$9,830" }
-];
+// Generate the massive screen network
+const mockScreens = generateMockScreens();
 
-const screenTypes = [
-  { type: "LED Billboards", count: 4234, percentage: 34 },
-  { type: "Digital Displays", count: 3567, percentage: 28 },
-  { type: "Video Walls", count: 2456, percentage: 20 },
-  { type: "Interactive Kiosks", count: 1523, percentage: 12 },
-  { type: "Smart TVs", count: 767, percentage: 6 }
-];
+const networkStats = {
+  totalScreens: mockScreens.length,
+  activeScreens: Math.floor(mockScreens.length * 0.92), // 92% uptime
+  totalCities: majorCities.length,
+  totalCountries: 25
+};
+
+// Generate city performance data based on screen counts
+const cityData = majorCities
+  .sort((a, b) => b.screens - a.screens)
+  .slice(0, 12)
+  .map(city => ({
+    city: city.name,
+    country: city.country,
+    screens: city.screens,
+    active: Math.floor(city.screens * (0.88 + Math.random() * 0.08)), // 88-96% uptime
+    revenue: `$${Math.floor(city.screens * (2.8 + Math.random() * 1.2)).toLocaleString()}` // $2.80-4.00 per screen
+  }));
+
+// Calculate screen type distribution from our generated data
+const screenTypeDistribution = [
+  { type: "LED Billboards", percentage: 28 },
+  { type: "Digital Displays", percentage: 24 },
+  { type: "Video Walls", percentage: 18 },
+  { type: "Interactive Kiosks", percentage: 15 },
+  { type: "Smart TVs", percentage: 8 },
+  { type: "Transit Screens", percentage: 7 }
+].map(type => ({
+  ...type,
+  count: Math.floor(mockScreens.length * (type.percentage / 100))
+}));
 
 export const DemoScreenNetwork = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -251,7 +314,7 @@ export const DemoScreenNetwork = () => {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {screenTypes.map((type, index) => (
+            {screenTypeDistribution.map((type, index) => (
               <div key={index} className="space-y-2">
                 <div className="flex justify-between text-sm">
                   <span>{type.type}</span>
