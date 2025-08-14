@@ -75,8 +75,8 @@ const generateMockScreensAroundLocation = (centerCoords: {lat: number, lng: numb
     
     // Generate screens within each urban area
     for (let i = 0; i < screensPerArea; i++) {
-      // Concentrated spread within urban area (5km radius)
-      const spreadRadius = 0.045; // degrees (~5km)
+      // Spread within urban area (100km radius)
+      const spreadRadius = 0.9; // degrees (~100km)
       const latOffset = (Math.random() - 0.5) * 2 * spreadRadius;
       const lngOffset = (Math.random() - 0.5) * 2 * spreadRadius;
       
