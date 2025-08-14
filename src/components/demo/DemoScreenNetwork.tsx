@@ -42,29 +42,41 @@ const screenTypes = [
   "Stadium Display", "Airport Screen", "Metro Display", "Bus Stop Screen", "Store Window"
 ];
 
-// Generate screens around user location or Philadelphia
+// Generate screens around user location or Philadelphia, focusing on urban areas
 const generateMockScreensAroundLocation = (centerCoords: {lat: number, lng: number}) => {
   const screens = [];
   let screenId = 1;
   
-  // Generate 50,000 screens in various clusters around the center location
-  const totalScreens = 50000;
-  const clusterCount = 30; // More clusters for better spread
-  const screensPerCluster = totalScreens / clusterCount;
+  // Define urban areas to cluster screens around (relative to center)
+  const urbanAreas = [
+    { name: "Downtown", lat: 0, lng: 0 }, // Center city
+    { name: "North District", lat: 0.3, lng: 0.1 },
+    { name: "South District", lat: -0.2, lng: 0.15 },
+    { name: "East District", lat: 0.1, lng: 0.4 },
+    { name: "West District", lat: 0.05, lng: -0.3 },
+    { name: "Airport Area", lat: -0.15, lng: -0.25 },
+    { name: "University District", lat: 0.2, lng: -0.1 },
+    { name: "Industrial Zone", lat: -0.1, lng: 0.3 },
+    { name: "Shopping District", lat: 0.15, lng: 0.2 },
+    { name: "Business Park", lat: 0.25, lng: -0.15 },
+    { name: "Suburban North", lat: 0.4, lng: 0.05 },
+    { name: "Suburban South", lat: -0.35, lng: 0.1 },
+    { name: "Suburban East", lat: 0.05, lng: 0.5 },
+    { name: "Suburban West", lat: 0.1, lng: -0.4 },
+    { name: "Entertainment District", lat: 0.08, lng: 0.12 }
+  ];
   
-  for (let cluster = 0; cluster < clusterCount; cluster++) {
-    // Create cluster centers within 200km radius of the center (much wider spread)
-    const clusterRadius = 1.8; // degrees (~200km)
-    const clusterLatOffset = (Math.random() - 0.5) * 2 * clusterRadius;
-    const clusterLngOffset = (Math.random() - 0.5) * 2 * clusterRadius;
+  const totalScreens = 50000;
+  const screensPerArea = Math.floor(totalScreens / urbanAreas.length);
+  
+  urbanAreas.forEach((area, index) => {
+    const areaLat = centerCoords.lat + area.lat;
+    const areaLng = centerCoords.lng + area.lng;
     
-    const clusterCenterLat = centerCoords.lat + clusterLatOffset;
-    const clusterCenterLng = centerCoords.lng + clusterLngOffset;
-    
-    // Generate screens within each cluster
-    for (let i = 0; i < screensPerCluster; i++) {
-      // Random spread within cluster (20km radius - much wider)
-      const spreadRadius = 0.18; // degrees (~20km)
+    // Generate screens within each urban area
+    for (let i = 0; i < screensPerArea; i++) {
+      // Concentrated spread within urban area (5km radius)
+      const spreadRadius = 0.045; // degrees (~5km)
       const latOffset = (Math.random() - 0.5) * 2 * spreadRadius;
       const lngOffset = (Math.random() - 0.5) * 2 * spreadRadius;
       
@@ -73,14 +85,14 @@ const generateMockScreensAroundLocation = (centerCoords: {lat: number, lng: numb
       screens.push({
         id: `screen-${screenId}`,
         screen_name: `${screenType} #${screenId}`,
-        location: `Area ${cluster + 1}`,
-        latitude: clusterCenterLat + latOffset,
-        longitude: clusterCenterLng + lngOffset,
+        location: area.name,
+        latitude: areaLat + latOffset,
+        longitude: areaLng + lngOffset,
       });
       
       screenId++;
     }
-  }
+  });
   
   return screens;
 };
