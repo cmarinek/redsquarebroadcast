@@ -6,6 +6,7 @@ import { Routes, Route } from "react-router-dom";
 import { Footer } from "@/components/Footer";
 
 const Index = lazy(() => import("./pages/Index"));
+const Demo = lazy(() => import("./pages/Demo"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const Auth = lazy(() => import("./pages/Auth"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
@@ -44,6 +45,7 @@ const App = () => (
     <Suspense fallback={<div className="p-6 text-muted-foreground">Loading…</div>}>
       <Routes>
         <Route path="/" element={<Index />} />
+        <Route path="/demo" element={<Demo />} />
         <Route path="/auth" element={<Auth />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/admin" element={<AdminDashboard />} />

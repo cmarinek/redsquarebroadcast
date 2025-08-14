@@ -41,8 +41,10 @@ export const Hero = () => {
                   Start Broadcasting
                 </Link>
               </Button>
-              <Button size="lg" variant="outline">
-                View Demo
+              <Button size="lg" variant="outline" asChild>
+                <Link to="/demo">
+                  View Demo
+                </Link>
               </Button>
             </div>
 
