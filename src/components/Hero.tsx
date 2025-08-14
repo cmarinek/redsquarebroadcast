@@ -35,7 +35,7 @@ export const Hero = () => {
             <p className="text-xl text-muted-foreground mb-8 max-w-lg">Red Square lets anyone book a time slot and broadcast ready-made media to a specific screen. Upload to anywhere from mobile or desktop. Owners earn while audiences engage. </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-12">
-              <Button size="lg" asChild className="bg-gradient-primary hover:shadow-[var(--shadow-red)] transition-all duration-300 animate-glow-pulse-3_4s">
+              <Button size="lg" asChild className="bg-gradient-primary hover:shadow-[var(--shadow-red)] transition-all duration-300 animate-glow-pulse-4_4s">
                 <Link to="/discover">
                   <Play className="mr-2 h-5 w-5" />
                   Start Broadcasting
