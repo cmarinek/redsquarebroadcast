@@ -64,20 +64,44 @@ export const Navigation = () => {
                   </>}
                 
                 {/* Admin features */}
-                {isAdmin() && <>
-                    <Button variant="outline" asChild>
-                      <Link to="/admin">Admin Dashboard</Link>
-                    </Button>
-                    <Button variant="outline" asChild>
-                      <Link to="/admin/overview">Project Overview</Link>
-                    </Button>
-                    <Button variant="outline" asChild>
-                      <Link to="/admin/performance">Performance</Link>
-                    </Button>
-                    <Button variant="outline" asChild>
-                      <Link to="/admin/documentation">Documentation</Link>
-                    </Button>
-                  </>}
+                {isAdmin() && (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="outline">
+                        <Shield className="w-4 h-4 mr-2" />
+                        Admin
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuLabel>Admin Panel</DropdownMenuLabel>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem asChild>
+                        <Link to="/admin" className="flex items-center">
+                          <BarChart3 className="w-4 h-4 mr-2" />
+                          Dashboard
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem asChild>
+                        <Link to="/admin/overview" className="flex items-center">
+                          <Settings className="w-4 h-4 mr-2" />
+                          Project Overview
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem asChild>
+                        <Link to="/admin/performance" className="flex items-center">
+                          <BarChart3 className="w-4 h-4 mr-2" />
+                          Performance
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem asChild>
+                        <Link to="/admin/documentation" className="flex items-center">
+                          <HelpCircle className="w-4 h-4 mr-2" />
+                          Documentation
+                        </Link>
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                )}
 
                 <RealTimeNotifications />
                 
@@ -120,33 +144,6 @@ export const Navigation = () => {
                         </DropdownMenuItem>
                       </>}
                     
-                    {/* Admin specific options */}
-                    {isAdmin() && <>
-                        <DropdownMenuItem asChild>
-                          <Link to="/admin" className="flex items-center">
-                            <Shield className="w-4 h-4 mr-2" />
-                            Admin Dashboard
-                          </Link>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem asChild>
-                          <Link to="/admin/overview" className="flex items-center">
-                            <Shield className="w-4 h-4 mr-2" />
-                            Project Overview
-                          </Link>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem asChild>
-                          <Link to="/admin/performance" className="flex items-center">
-                            <Shield className="w-4 h-4 mr-2" />
-                            Performance
-                          </Link>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem asChild>
-                          <Link to="/admin/documentation" className="flex items-center">
-                            <Shield className="w-4 h-4 mr-2" />
-                            Documentation
-                          </Link>
-                        </DropdownMenuItem>
-                      </>}
 
                     {/* Broadcaster specific options */}
                     {isBroadcaster() && !isScreenOwner() && !isAdmin() && <DropdownMenuItem asChild>
@@ -218,20 +215,35 @@ export const Navigation = () => {
                   </Button>}
                 
                 {/* Admin features */}
-                {isAdmin() && <>
+                {isAdmin() && (
+                  <div className="space-y-2">
+                    <div className="text-sm font-medium text-muted-foreground px-3 py-2">Admin Panel</div>
                     <Button variant="outline" asChild className="w-full justify-start">
-                      <Link to="/admin">Admin Dashboard</Link>
+                      <Link to="/admin">
+                        <BarChart3 className="w-4 h-4 mr-2" />
+                        Dashboard
+                      </Link>
                     </Button>
                     <Button variant="outline" asChild className="w-full justify-start">
-                      <Link to="/admin/overview">Project Overview</Link>
+                      <Link to="/admin/overview">
+                        <Settings className="w-4 h-4 mr-2" />
+                        Project Overview
+                      </Link>
                     </Button>
                     <Button variant="outline" asChild className="w-full justify-start">
-                      <Link to="/admin/performance">Performance</Link>
+                      <Link to="/admin/performance">
+                        <BarChart3 className="w-4 h-4 mr-2" />
+                        Performance
+                      </Link>
                     </Button>
                     <Button variant="outline" asChild className="w-full justify-start">
-                      <Link to="/admin/documentation">Documentation</Link>
+                      <Link to="/admin/documentation">
+                        <HelpCircle className="w-4 h-4 mr-2" />
+                        Documentation
+                      </Link>
                     </Button>
-                  </>}
+                  </div>
+                )}
 
                 <Button variant="outline" asChild className="w-full justify-start">
                   <Link to="/profile">Profile Settings</Link>
