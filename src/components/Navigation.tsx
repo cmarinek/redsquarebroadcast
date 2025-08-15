@@ -127,7 +127,7 @@ export const Navigation = () => {
                         <DropdownMenuItem asChild>
                           <Link to="/my-screens" className="flex items-center">
                             <BarChart3 className="w-4 h-4 mr-2" />
-                            My Screens
+                            Dashboard
                           </Link>
                         </DropdownMenuItem>
                         <DropdownMenuItem asChild>
