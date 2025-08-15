@@ -56,7 +56,7 @@ export const Navigation = () => {
                 {/* Screen Owner features */}
                 {(isScreenOwner() || isAdmin()) && <>
                     <Button variant="outline" asChild>
-                      <Link to="/my-screens">My Screens</Link>
+                      <Link to="/my-screens">Dashboard</Link>
                     </Button>
                     <Button variant="outline" asChild>
                       <Link to="/subscription">Subscription</Link>
@@ -233,8 +233,8 @@ export const Navigation = () => {
                   </>}
                 
                 {/* Screen Owner features */}
-                {(isScreenOwner() || isAdmin()) && <Button variant="outline" asChild className="w-full justify-start">
-                    <Link to="/my-screens">My Screens</Link>
+                 {(isScreenOwner() || isAdmin()) && <Button variant="outline" asChild className="w-full justify-start">
+                    <Link to="/my-screens">Dashboard</Link>
                   </Button>}
                 
                 {/* Admin features */}
