@@ -15,7 +15,8 @@ import {
   CheckCircle,
   XCircle,
   Calendar,
-  MapPin
+  MapPin,
+  Download
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -35,6 +36,7 @@ import { AvailabilityManager } from "@/components/screen-owner/AvailabilityManag
 import { useUserRoles } from "@/hooks/useUserRoles";
 import AdminRoleManager from "@/components/admin/AdminRoleManager";
 import ScreenOwnerSetupGuide from "@/components/screen-owner/ScreenOwnerSetupGuide";
+import { ScreenOwnerDownloads } from "@/components/screen-owner/ScreenOwnerDownloads";
 
 interface ScreenData {
   id: string;
@@ -317,9 +319,10 @@ const ScreenOwnerDashboard = () => {
 
         {/* Main Content Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-8">
+          <TabsList className="grid w-full grid-cols-9">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="setup-guide">Setup Guide</TabsTrigger>
+            <TabsTrigger value="downloads">Downloads</TabsTrigger>
             <TabsTrigger value="revenue">Revenue</TabsTrigger>
             <TabsTrigger value="monitoring">Monitoring</TabsTrigger>
             <TabsTrigger value="network">Network</TabsTrigger>
@@ -387,6 +390,10 @@ const ScreenOwnerDashboard = () => {
 
           <TabsContent value="setup-guide">
             <ScreenOwnerSetupGuide />
+          </TabsContent>
+
+          <TabsContent value="downloads">
+            <ScreenOwnerDownloads screenCount={stats.totalScreens} />
           </TabsContent>
 
           <TabsContent value="revenue">
