@@ -196,7 +196,7 @@ export const ScreenOwnerDownloads = ({ screenCount }: ScreenOwnerDownloadsProps)
             <Button 
               variant="outline" 
               size="sm" 
-              onClick={() => window.open(window.location.origin, '_blank')}
+              onClick={() => window.location.href = '/my-screens'}
             >
               <ExternalLink className="h-4 w-4 mr-1" />
               Open
@@ -212,7 +212,7 @@ export const ScreenOwnerDownloads = ({ screenCount }: ScreenOwnerDownloadsProps)
             <Button 
               variant="outline" 
               size="sm"
-              onClick={() => window.open('/screen-registration', '_blank')}
+              onClick={() => window.location.href = '/register-screen'}
             >
               <Settings className="h-4 w-4 mr-1" />
               Setup
@@ -228,7 +228,7 @@ export const ScreenOwnerDownloads = ({ screenCount }: ScreenOwnerDownloadsProps)
             <Button 
               variant="outline" 
               size="sm"
-              onClick={() => window.open('/screen-owner-dashboard?tab=monitoring', '_blank')}
+              onClick={() => window.location.href = '/my-screens?tab=monitoring'}
             >
               <Monitor className="h-4 w-4 mr-1" />
               Monitor
