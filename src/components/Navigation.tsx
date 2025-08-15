@@ -153,14 +153,31 @@ export const Navigation = () => {
                         </Link>
                       </DropdownMenuItem>}
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={() => setShowBroadcasterOnboarding(true)}>
-                      <HelpCircle className="w-4 h-4 mr-2" />
-                      Broadcaster Guide
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setShowScreenOwnerOnboarding(true)}>
-                      <HelpCircle className="w-4 h-4 mr-2" />
-                      Screen Owner Guide
-                    </DropdownMenuItem>
+                    {isScreenOwner() && !isBroadcaster() ? (
+                      <>
+                        <DropdownMenuItem onClick={() => setShowScreenOwnerOnboarding(true)}>
+                          <HelpCircle className="w-4 h-4 mr-2" />
+                          Screen Owner Guide
+                        </DropdownMenuItem>
+                        <DropdownMenuItem asChild>
+                          <Link to="/register-screen" className="flex items-center">
+                            <Upload className="w-4 h-4 mr-2" />
+                            Become a Broadcaster
+                          </Link>
+                        </DropdownMenuItem>
+                      </>
+                    ) : (
+                      <>
+                        <DropdownMenuItem onClick={() => setShowBroadcasterOnboarding(true)}>
+                          <HelpCircle className="w-4 h-4 mr-2" />
+                          Broadcaster Guide
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => setShowScreenOwnerOnboarding(true)}>
+                          <HelpCircle className="w-4 h-4 mr-2" />
+                          Screen Owner Guide
+                        </DropdownMenuItem>
+                      </>
+                    )}
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={signOut}>
                       <LogOut className="w-4 h-4 mr-2" />
