@@ -328,7 +328,7 @@ export const ScreenOwnerDownloads = ({ screenCount }: ScreenOwnerDownloadsProps)
                   <Alert>
                     <IconComponent className="h-4 w-4" />
                     <AlertDescription className="text-sm">
-                      {config.name} is not currently available. Check back later.
+                      {config.name} needs to be uploaded by administrators first. Once available, you'll be able to download it here.
                     </AlertDescription>
                   </Alert>
                 )}
