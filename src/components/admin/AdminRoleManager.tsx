@@ -53,19 +53,37 @@ export function AdminRoleManager() {
   const [pendingChange, setPendingChange] = useState<{ user_id: string } | null>(null);
 
   const { data: profiles, isLoading: profilesLoading, refetch: refetchProfiles } = useQuery({
-    queryKey: ["admin", "profiles"],
+    queryKey: ["admin", "all_users"],
     queryFn: async () => {
-      console.log("[AdminRoleManager] fetching profiles");
-      const { data, error } = await supabase
+      console.log("[AdminRoleManager] fetching all users with profiles");
+      // First get all auth users, then LEFT JOIN with profiles
+      const { data: authUsers, error: authError } = await supabase.auth.admin.listUsers();
+      if (authError) throw authError;
+
+      if (!authUsers.users.length) return [];
+
+      const userIds = authUsers.users.map(u => u.id);
+      const { data: profilesData, error: profilesError } = await supabase
         .from("profiles")
         .select("user_id, display_name, avatar_url, created_at")
-        .order("created_at", { ascending: false });
-      if (error) throw error;
-      return (data ?? []) as ProfileRow[];
+        .in("user_id", userIds);
+      
+      if (profilesError) throw profilesError;
+
+      // Merge auth users with profiles
+      const profilesMap = new Map(profilesData?.map(p => [p.user_id, p]));
+      
+      return authUsers.users.map(user => ({
+        user_id: user.id,
+        display_name: profilesMap.get(user.id)?.display_name || user.email || 'Unknown User',
+        avatar_url: profilesMap.get(user.id)?.avatar_url,
+        created_at: profilesMap.get(user.id)?.created_at || user.created_at,
+        email: user.email
+      })) as (ProfileRow & { email?: string })[];
     },
     meta: {
       onError: (err: any) => {
-        console.error("[AdminRoleManager] profiles fetch error", err);
+        console.error("[AdminRoleManager] users fetch error", err);
       },
     },
   });
@@ -106,8 +124,9 @@ export function AdminRoleManager() {
     if (!t) return profiles;
     return profiles.filter((p) => {
       const dn = p.display_name?.toLowerCase() ?? "";
+      const email = (p as any).email?.toLowerCase() ?? "";
       const rolesText = (rolesByUser[p.user_id] ?? []).join(",").toLowerCase();
-      return dn.includes(t) || p.user_id.toLowerCase().includes(t) || rolesText.includes(t);
+      return dn.includes(t) || p.user_id.toLowerCase().includes(t) || rolesText.includes(t) || email.includes(t);
     });
   }, [profiles, q, rolesByUser]);
 
@@ -182,7 +201,7 @@ export function AdminRoleManager() {
           <div className="relative w-full md:w-72">
             <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search by name, id, or role…"
+              placeholder="Search by name, email, id, or role…"
               value={q}
               onChange={(e) => setQ(e.target.value)}
               className="pl-8"
@@ -233,7 +252,10 @@ export function AdminRoleManager() {
                         </Avatar>
                         <div>
                           <div className="font-medium">{row.display_name ?? "Anonymous"}</div>
-                          <div className="text-xs text-muted-foreground">{row.user_id}</div>
+                          <div className="text-xs text-muted-foreground">
+                            {(row as any).email && <div>{(row as any).email}</div>}
+                            <div>{row.user_id}</div>
+                          </div>
                         </div>
                       </div>
                     </TableCell>
