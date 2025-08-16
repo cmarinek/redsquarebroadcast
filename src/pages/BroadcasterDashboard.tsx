@@ -424,15 +424,17 @@ const BroadcasterDashboard = () => {
             </div>
             
             <Tabs value={filterTab} onValueChange={setFilterTab} className="mt-4">
-              <TabsList className="grid w-full grid-cols-7 lg:w-auto">
-                <TabsTrigger value="overview">Overview</TabsTrigger>
-                <TabsTrigger value="setup-guide">Setup Guide</TabsTrigger>
-                <TabsTrigger value="analytics">Analytics</TabsTrigger>
-                <TabsTrigger value="scheduling">Scheduling</TabsTrigger>
-                <TabsTrigger value="targeting">Targeting</TabsTrigger>
-                <TabsTrigger value="testing">A/B Testing</TabsTrigger>
-                <TabsTrigger value="mobile">Mobile App</TabsTrigger>
-              </TabsList>
+              <div className="w-full overflow-x-auto">
+                <TabsList className="inline-flex h-10 min-w-full w-max items-center justify-start rounded-md bg-muted p-1 text-muted-foreground md:w-full md:justify-center">
+                  <TabsTrigger value="overview" className="whitespace-nowrap">Overview</TabsTrigger>
+                  <TabsTrigger value="setup-guide" className="whitespace-nowrap">Setup Guide</TabsTrigger>
+                  <TabsTrigger value="analytics" className="whitespace-nowrap">Analytics</TabsTrigger>
+                  <TabsTrigger value="scheduling" className="whitespace-nowrap">Scheduling</TabsTrigger>
+                  <TabsTrigger value="targeting" className="whitespace-nowrap">Targeting</TabsTrigger>
+                  <TabsTrigger value="testing" className="whitespace-nowrap">A/B Testing</TabsTrigger>
+                  <TabsTrigger value="mobile" className="whitespace-nowrap">Mobile App</TabsTrigger>
+                </TabsList>
+              </div>
             </Tabs>
           </CardHeader>
 

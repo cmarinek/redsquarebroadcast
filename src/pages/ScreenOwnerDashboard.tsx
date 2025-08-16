@@ -319,18 +319,20 @@ const ScreenOwnerDashboard = () => {
 
         {/* Main Content Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-9">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="setup-guide">Setup Guide</TabsTrigger>
-            <TabsTrigger value="downloads">Downloads</TabsTrigger>
-            <TabsTrigger value="revenue">Revenue</TabsTrigger>
-            <TabsTrigger value="monitoring">Monitoring</TabsTrigger>
-            <TabsTrigger value="network">Network</TabsTrigger>
-            <TabsTrigger value="content">Content</TabsTrigger>
-            <TabsTrigger value="availability">Availability</TabsTrigger>
-            <TabsTrigger value="payouts">Payouts</TabsTrigger>
-            {isAdmin() && <TabsTrigger value="admin">Admin</TabsTrigger>}
-          </TabsList>
+          <div className="w-full overflow-x-auto">
+            <TabsList className="inline-flex h-10 min-w-full w-max items-center justify-start rounded-md bg-muted p-1 text-muted-foreground md:w-full md:justify-center">
+              <TabsTrigger value="overview" className="whitespace-nowrap">Overview</TabsTrigger>
+              <TabsTrigger value="setup-guide" className="whitespace-nowrap">Setup Guide</TabsTrigger>
+              <TabsTrigger value="downloads" className="whitespace-nowrap">Downloads</TabsTrigger>
+              <TabsTrigger value="revenue" className="whitespace-nowrap">Revenue</TabsTrigger>
+              <TabsTrigger value="monitoring" className="whitespace-nowrap">Monitoring</TabsTrigger>
+              <TabsTrigger value="network" className="whitespace-nowrap">Network</TabsTrigger>
+              <TabsTrigger value="content" className="whitespace-nowrap">Content</TabsTrigger>
+              <TabsTrigger value="availability" className="whitespace-nowrap">Availability</TabsTrigger>
+              <TabsTrigger value="payouts" className="whitespace-nowrap">Payouts</TabsTrigger>
+              {isAdmin() && <TabsTrigger value="admin" className="whitespace-nowrap">Admin</TabsTrigger>}
+            </TabsList>
+          </div>
 
           <TabsContent value="overview" className="space-y-6">
             <Card>

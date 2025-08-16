@@ -884,15 +884,15 @@ const AdminDashboard = () => {
 
           <CardContent className="p-0">
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <div className="border-b">
-                <TabsList className="grid w-full grid-cols-7 h-auto p-0 bg-transparent">
-                  <TabsTrigger value="overview" className="py-4">Overview</TabsTrigger>
-                  <TabsTrigger value="users" className="py-4">Users ({stats.totalUsers})</TabsTrigger>
-                  <TabsTrigger value="screens" className="py-4">Screens ({stats.totalScreens})</TabsTrigger>
-                  <TabsTrigger value="bookings" className="py-4">Bookings ({stats.totalBookings})</TabsTrigger>
-                  <TabsTrigger value="system" className="py-4">System Health</TabsTrigger>
-                  <TabsTrigger value="security" className="py-4">Security</TabsTrigger>
-                  <TabsTrigger value="mobile" className="py-4">
+              <div className="border-b overflow-x-auto">
+                <TabsList className="inline-flex h-auto min-w-full w-max items-center justify-start bg-transparent p-0 md:w-full md:justify-center">
+                  <TabsTrigger value="overview" className="py-4 whitespace-nowrap">Overview</TabsTrigger>
+                  <TabsTrigger value="users" className="py-4 whitespace-nowrap">Users ({stats.totalUsers})</TabsTrigger>
+                  <TabsTrigger value="screens" className="py-4 whitespace-nowrap">Screens ({stats.totalScreens})</TabsTrigger>
+                  <TabsTrigger value="bookings" className="py-4 whitespace-nowrap">Bookings ({stats.totalBookings})</TabsTrigger>
+                  <TabsTrigger value="system" className="py-4 whitespace-nowrap">System Health</TabsTrigger>
+                  <TabsTrigger value="security" className="py-4 whitespace-nowrap">Security</TabsTrigger>
+                  <TabsTrigger value="mobile" className="py-4 whitespace-nowrap">
                     <Smartphone className="h-4 w-4 mr-2" />
                     Apps
                   </TabsTrigger>
