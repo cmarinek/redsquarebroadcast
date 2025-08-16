@@ -11,6 +11,7 @@ const Index = lazy(() => import("./pages/Index"));
 const Demo = lazy(() => import("./pages/Demo"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const Auth = lazy(() => import("./pages/Auth"));
+const RoleSelection = lazy(() => import("./pages/RoleSelection"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const ScreenRegistration = lazy(() => import("./pages/ScreenRegistration"));
 const ScreenDiscovery = lazy(() => import("./pages/ScreenDiscovery"));
@@ -54,6 +55,7 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/demo" element={<Demo />} />
             <Route path="/auth" element={<Auth />} />
+            <Route path="/role-selection" element={<RoleSelection />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/admin" element={<AdminDashboard />} />
             <Route path="/admin/overview" element={<AdminProjectOverview />} />

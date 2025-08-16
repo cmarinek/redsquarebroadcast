@@ -126,7 +126,10 @@ const Auth = () => {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/`
+          redirectTo: `${window.location.origin}/role-selection`,
+          queryParams: {
+            role: role || 'broadcaster' // Pass selected role or default
+          }
         }
       });
       if (error) setError(error.message);
@@ -143,7 +146,12 @@ const Auth = () => {
     try {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'apple',
-        options: { redirectTo: `${window.location.origin}/` }
+        options: { 
+          redirectTo: `${window.location.origin}/role-selection`,
+          queryParams: {
+            role: role || 'broadcaster'
+          }
+        }
       });
       if (error) setError(error.message);
     } catch (err) {
@@ -158,7 +166,12 @@ const Auth = () => {
     try {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'facebook',
-        options: { redirectTo: `${window.location.origin}/` }
+        options: { 
+          redirectTo: `${window.location.origin}/role-selection`,
+          queryParams: {
+            role: role || 'broadcaster'
+          }
+        }
       });
       if (error) setError(error.message);
     } catch (err) {
@@ -173,7 +186,12 @@ const Auth = () => {
     try {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'linkedin_oidc',
-        options: { redirectTo: `${window.location.origin}/` }
+        options: { 
+          redirectTo: `${window.location.origin}/role-selection`,
+          queryParams: {
+            role: role || 'broadcaster'
+          }
+        }
       });
       if (error) setError(error.message);
     } catch (err) {
