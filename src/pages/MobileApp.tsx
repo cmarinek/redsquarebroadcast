@@ -17,13 +17,17 @@ import {
   BarChart3,
   DollarSign,
   Users,
-  Clock
+  Clock,
+  Cast,
+  Video
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useAuth } from '@/context/AuthContext';
 import QRCode from 'react-qr-code';
 import SEO from '@/components/SEO';
+import ContentPlayer from '@/components/mobile/ContentPlayer';
+import CastingControls from '@/components/mobile/CastingControls';
 
 interface Screen {
   id: string;
@@ -53,6 +57,9 @@ export default function MobileApp() {
   const [newScreenName, setNewScreenName] = useState('');
   const [isRegistering, setIsRegistering] = useState(false);
   const [earnings, setEarnings] = useState({ today: 0, total: 0 });
+  const [selectedScreenId, setSelectedScreenId] = useState<string>('');
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [showCastingControls, setShowCastingControls] = useState(false);
 
   useEffect(() => {
     document.title = 'Red Square - Screen Owner App';
@@ -191,18 +198,22 @@ export default function MobileApp() {
         </Card>
 
         <Tabs defaultValue="screens" className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="screens" className="text-xs">
               <Monitor className="h-4 w-4 mr-1" />
               Screens
             </TabsTrigger>
+            <TabsTrigger value="player" className="text-xs">
+              <Video className="h-4 w-4 mr-1" />
+              Player
+            </TabsTrigger>
+            <TabsTrigger value="cast" className="text-xs">
+              <Cast className="h-4 w-4 mr-1" />
+              Cast
+            </TabsTrigger>
             <TabsTrigger value="earnings" className="text-xs">
               <DollarSign className="h-4 w-4 mr-1" />
               Earnings
-            </TabsTrigger>
-            <TabsTrigger value="device" className="text-xs">
-              <Tv className="h-4 w-4 mr-1" />
-              Device
             </TabsTrigger>
             <TabsTrigger value="settings" className="text-xs">
               <Settings className="h-4 w-4 mr-1" />
@@ -231,13 +242,22 @@ export default function MobileApp() {
                       <Badge variant={screen.status === 'active' ? 'default' : 'secondary'}>
                         {screen.status}
                       </Badge>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => toggleScreenStatus(screen.id, screen.status)}
-                      >
-                        {screen.status === 'active' ? <PauseCircle className="h-4 w-4" /> : <PlayCircle className="h-4 w-4" />}
-                      </Button>
+                      <div className="flex gap-1">
+                        <Button
+                          size="sm"
+                          variant={selectedScreenId === screen.id ? "default" : "outline"}
+                          onClick={() => setSelectedScreenId(screen.id)}
+                        >
+                          <Video className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => toggleScreenStatus(screen.id, screen.status)}
+                        >
+                          {screen.status === 'active' ? <PauseCircle className="h-4 w-4" /> : <PlayCircle className="h-4 w-4" />}
+                        </Button>
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -259,6 +279,28 @@ export default function MobileApp() {
                 </div>
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="player" className="space-y-4">
+            {selectedScreenId ? (
+              <ContentPlayer
+                screenId={selectedScreenId}
+                isFullscreen={isFullscreen}
+                onFullscreenChange={setIsFullscreen}
+                onCastRequest={() => setShowCastingControls(true)}
+              />
+            ) : (
+              <Card>
+                <CardContent className="p-8 text-center">
+                  <Video className="h-12 w-12 mx-auto text-muted-foreground mb-3" />
+                  <p className="text-muted-foreground">Select a screen to start playing content</p>
+                </CardContent>
+              </Card>
+            )}
+          </TabsContent>
+
+          <TabsContent value="cast" className="space-y-4">
+            <CastingControls />
           </TabsContent>
 
           <TabsContent value="earnings" className="space-y-4">
@@ -289,60 +331,12 @@ export default function MobileApp() {
             </div>
           </TabsContent>
 
-          <TabsContent value="device" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Tv className="h-5 w-5" />
-                  Device Mode
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="text-center space-y-4">
-                  <p className="text-sm text-muted-foreground">
-                    Turn this mobile device into a display screen
-                  </p>
-                  
-                  {!pairingCode ? (
-                    <Button onClick={generatePairingCode} className="w-full">
-                      <QrCode className="h-4 w-4 mr-2" />
-                      Generate Pairing Code
-                    </Button>
-                  ) : (
-                    <div className="space-y-4">
-                      <div className="p-4 bg-card border rounded-lg">
-                        <QRCode 
-                          value={`redsquare://pair?code=${pairingCode}&device=${deviceState.deviceId}`}
-                          size={200}
-                          className="mx-auto"
-                        />
-                      </div>
-                      <div className="p-3 bg-muted rounded-lg">
-                        <p className="text-center font-mono text-lg font-bold">
-                          {pairingCode}
-                        </p>
-                        <p className="text-xs text-muted-foreground text-center mt-1">
-                          Pairing Code
-                        </p>
-                      </div>
-                    </div>
-                  )}
-                  
-                  <div className="flex items-center gap-2 justify-center">
-                    <div className="h-2 w-2 bg-green-500 rounded-full animate-pulse" />
-                    <p className="text-xs text-muted-foreground">Ready to display content</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
           <TabsContent value="settings" className="space-y-4">
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Settings className="h-5 w-5" />
-                  Device Settings
+                  App Settings
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -359,6 +353,34 @@ export default function MobileApp() {
                     <Wifi className="h-3 w-3 mr-1" />
                     Online
                   </Badge>
+                </div>
+
+                <div className="space-y-3 pt-4 border-t">
+                  <p className="text-sm font-medium">Device Mode</p>
+                  <p className="text-xs text-muted-foreground mb-3">
+                    Generate a pairing code to use this device as a screen
+                  </p>
+                  
+                  {!pairingCode ? (
+                    <Button onClick={generatePairingCode} className="w-full">
+                      <QrCode className="h-4 w-4 mr-2" />
+                      Generate Pairing Code
+                    </Button>
+                  ) : (
+                    <div className="space-y-3">
+                      <div className="p-3 bg-card border rounded-lg">
+                        <QRCode 
+                          value={`redsquare://pair?code=${pairingCode}&device=${deviceState.deviceId}`}
+                          size={150}
+                          className="mx-auto"
+                        />
+                      </div>
+                      <div className="p-2 bg-muted rounded text-center">
+                        <p className="font-mono font-bold">{pairingCode}</p>
+                        <p className="text-xs text-muted-foreground">Pairing Code</p>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
