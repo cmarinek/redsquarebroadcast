@@ -1,6 +1,7 @@
 import { createRoot } from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
 import App from './App.tsx'
+import MobileApp from './pages/MobileApp.tsx'
 import './index.css'
 import { Toaster } from "@/components/ui/toaster"
 import { AuthProvider } from '@/context/AuthContext'
@@ -51,12 +52,15 @@ if (lastRef && lastRef !== SUPABASE_PROJECT_REF) {
 initWebVitals(0.1) // 10% sampling rate
 initErrorReporting(0.5) // 50% sampling rate
 
+// Detect if running on mobile device in Capacitor
+const isMobileApp = !!(window as any).Capacitor;
+
 createRoot(document.getElementById("root")!).render(
   <ErrorBoundary>
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
         <AuthProvider>
-          <App />
+          {isMobileApp ? <MobileApp /> : <App />}
           <Toaster />
         </AuthProvider>
       </BrowserRouter>
