@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { 
   Monitor, 
@@ -23,6 +22,15 @@ import { useToast } from "@/hooks/use-toast";
 const ScreenOwnerSetupGuide = () => {
   const { toast } = useToast();
   const [downloadingGuide, setDownloadingGuide] = useState(false);
+  const [activeSection, setActiveSection] = useState("registration");
+  const [activeHardwareTab, setActiveHardwareTab] = useState("dongle");
+
+  const sections = [
+    { id: "registration", label: "Registration", icon: CheckCircle },
+    { id: "hardware", label: "Hardware Setup", icon: HardDrive },
+    { id: "revenue", label: "Revenue & Pricing", icon: DollarSign },
+    { id: "management", label: "Daily Management", icon: Settings }
+  ];
 
   const downloadGuide = async () => {
     setDownloadingGuide(true);
@@ -79,230 +87,263 @@ const ScreenOwnerSetupGuide = () => {
       </Card>
 
       <div id="screen-owner-guide-content">
-        <Tabs defaultValue="registration" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="registration">Registration</TabsTrigger>
-            <TabsTrigger value="hardware">Hardware Setup</TabsTrigger>
-            <TabsTrigger value="revenue">Revenue & Pricing</TabsTrigger>
-            <TabsTrigger value="management">Daily Management</TabsTrigger>
-          </TabsList>
+        <div className="space-y-6">
+          {/* Button Grid Navigation */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            {sections.map((section) => {
+              const Icon = section.icon;
+              return (
+                <Button
+                  key={section.id}
+                  variant={activeSection === section.id ? "default" : "outline"}
+                  className="h-auto p-4 flex flex-col items-center gap-2"
+                  onClick={() => setActiveSection(section.id)}
+                >
+                  <Icon className="w-5 h-5" />
+                  <span className="text-sm text-center leading-tight">{section.label}</span>
+                </Button>
+              );
+            })}
+          </div>
 
-          <TabsContent value="registration" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <CheckCircle className="w-5 h-5 text-green-600" />
-                  Account & Screen Registration
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="border-l-4 border-primary pl-4">
-                  <h4 className="font-semibold mb-2">Create Your Account</h4>
-                  <ul className="space-y-2 text-sm text-muted-foreground">
-                    <li>• Visit the Red Square platform and click "Get Started"</li>
-                    <li>• Choose "Screen Owner" during registration</li>
-                    <li>• Provide email, password, and business information</li>
-                    <li>• Verify your email address</li>
-                    <li>• Complete profile with business details and payment info</li>
-                  </ul>
-                </div>
-                
-                <div className="border-l-4 border-blue-500 pl-4">
-                  <h4 className="font-semibold mb-2">Register Your Screen</h4>
-                  <ul className="space-y-2 text-sm text-muted-foreground">
-                    <li>• Navigate to "Register New Screen" in your dashboard</li>
-                    <li>• Enter screen details: name, location, dimensions</li>
-                    <li>• Set your pricing (per 10-second blocks)</li>
-                    <li>• Configure availability hours (e.g., 9 AM - 9 PM)</li>
-                    <li>• Upload photos of your screen location</li>
-                    <li>• Set geographic coordinates for map discovery</li>
-                  </ul>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="hardware" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <HardDrive className="w-5 h-5 text-blue-600" />
-                  Hardware Installation Options
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <Tabs defaultValue="dongle" className="space-y-4">
-                  <TabsList>
-                    <TabsTrigger value="dongle">Red Square Dongle</TabsTrigger>
-                    <TabsTrigger value="smart-tv">Smart TV App</TabsTrigger>
-                  </TabsList>
-
-                  <TabsContent value="dongle">
-                    <div className="space-y-4">
-                      <Badge variant="default" className="mb-2">Recommended for Most Setups</Badge>
-                      <div className="grid md:grid-cols-2 gap-4">
-                        <div>
-                          <h4 className="font-semibold mb-2">Hardware Requirements:</h4>
-                          <ul className="space-y-1 text-sm text-muted-foreground">
-                            <li>• Any modern TV/display with HDMI input</li>
-                            <li>• Stable internet connection (WiFi or Ethernet)</li>
-                            <li>• Power outlet near the display</li>
-                            <li>• Red Square dongle device</li>
-                          </ul>
-                        </div>
-                        <div>
-                          <h4 className="font-semibold mb-2">Installation Steps:</h4>
-                          <ul className="space-y-1 text-sm text-muted-foreground">
-                            <li>1. Connect dongle to TV via HDMI</li>
-                            <li>2. Connect power cable to dongle</li>
-                            <li>3. Turn on TV and switch to HDMI input</li>
-                            <li>4. Follow on-screen setup wizard</li>
-                            <li>5. Connect to WiFi network</li>
-                            <li>6. Enter your screen's pairing code</li>
-                          </ul>
-                        </div>
-                      </div>
-                      
-                      <div className="bg-blue-50 dark:bg-blue-950/20 p-4 rounded-lg">
-                        <h4 className="font-semibold mb-2 flex items-center gap-2">
-                          <QrCode className="w-4 h-4" />
-                          Device Pairing Process
-                        </h4>
-                        <p className="text-sm text-muted-foreground mb-2">
-                          Your screen will display a unique QR code and pairing code:
-                        </p>
-                        <ul className="space-y-1 text-sm text-muted-foreground">
-                          <li>• Scan QR code with Red Square mobile app</li>
-                          <li>• Enter 6-digit pairing code in your web dashboard</li>
-                          <li>• Device will automatically sync and show "Ready" status</li>
-                        </ul>
-                      </div>
-                    </div>
-                  </TabsContent>
-
-                  <TabsContent value="smart-tv">
-                    <div className="space-y-4">
-                      <Badge variant="secondary">For Compatible Smart TVs</Badge>
-                      <div>
-                        <h4 className="font-semibold mb-2">Compatible Devices:</h4>
-                        <ul className="space-y-1 text-sm text-muted-foreground mb-4">
-                          <li>• Samsung Tizen OS (2018+)</li>
-                          <li>• LG webOS (3.0+)</li>
-                          <li>• Android TV / Google TV</li>
-                          <li>• Amazon Fire TV</li>
-                        </ul>
-                        <h4 className="font-semibold mb-2">Installation:</h4>
-                        <ul className="space-y-1 text-sm text-muted-foreground">
-                          <li>1. Open your TV's app store</li>
-                          <li>2. Search for "Red Square Player"</li>
-                          <li>3. Install and launch the app</li>
-                          <li>4. Follow setup wizard to pair with your account</li>
-                        </ul>
-                      </div>
-                    </div>
-                  </TabsContent>
-                </Tabs>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="revenue" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <DollarSign className="w-5 h-5 text-green-600" />
-                  Revenue Optimization & Pricing
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div className="border-l-4 border-green-500 pl-4">
-                    <h4 className="font-semibold mb-2">Pricing Strategy</h4>
-                    <ul className="space-y-1 text-sm text-muted-foreground">
-                      <li>• Set competitive rates for your location</li>
-                      <li>• Consider peak hours vs off-peak pricing</li>
-                      <li>• Monitor competitor pricing in your area</li>
-                      <li>• Adjust based on demand patterns</li>
-                      <li>• Offer package deals for bulk bookings</li>
+          {/* Content Sections */}
+          {activeSection === "registration" && (
+            <div className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <CheckCircle className="w-5 h-5 text-green-600" />
+                    Account & Screen Registration
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="border-l-4 border-primary pl-4">
+                    <h4 className="font-semibold mb-2">Create Your Account</h4>
+                    <ul className="space-y-2 text-sm text-muted-foreground">
+                      <li>• Visit the Red Square platform and click "Get Started"</li>
+                      <li>• Choose "Screen Owner" during registration</li>
+                      <li>• Provide email, password, and business information</li>
+                      <li>• Verify your email address</li>
+                      <li>• Complete profile with business details and payment info</li>
                     </ul>
                   </div>
+                  
                   <div className="border-l-4 border-blue-500 pl-4">
-                    <h4 className="font-semibold mb-2">Revenue Optimization</h4>
-                    <ul className="space-y-1 text-sm text-muted-foreground">
-                      <li>• Platform takes 15-30% commission</li>
-                      <li>• You keep 70-85% of booking revenue</li>
-                      <li>• Payments processed automatically</li>
-                      <li>• Weekly payouts to your account</li>
-                      <li>• Real-time earnings tracking</li>
+                    <h4 className="font-semibold mb-2">Register Your Screen</h4>
+                    <ul className="space-y-2 text-sm text-muted-foreground">
+                      <li>• Navigate to "Register New Screen" in your dashboard</li>
+                      <li>• Enter screen details: name, location, dimensions</li>
+                      <li>• Set your pricing (per 10-second blocks)</li>
+                      <li>• Configure availability hours (e.g., 9 AM - 9 PM)</li>
+                      <li>• Upload photos of your screen location</li>
+                      <li>• Set geographic coordinates for map discovery</li>
                     </ul>
                   </div>
-                </div>
-                
-                <div className="bg-green-50 dark:bg-green-950/20 p-4 rounded-lg">
-                  <h4 className="font-semibold mb-2">Maximizing Earnings</h4>
-                  <ul className="space-y-1 text-sm text-muted-foreground">
-                    <li>• Keep your screen online during peak hours</li>
-                    <li>• Respond quickly to technical issues</li>
-                    <li>• Maintain good screen visibility and quality</li>
-                    <li>• Update availability calendar regularly</li>
-                  </ul>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
+                </CardContent>
+              </Card>
+            </div>
+          )}
 
-          <TabsContent value="management" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Settings className="w-5 h-5 text-purple-600" />
-                  Daily Management Tasks
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div className="border-l-4 border-purple-500 pl-4">
+          {activeSection === "hardware" && (
+            <div className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <HardDrive className="w-5 h-5 text-blue-600" />
+                    Hardware Installation Options
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {/* Hardware Sub-navigation */}
+                    <div className="flex gap-2">
+                      <Button
+                        variant={activeHardwareTab === "dongle" ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setActiveHardwareTab("dongle")}
+                      >
+                        Red Square Dongle
+                      </Button>
+                      <Button
+                        variant={activeHardwareTab === "smart-tv" ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setActiveHardwareTab("smart-tv")}
+                      >
+                        Smart TV App
+                      </Button>
+                    </div>
+
+                    {activeHardwareTab === "dongle" && (
+                      <div className="space-y-4">
+                        <Badge variant="default" className="mb-2">Recommended for Most Setups</Badge>
+                        <div className="grid md:grid-cols-2 gap-4">
+                          <div>
+                            <h4 className="font-semibold mb-2">Hardware Requirements:</h4>
+                            <ul className="space-y-1 text-sm text-muted-foreground">
+                              <li>• Any modern TV/display with HDMI input</li>
+                              <li>• Stable internet connection (WiFi or Ethernet)</li>
+                              <li>• Power outlet near the display</li>
+                              <li>• Red Square dongle device</li>
+                            </ul>
+                          </div>
+                          <div>
+                            <h4 className="font-semibold mb-2">Installation Steps:</h4>
+                            <ul className="space-y-1 text-sm text-muted-foreground">
+                              <li>1. Connect dongle to TV via HDMI</li>
+                              <li>2. Connect power cable to dongle</li>
+                              <li>3. Turn on TV and switch to HDMI input</li>
+                              <li>4. Follow on-screen setup wizard</li>
+                              <li>5. Connect to WiFi network</li>
+                              <li>6. Enter your screen's pairing code</li>
+                            </ul>
+                          </div>
+                        </div>
+                        
+                        <div className="bg-blue-50 dark:bg-blue-950/20 p-4 rounded-lg">
+                          <h4 className="font-semibold mb-2 flex items-center gap-2">
+                            <QrCode className="w-4 h-4" />
+                            Device Pairing Process
+                          </h4>
+                          <p className="text-sm text-muted-foreground mb-2">
+                            Your screen will display a unique QR code and pairing code:
+                          </p>
+                          <ul className="space-y-1 text-sm text-muted-foreground">
+                            <li>• Scan QR code with Red Square mobile app</li>
+                            <li>• Enter 6-digit pairing code in your web dashboard</li>
+                            <li>• Device will automatically sync and show "Ready" status</li>
+                          </ul>
+                        </div>
+                      </div>
+                    )}
+
+                    {activeHardwareTab === "smart-tv" && (
+                      <div className="space-y-4">
+                        <Badge variant="secondary">For Compatible Smart TVs</Badge>
+                        <div>
+                          <h4 className="font-semibold mb-2">Compatible Devices:</h4>
+                          <ul className="space-y-1 text-sm text-muted-foreground mb-4">
+                            <li>• Samsung Tizen OS (2018+)</li>
+                            <li>• LG webOS (3.0+)</li>
+                            <li>• Android TV / Google TV</li>
+                            <li>• Amazon Fire TV</li>
+                          </ul>
+                          <h4 className="font-semibold mb-2">Installation:</h4>
+                          <ul className="space-y-1 text-sm text-muted-foreground">
+                            <li>1. Open your TV's app store</li>
+                            <li>2. Search for "Red Square Player"</li>
+                            <li>3. Install and launch the app</li>
+                            <li>4. Follow setup wizard to pair with your account</li>
+                          </ul>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+
+          {activeSection === "revenue" && (
+            <div className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <DollarSign className="w-5 h-5 text-green-600" />
+                    Revenue Optimization & Pricing
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div className="border-l-4 border-green-500 pl-4">
+                      <h4 className="font-semibold mb-2">Pricing Strategy</h4>
+                      <ul className="space-y-1 text-sm text-muted-foreground">
+                        <li>• Set competitive rates for your location</li>
+                        <li>• Consider peak hours vs off-peak pricing</li>
+                        <li>• Monitor competitor pricing in your area</li>
+                        <li>• Adjust based on demand patterns</li>
+                        <li>• Offer package deals for bulk bookings</li>
+                      </ul>
+                    </div>
+                    <div className="border-l-4 border-blue-500 pl-4">
+                      <h4 className="font-semibold mb-2">Revenue Optimization</h4>
+                      <ul className="space-y-1 text-sm text-muted-foreground">
+                        <li>• Platform takes 15-30% commission</li>
+                        <li>• You keep 70-85% of booking revenue</li>
+                        <li>• Payments processed automatically</li>
+                        <li>• Weekly payouts to your account</li>
+                        <li>• Real-time earnings tracking</li>
+                      </ul>
+                    </div>
+                  </div>
+                  
+                  <div className="bg-green-50 dark:bg-green-950/20 p-4 rounded-lg">
+                    <h4 className="font-semibold mb-2">Maximizing Earnings</h4>
+                    <ul className="space-y-1 text-sm text-muted-foreground">
+                      <li>• Keep your screen online during peak hours</li>
+                      <li>• Respond quickly to technical issues</li>
+                      <li>• Maintain good screen visibility and quality</li>
+                      <li>• Update availability calendar regularly</li>
+                    </ul>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+
+          {activeSection === "management" && (
+            <div className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Settings className="w-5 h-5 text-purple-600" />
+                    Daily Management Tasks
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div className="border-l-4 border-purple-500 pl-4">
+                      <h4 className="font-semibold mb-2 flex items-center gap-2">
+                        <Eye className="w-4 h-4" />
+                        Daily Monitoring
+                      </h4>
+                      <ul className="space-y-1 text-sm text-muted-foreground">
+                        <li>• Check device status in dashboard</li>
+                        <li>• Monitor screen uptime and connectivity</li>
+                        <li>• Review content playback logs</li>
+                        <li>• Check for system alerts or errors</li>
+                      </ul>
+                    </div>
+                    <div className="border-l-4 border-orange-500 pl-4">
+                      <h4 className="font-semibold mb-2 flex items-center gap-2">
+                        <Calendar className="w-4 h-4" />
+                        Availability Management
+                      </h4>
+                      <ul className="space-y-1 text-sm text-muted-foreground">
+                        <li>• Update your screen's available hours</li>
+                        <li>• Block out maintenance times</li>
+                        <li>• Set special holiday schedules</li>
+                        <li>• Manage content approval settings</li>
+                      </ul>
+                    </div>
+                  </div>
+
+                  <div className="bg-amber-50 dark:bg-amber-950/20 p-4 rounded-lg">
                     <h4 className="font-semibold mb-2 flex items-center gap-2">
-                      <Eye className="w-4 h-4" />
-                      Daily Monitoring
+                      <BarChart3 className="w-4 h-4" />
+                      Performance Tracking
                     </h4>
                     <ul className="space-y-1 text-sm text-muted-foreground">
-                      <li>• Check device status in dashboard</li>
-                      <li>• Monitor screen uptime and connectivity</li>
-                      <li>• Review content playback logs</li>
-                      <li>• Check for system alerts or errors</li>
+                      <li>• Review weekly revenue reports</li>
+                      <li>• Monitor occupancy rates and booking patterns</li>
+                      <li>• Track viewer engagement metrics</li>
+                      <li>• Analyze peak performance times</li>
                     </ul>
                   </div>
-                  <div className="border-l-4 border-orange-500 pl-4">
-                    <h4 className="font-semibold mb-2 flex items-center gap-2">
-                      <Calendar className="w-4 h-4" />
-                      Availability Management
-                    </h4>
-                    <ul className="space-y-1 text-sm text-muted-foreground">
-                      <li>• Update your screen's available hours</li>
-                      <li>• Block out maintenance times</li>
-                      <li>• Set special holiday schedules</li>
-                      <li>• Manage content approval settings</li>
-                    </ul>
-                  </div>
-                </div>
-
-                <div className="bg-amber-50 dark:bg-amber-950/20 p-4 rounded-lg">
-                  <h4 className="font-semibold mb-2 flex items-center gap-2">
-                    <BarChart3 className="w-4 h-4" />
-                    Performance Tracking
-                  </h4>
-                  <ul className="space-y-1 text-sm text-muted-foreground">
-                    <li>• Review weekly revenue reports</li>
-                    <li>• Monitor occupancy rates and booking patterns</li>
-                    <li>• Track viewer engagement metrics</li>
-                    <li>• Analyze peak performance times</li>
-                  </ul>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
