@@ -277,6 +277,7 @@ export type Database = {
           created_at: string
           error_message: string | null
           id: string
+          last_check: string | null
           metadata: Json | null
           response_time_ms: number | null
           service_name: string
@@ -286,6 +287,7 @@ export type Database = {
           created_at?: string
           error_message?: string | null
           id?: string
+          last_check?: string | null
           metadata?: Json | null
           response_time_ms?: number | null
           service_name: string
@@ -295,6 +297,7 @@ export type Database = {
           created_at?: string
           error_message?: string | null
           id?: string
+          last_check?: string | null
           metadata?: Json | null
           response_time_ms?: number | null
           service_name?: string

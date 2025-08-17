@@ -423,11 +423,19 @@ const AdminDashboard = () => {
       setBookings(processedBookings);
     } catch (error) {
       console.error("Error fetching admin data:", error);
-      // Graceful fallback: show empty dashboard and suspend further fetches until reload
-      fetchSuspendedRef.current = true;
+      
+      // Show user-friendly error instead of just logging
       setDataUnavailable(
-        "Admin data sources are not initialized yet (e.g., analytics function or tables). Showing placeholders and stopping further fetches until you reload."
+        "Unable to load admin dashboard data. Please refresh the page or contact support if the issue persists."
       );
+      
+      toast({
+        title: "Loading Error",
+        description: "There was an issue loading the admin dashboard. Please try refreshing the page.",
+        variant: "destructive",
+      });
+      
+      fetchSuspendedRef.current = true;
     } finally {
       setLoading(false);
     }
