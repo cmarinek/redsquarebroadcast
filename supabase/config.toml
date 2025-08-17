@@ -1,5 +1,11 @@
 project_id = "hqeyyutbuxhyildsasqq"
 
+[functions.public-maintenance-status]
+verify_jwt = false
+
+[functions.public-app-releases]
+verify_jwt = false
+
 [functions.create-payment]
 verify_jwt = true
 

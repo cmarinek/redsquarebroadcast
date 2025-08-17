@@ -1609,42 +1609,6 @@ export type Database = {
           },
         ]
       }
-      public_app_releases: {
-        Row: {
-          bundle_id: string | null
-          created_at: string | null
-          file_size: number | null
-          id: string | null
-          minimum_os_version: string | null
-          platform: string | null
-          release_notes: string | null
-          version_code: number | null
-          version_name: string | null
-        }
-        Insert: {
-          bundle_id?: string | null
-          created_at?: string | null
-          file_size?: number | null
-          id?: string | null
-          minimum_os_version?: string | null
-          platform?: string | null
-          release_notes?: string | null
-          version_code?: number | null
-          version_name?: string | null
-        }
-        Update: {
-          bundle_id?: string | null
-          created_at?: string | null
-          file_size?: number | null
-          id?: string | null
-          minimum_os_version?: string | null
-          platform?: string | null
-          release_notes?: string | null
-          version_code?: number | null
-          version_name?: string | null
-        }
-        Relationships: []
-      }
     }
     Functions: {
       archive_old_bookings: {

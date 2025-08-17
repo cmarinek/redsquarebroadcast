@@ -89,11 +89,8 @@ export const ScreenOwnerDownloads = ({ screenCount }: ScreenOwnerDownloadsProps)
 
   const fetchLatestReleases = async () => {
     try {
-      const { data, error } = await supabase
-        .from('app_releases')
-        .select('*')
-        .eq('is_active', true)
-        .order('created_at', { ascending: false });
+      // Use the new secure public endpoint instead of direct database access
+      const { data, error } = await supabase.functions.invoke('public-app-releases');
 
       if (error) throw error;
 
@@ -103,7 +100,7 @@ export const ScreenOwnerDownloads = ({ screenCount }: ScreenOwnerDownloadsProps)
         tv: null
       };
 
-      (data || []).forEach((release: AppRelease) => {
+      (data?.releases || []).forEach((release: AppRelease) => {
         if (!latestByPlatform[release.platform]) {
           latestByPlatform[release.platform] = release;
         }
