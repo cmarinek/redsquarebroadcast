@@ -22,7 +22,7 @@ serve(async (req) => {
 
     const supabase = createClient(supabaseUrl, serviceRoleKey);
 
-    // Only expose essential public information - no internal metadata
+    // Only expose essential public information - including file_path for downloads
     const { data, error } = await supabase
       .from('app_releases')
       .select(`
@@ -34,6 +34,8 @@ serve(async (req) => {
         file_size,
         minimum_os_version,
         bundle_id,
+        file_path,
+        file_extension,
         created_at
       `)
       .eq('is_active', true)
