@@ -862,7 +862,7 @@ export type Database = {
           device_id: string
           id: string
           last_seen: string | null
-          owner_user_id: string | null
+          owner_user_id: string
           provisioning_token: string
           screen_id: string | null
           screen_name: string | null
@@ -874,7 +874,7 @@ export type Database = {
           device_id: string
           id?: string
           last_seen?: string | null
-          owner_user_id?: string | null
+          owner_user_id: string
           provisioning_token: string
           screen_id?: string | null
           screen_name?: string | null
@@ -886,7 +886,7 @@ export type Database = {
           device_id?: string
           id?: string
           last_seen?: string | null
-          owner_user_id?: string | null
+          owner_user_id?: string
           provisioning_token?: string
           screen_id?: string | null
           screen_name?: string | null
@@ -1638,6 +1638,10 @@ export type Database = {
               p_severity: string
               p_title: string
             }
+        Returns: string
+      }
+      generate_device_provisioning_token: {
+        Args: Record<PropertyKey, never>
         Returns: string
       }
       get_platform_analytics: {
