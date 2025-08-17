@@ -182,7 +182,7 @@ export const AppManager = () => {
         .from(config.bucket)
         .upload(filePath, selectedFile, {
           cacheControl: '3600',
-          upsert: false
+          upsert: true
         });
 
       if (uploadError) throw uploadError;
