@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Play, Monitor, Smartphone, Upload, CheckCircle } from "lucide-react";
-import heroImage from "@/assets/hero-screen.jpg";
+import heroImage from "/lovable-uploads/901ca0b5-a900-440e-b16d-bdd30112cc94.png";
 import { Link } from "react-router-dom";
 export const Hero = () => {
   return <section className="relative min-h-screen flex items-center justify-center overflow-hidden">

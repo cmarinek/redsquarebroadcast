@@ -45,7 +45,7 @@ const mockContentItems: ContentItem[] = [
   },
   {
     id: '2',
-    fileName: 'brand_logo.png',
+    fileName: 'red_square_logo.png',
     uploader: 'Jane Smith',
     uploadedAt: '2024-01-15T09:15:00Z',
     status: 'approved',

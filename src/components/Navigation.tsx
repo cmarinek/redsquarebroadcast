@@ -34,9 +34,11 @@ export const Navigation = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16 items-center">
           <div className="flex items-center space-x-2">
-            <div className="w-8 h-8 bg-gradient-primary rounded-lg flex items-center justify-center">
-              <div className="w-4 h-4 bg-foreground rounded-sm"></div>
-            </div>
+            <img 
+              src="/lovable-uploads/901ca0b5-a900-440e-b16d-bdd30112cc94.png" 
+              alt="Red Square Logo" 
+              className="w-8 h-8 rounded-lg"
+            />
             <span className="text-xl font-bold text-foreground">RedSquare</span>
           </div>
 

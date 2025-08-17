@@ -6,8 +6,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CheckCircle2, Monitor, Upload, Calendar, CreditCard, BarChart3, ShieldCheck, Users, Rocket, DollarSign, Settings, Activity, MapPin, Clock, Gauge, Layers, TrendingUp } from "lucide-react";
-import heroImg from "@/assets/hero-redsquare.jpg";
-import screenImg from "@/assets/hero-screen.jpg";
+import heroImg from "/lovable-uploads/901ca0b5-a900-440e-b16d-bdd30112cc94.png";
+import screenImg from "/lovable-uploads/901ca0b5-a900-440e-b16d-bdd30112cc94.png";
 import { Link } from "react-router-dom";
 
 const broadcasterFeatures = [
@@ -51,7 +51,7 @@ const Learn = () => {
     "@type": "Organization",
     name: "Red Square",
     url: typeof window !== "undefined" ? window.location.origin : "",
-    logo: typeof window !== "undefined" ? `${window.location.origin}/favicon.ico` : "",
+    logo: typeof window !== "undefined" ? `${window.location.origin}/lovable-uploads/901ca0b5-a900-440e-b16d-bdd30112cc94.png` : "",
   };
 
   const appJsonLd = {

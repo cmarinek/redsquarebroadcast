@@ -1,6 +1,6 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { ArrowRight, Upload, Monitor, DollarSign } from "lucide-react";
-import dongleImage from "@/assets/dongle-device.jpg";
+import dongleImage from "/lovable-uploads/901ca0b5-a900-440e-b16d-bdd30112cc94.png";
 
 const steps = [
   {
