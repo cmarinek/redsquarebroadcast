@@ -1,7 +1,7 @@
 import { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'app.lovable.5108753008cd41c59bc4bc6e5c990b78',
+  appId: 'com.redsquare.broadcast',
   appName: 'redsquarebroadcast',
   webDir: 'dist',
   plugins: {
