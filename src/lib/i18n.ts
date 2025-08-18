@@ -135,6 +135,8 @@ i18n
     resources,
     lng: 'en',
     fallbackLng: 'en',
+    defaultNS: 'translation',
+    ns: ['translation'],
     debug: false,
     interpolation: {
       escapeValue: false,
