@@ -24,24 +24,24 @@ export const Footer = () => {
 
           {/* Platform */}
           <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-foreground">{t('translation.footer.platform')}</h3>
+            <h3 className="text-lg font-semibold text-foreground">{t('footer.platform')}</h3>
             <ul className="space-y-2 text-muted-foreground">
-              <li><Link to="/my-campaigns" className="hover:text-foreground transition-colors">{t('translation.footer.forAdvertisers')}</Link></li>
-              <li><Link to="/my-screens" className="hover:text-foreground transition-colors">{t('translation.footer.forScreenOwners')}</Link></li>
-              <li><Link to="/device-setup" className="hover:text-foreground transition-colors">{t('translation.footer.hardwareSolutions')}</Link></li>
-              <li><Link to="/how-it-works" className="hover:text-foreground transition-colors">{t('translation.footer.apiDocumentation')}</Link></li>
+              <li><Link to="/my-campaigns" className="hover:text-foreground transition-colors">{t('footer.forAdvertisers')}</Link></li>
+              <li><Link to="/my-screens" className="hover:text-foreground transition-colors">{t('footer.forScreenOwners')}</Link></li>
+              <li><Link to="/device-setup" className="hover:text-foreground transition-colors">{t('footer.hardwareSolutions')}</Link></li>
+              <li><Link to="/how-it-works" className="hover:text-foreground transition-colors">{t('footer.apiDocumentation')}</Link></li>
             </ul>
           </div>
 
           {/* Support */}
           <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-foreground">{t('translation.footer.support')}</h3>
+            <h3 className="text-lg font-semibold text-foreground">{t('footer.support')}</h3>
             <ul className="space-y-2 text-muted-foreground">
-              <li><Link to="/how-it-works" className="hover:text-foreground transition-colors">{t('translation.footer.helpCenter')}</Link></li>
-              <li><Link to="/how-it-works" className="hover:text-foreground transition-colors">{t('translation.footer.gettingStarted')}</Link></li>
-              <li><Link to="/production-plan" className="hover:text-foreground transition-colors">{t('translation.footer.productionPlan')}</Link></li>
-              <li><a href="mailto:support@redsquare.app" className="hover:text-foreground transition-colors">{t('translation.footer.technicalSupport')}</a></li>
-              <li><a href="mailto:support@redsquare.app" className="hover:text-foreground transition-colors">{t('translation.footer.contactSales')}</a></li>
+              <li><Link to="/how-it-works" className="hover:text-foreground transition-colors">{t('footer.helpCenter')}</Link></li>
+              <li><Link to="/how-it-works" className="hover:text-foreground transition-colors">{t('footer.gettingStarted')}</Link></li>
+              <li><Link to="/production-plan" className="hover:text-foreground transition-colors">{t('footer.productionPlan')}</Link></li>
+              <li><a href="mailto:support@redsquare.app" className="hover:text-foreground transition-colors">{t('footer.technicalSupport')}</a></li>
+              <li><a href="mailto:support@redsquare.app" className="hover:text-foreground transition-colors">{t('footer.contactSales')}</a></li>
             </ul>
           </div>
 
@@ -67,16 +67,16 @@ export const Footer = () => {
 
         <div className="mt-12 pt-8 border-t border-border">
           <div className="flex flex-col md:flex-row justify-between items-center">
-            <p className="text-muted-foreground">{t('translation.footer.allRightsReserved')}</p>
+            <p className="text-muted-foreground">{t('footer.allRightsReserved')}</p>
             <div className="flex space-x-6 mt-4 md:mt-0">
               <Link to="/privacy" className="text-muted-foreground hover:text-foreground transition-colors">
-                {t('translation.footer.privacyPolicy')}
+                {t('footer.privacyPolicy')}
               </Link>
               <Link to="/terms" className="text-muted-foreground hover:text-foreground transition-colors">
-                {t('translation.footer.termsOfService')}
+                {t('footer.termsOfService')}
               </Link>
               <Link to="/cookies" className="text-muted-foreground hover:text-foreground transition-colors">
-                {t('translation.footer.cookiePolicy')}
+                {t('footer.cookiePolicy')}
               </Link>
             </div>
           </div>
