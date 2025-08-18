@@ -1,43 +1,44 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { ArrowRight, Upload, Monitor, DollarSign } from "lucide-react";
 import dongleImage from "@/assets/dongle-device.jpg";
-
-const steps = [
-  {
-    number: "01",
-    icon: Upload,
-    title: "Upload Your Content",
-    description: "Create and upload your media content through our web app, mobile app, or desktop application."
-  },
-  {
-    number: "02",
-    icon: Monitor,
-    title: "Choose Your Screens",
-    description: "Select from thousands of available screens in prime locations or connect your own displays."
-  },
-  {
-    number: "03",
-    icon: DollarSign,
-    title: "Schedule & Pay",
-    description: "Set your broadcast schedule, make payment, and watch your content go live on selected screens."
-  }
-];
+import { useTranslation } from 'react-i18next';
 
 export const HowItWorks = () => {
+  const { t } = useTranslation();
+  
+  const steps = [
+    {
+      number: "01",
+      icon: Upload,
+      title: t('components.howItWorks.step1Title'),
+      description: t('components.howItWorks.step1Desc')
+    },
+    {
+      number: "02",
+      icon: Monitor,
+      title: t('components.howItWorks.step2Title'),
+      description: t('components.howItWorks.step2Desc')
+    },
+    {
+      number: "03",
+      icon: DollarSign,
+      title: t('components.howItWorks.step3Title'),
+      description: t('components.howItWorks.step3Desc')
+    }
+  ];
   return (
     <section id="how-it-works" className="py-24">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
           <h2 className="text-4xl lg:text-5xl font-bold mb-4">
-            <span className="text-foreground">How Red Square</span>
+            <span className="text-foreground">{t('components.howItWorks.title')}</span>
             <br />
             <span className="bg-gradient-primary bg-clip-text text-transparent">
-              Works
+              {t('components.howItWorks.subtitle')}
             </span>
           </h2>
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-            Get your content broadcasting in just three simple steps. 
-            Our platform makes digital advertising accessible to everyone.
+            {t('components.howItWorks.description')}
           </p>
         </div>
 
@@ -74,32 +75,31 @@ export const HowItWorks = () => {
         <div className="grid lg:grid-cols-2 gap-12 items-center">
           <div>
             <h3 className="text-3xl font-bold mb-6">
-              <span className="text-foreground">Professional</span>
+              <span className="text-foreground">{t('components.howItWorks.professionalTitle')}</span>
               <br />
               <span className="bg-gradient-primary bg-clip-text text-transparent">
-                Hardware Solution
+                {t('components.howItWorks.hardwareSolutionTitle')}
               </span>
             </h3>
             <p className="text-lg text-muted-foreground mb-6">
-              Our Red Square dongle transforms any display into a smart, connected screen. 
-              Easy plug-and-play setup with enterprise-grade reliability.
+              {t('components.howItWorks.hardwareDescription')}
             </p>
             <ul className="space-y-3 text-muted-foreground">
               <li className="flex items-center">
                 <div className="w-2 h-2 bg-primary rounded-full mr-3"></div>
-                4K video output support
+                {t('components.howItWorks.feature4kSupport')}
               </li>
               <li className="flex items-center">
                 <div className="w-2 h-2 bg-primary rounded-full mr-3"></div>
-                WiFi and Ethernet connectivity
+                {t('components.howItWorks.featureConnectivity')}
               </li>
               <li className="flex items-center">
                 <div className="w-2 h-2 bg-primary rounded-full mr-3"></div>
-                Remote management capabilities
+                {t('components.howItWorks.featureRemoteManagement')}
               </li>
               <li className="flex items-center">
                 <div className="w-2 h-2 bg-primary rounded-full mr-3"></div>
-                24/7 monitoring and updates
+                {t('components.howItWorks.featureMonitoring')}
               </li>
             </ul>
           </div>

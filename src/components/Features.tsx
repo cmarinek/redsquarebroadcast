@@ -1,60 +1,61 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Monitor, Upload, Calendar, DollarSign, Shield, Zap } from "lucide-react";
-
-const features = [
-  {
-    icon: Monitor,
-    title: "Smart Screen Network",
-    description: "Connect to thousands of digital screens in prime locations worldwide.",
-    gradient: "from-red-primary to-red-secondary"
-  },
-  {
-    icon: Upload,
-    title: "Easy Content Upload",
-    description: "Upload videos, images, and interactive content with our intuitive platform.",
-    gradient: "from-red-secondary to-red-glow"
-  },
-  {
-    icon: Calendar,
-    title: "Advanced Scheduling",
-    description: "Schedule your broadcasts with precision timing and automated campaigns.",
-    gradient: "from-red-glow to-red-primary"
-  },
-  {
-    icon: DollarSign,
-    title: "Flexible Pricing",
-    description: "Pay per broadcast or subscribe for unlimited access to our network.",
-    gradient: "from-red-primary to-red-secondary"
-  },
-  {
-    icon: Shield,
-    title: "Secure & Reliable",
-    description: "Enterprise-grade security with 99.9% uptime guarantee.",
-    gradient: "from-red-secondary to-red-glow"
-  },
-  {
-    icon: Zap,
-    title: "Real-time Analytics",
-    description: "Track performance, views, and engagement in real-time.",
-    gradient: "from-red-glow to-red-primary"
-  }
-];
+import { useTranslation } from 'react-i18next';
 
 export const Features = () => {
+  const { t } = useTranslation();
+  
+  const features = [
+    {
+      icon: Monitor,
+      title: t('components.features.smartScreenNetwork'),
+      description: t('components.features.smartScreenNetworkDesc'),
+      gradient: "from-red-primary to-red-secondary"
+    },
+    {
+      icon: Upload,
+      title: t('components.features.easyContentUpload'),
+      description: t('components.features.easyContentUploadDesc'),
+      gradient: "from-red-secondary to-red-glow"
+    },
+    {
+      icon: Calendar,
+      title: t('components.features.advancedScheduling'),
+      description: t('components.features.advancedSchedulingDesc'),
+      gradient: "from-red-glow to-red-primary"
+    },
+    {
+      icon: DollarSign,
+      title: t('components.features.flexiblePricing'),
+      description: t('components.features.flexiblePricingDesc'),
+      gradient: "from-red-primary to-red-secondary"
+    },
+    {
+      icon: Shield,
+      title: t('components.features.secureReliable'),
+      description: t('components.features.secureReliableDesc'),
+      gradient: "from-red-secondary to-red-glow"
+    },
+    {
+      icon: Zap,
+      title: t('components.features.realTimeAnalytics'),
+      description: t('components.features.realTimeAnalyticsDesc'),
+      gradient: "from-red-glow to-red-primary"
+    }
+  ];
   return (
     <section id="features" className="py-24 bg-secondary/20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
           <h2 className="text-4xl lg:text-5xl font-bold mb-4">
-            <span className="text-foreground">Powerful Features for</span>
+            <span className="text-foreground">{t('components.features.title')}</span>
             <br />
             <span className="bg-gradient-primary bg-clip-text text-transparent">
-              Modern Broadcasting
+              {t('components.features.subtitle')}
             </span>
           </h2>
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-            Everything you need to create, manage, and monetize your digital content 
-            across our global network of screens.
+            {t('components.features.description')}
           </p>
         </div>
 

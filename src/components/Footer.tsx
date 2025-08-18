@@ -1,6 +1,9 @@
 import { Monitor, Mail, Phone, MapPin } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useTranslation } from 'react-i18next';
 export const Footer = () => {
+  const { t } = useTranslation();
+  
   return <footer className="bg-secondary/30 border-t border-border">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="grid md:grid-cols-4 gap-8">
@@ -15,36 +18,36 @@ export const Footer = () => {
               <span className="text-xl font-bold text-foreground">Red Square</span>
             </div>
             <p className="text-muted-foreground">
-              Revolutionizing digital advertising through connected screens worldwide.
+              {t('components.footer.brandDescription')}
             </p>
           </div>
 
           {/* Platform */}
           <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-foreground">Platform</h3>
+            <h3 className="text-lg font-semibold text-foreground">{t('components.footer.platform')}</h3>
             <ul className="space-y-2 text-muted-foreground">
-              <li><Link to="/my-campaigns" className="hover:text-foreground transition-colors">For Advertisers</Link></li>
-              <li><Link to="/my-screens" className="hover:text-foreground transition-colors">For Screen Owners</Link></li>
-              <li><Link to="/device-setup" className="hover:text-foreground transition-colors">Hardware Solutions</Link></li>
-              <li><Link to="/how-it-works" className="hover:text-foreground transition-colors">API Documentation</Link></li>
+              <li><Link to="/my-campaigns" className="hover:text-foreground transition-colors">{t('components.footer.forAdvertisers')}</Link></li>
+              <li><Link to="/my-screens" className="hover:text-foreground transition-colors">{t('components.footer.forScreenOwners')}</Link></li>
+              <li><Link to="/device-setup" className="hover:text-foreground transition-colors">{t('components.footer.hardwareSolutions')}</Link></li>
+              <li><Link to="/how-it-works" className="hover:text-foreground transition-colors">{t('components.footer.apiDocumentation')}</Link></li>
             </ul>
           </div>
 
           {/* Support */}
           <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-foreground">Support</h3>
+            <h3 className="text-lg font-semibold text-foreground">{t('components.footer.support')}</h3>
             <ul className="space-y-2 text-muted-foreground">
-              <li><Link to="/how-it-works" className="hover:text-foreground transition-colors">Help Center</Link></li>
-              <li><Link to="/how-it-works" className="hover:text-foreground transition-colors">Getting Started</Link></li>
-              <li><Link to="/production-plan" className="hover:text-foreground transition-colors">Production Plan</Link></li>
-              <li><a href="mailto:support@redsquare.app" className="hover:text-foreground transition-colors">Technical Support</a></li>
-              <li><a href="mailto:support@redsquare.app" className="hover:text-foreground transition-colors">Contact Sales</a></li>
+              <li><Link to="/how-it-works" className="hover:text-foreground transition-colors">{t('components.footer.helpCenter')}</Link></li>
+              <li><Link to="/how-it-works" className="hover:text-foreground transition-colors">{t('components.footer.gettingStarted')}</Link></li>
+              <li><Link to="/production-plan" className="hover:text-foreground transition-colors">{t('components.footer.productionPlan')}</Link></li>
+              <li><a href="mailto:support@redsquare.app" className="hover:text-foreground transition-colors">{t('components.footer.technicalSupport')}</a></li>
+              <li><a href="mailto:support@redsquare.app" className="hover:text-foreground transition-colors">{t('components.footer.contactSales')}</a></li>
             </ul>
           </div>
 
           {/* Contact */}
           <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-foreground">Contact</h3>
+            <h3 className="text-lg font-semibold text-foreground">{t('components.footer.contact')}</h3>
             <div className="space-y-3">
               <div className="flex items-center space-x-2 text-muted-foreground">
                 <Mail className="w-4 h-4" />
@@ -64,16 +67,16 @@ export const Footer = () => {
 
         <div className="mt-12 pt-8 border-t border-border">
           <div className="flex flex-col md:flex-row justify-between items-center">
-            <p className="text-muted-foreground">© 2025 Red Square. All rights reserved.</p>
+            <p className="text-muted-foreground">{t('components.footer.allRightsReserved')}</p>
             <div className="flex space-x-6 mt-4 md:mt-0">
               <Link to="/privacy" className="text-muted-foreground hover:text-foreground transition-colors">
-                Privacy Policy
+                {t('components.footer.privacyPolicy')}
               </Link>
               <Link to="/terms" className="text-muted-foreground hover:text-foreground transition-colors">
-                Terms of Service
+                {t('components.footer.termsOfService')}
               </Link>
               <Link to="/cookies" className="text-muted-foreground hover:text-foreground transition-colors">
-                Cookie Policy
+                {t('components.footer.cookiePolicy')}
               </Link>
             </div>
           </div>

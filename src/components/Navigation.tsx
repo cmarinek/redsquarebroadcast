@@ -82,34 +82,34 @@ export const Navigation = () => {
                         Admin
                       </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuLabel>Admin Panel</DropdownMenuLabel>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem asChild>
-                        <Link to="/admin" className="flex items-center">
-                          <BarChart3 className="w-4 h-4 mr-2" />
-                          Dashboard
-                        </Link>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem asChild>
-                        <Link to="/admin/overview" className="flex items-center">
-                          <Settings className="w-4 h-4 mr-2" />
-                          Project Overview
-                        </Link>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem asChild>
-                        <Link to="/admin/performance" className="flex items-center">
-                          <BarChart3 className="w-4 h-4 mr-2" />
-                          Performance
-                        </Link>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem asChild>
-                        <Link to="/admin/documentation" className="flex items-center">
-                          <HelpCircle className="w-4 h-4 mr-2" />
-                          Documentation
-                        </Link>
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuLabel>{t('components.navigation.adminPanel')}</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem asChild>
+                      <Link to="/admin" className="flex items-center">
+                        <BarChart3 className="w-4 h-4 mr-2" />
+                        {t('navigation.dashboard')}
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link to="/admin/overview" className="flex items-center">
+                        <Settings className="w-4 h-4 mr-2" />
+                        {t('components.navigation.projectOverview')}
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link to="/admin/performance" className="flex items-center">
+                        <BarChart3 className="w-4 h-4 mr-2" />
+                        {t('components.navigation.performance')}
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link to="/admin/documentation" className="flex items-center">
+                        <HelpCircle className="w-4 h-4 mr-2" />
+                        {t('components.navigation.documentation')}
+                      </Link>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
                   </DropdownMenu>
                 )}
 
@@ -123,12 +123,12 @@ export const Navigation = () => {
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
-                    <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                    <DropdownMenuLabel>{t('components.navigation.myAccount')}</DropdownMenuLabel>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem asChild>
                       <Link to="/profile" className="flex items-center">
                         <User className="w-4 h-4 mr-2" />
-                        Profile Settings
+                        {t('components.navigation.profileSettings')}
                       </Link>
                     </DropdownMenuItem>
                     
@@ -137,19 +137,19 @@ export const Navigation = () => {
                         <DropdownMenuItem asChild>
                           <Link to="/my-screens" className="flex items-center">
                             <BarChart3 className="w-4 h-4 mr-2" />
-                            Dashboard
+                            {t('navigation.dashboard')}
                           </Link>
                         </DropdownMenuItem>
                         <DropdownMenuItem asChild>
                           <Link to="/register-screen" className="flex items-center">
                             <Monitor className="w-4 h-4 mr-2" />
-                            Register New Screen
+                            {t('components.navigation.registerNewScreen')}
                           </Link>
                         </DropdownMenuItem>
                         <DropdownMenuItem asChild>
                           <Link to="/device-setup" className="flex items-center">
                             <Settings className="w-4 h-4 mr-2" />
-                            Device Setup
+                            {t('components.navigation.deviceSetup')}
                           </Link>
                         </DropdownMenuItem>
                       </>}
@@ -159,7 +159,7 @@ export const Navigation = () => {
                     {isBroadcaster() && !isScreenOwner() && !isAdmin() && <DropdownMenuItem asChild>
                         <Link to="/register-screen" className="flex items-center">
                           <Monitor className="w-4 h-4 mr-2" />
-                          Become Screen Owner
+                          {t('components.navigation.becomeScreenOwner')}
                         </Link>
                       </DropdownMenuItem>}
                     <DropdownMenuSeparator />
@@ -167,12 +167,12 @@ export const Navigation = () => {
                       <>
                         <DropdownMenuItem onClick={() => setShowScreenOwnerOnboarding(true)}>
                           <HelpCircle className="w-4 h-4 mr-2" />
-                          Screen Owner Guide
+                          {t('components.navigation.screenOwnerGuide')}
                         </DropdownMenuItem>
                         <DropdownMenuItem asChild>
                           <Link to="/register-screen" className="flex items-center">
                             <Upload className="w-4 h-4 mr-2" />
-                            Become a Broadcaster
+                            {t('components.navigation.becomeABroadcaster')}
                           </Link>
                         </DropdownMenuItem>
                       </>
@@ -180,18 +180,18 @@ export const Navigation = () => {
                       <>
                         <DropdownMenuItem onClick={() => setShowBroadcasterOnboarding(true)}>
                           <HelpCircle className="w-4 h-4 mr-2" />
-                          Broadcaster Guide
+                          {t('components.navigation.broadcasterGuide')}
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => setShowScreenOwnerOnboarding(true)}>
                           <HelpCircle className="w-4 h-4 mr-2" />
-                          Screen Owner Guide
+                          {t('components.navigation.screenOwnerGuide')}
                         </DropdownMenuItem>
                       </>
                     )}
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={signOut}>
                       <LogOut className="w-4 h-4 mr-2" />
-                      Sign Out
+                      {t('common.logout')}
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
@@ -232,100 +232,100 @@ export const Navigation = () => {
         {isMenuOpen && <div className="md:hidden pb-4">
             <div className="flex flex-col space-y-3">
               {user ? <>
-                {/* Broadcaster features */}
-                {(isBroadcaster() || isAdmin()) && <>
-                    <Button variant="outline" asChild className="w-full justify-start">
-                      <Link to="/discover">Find Screens</Link>
-                    </Button>
-                    <Button variant="outline" asChild className="w-full justify-start">
-                      <Link to="/my-campaigns">My Campaigns</Link>
-                    </Button>
-                  </>}
-                
-                {/* Screen Owner features */}
-                 {(isScreenOwner() || isAdmin()) && <Button variant="outline" asChild className="w-full justify-start">
-                    <Link to="/my-screens">Dashboard</Link>
-                  </Button>}
-                
-                {/* Admin features */}
-                {isAdmin() && (
-                  <div className="space-y-2">
-                    <div className="text-sm font-medium text-muted-foreground px-3 py-2">Admin Panel</div>
-                    <Button variant="outline" asChild className="w-full justify-start">
-                      <Link to="/admin">
-                        <BarChart3 className="w-4 h-4 mr-2" />
-                        Dashboard
-                      </Link>
-                    </Button>
-                    <Button variant="outline" asChild className="w-full justify-start">
-                      <Link to="/admin/overview">
-                        <Settings className="w-4 h-4 mr-2" />
-                        Project Overview
-                      </Link>
-                    </Button>
-                    <Button variant="outline" asChild className="w-full justify-start">
-                      <Link to="/admin/performance">
-                        <BarChart3 className="w-4 h-4 mr-2" />
-                        Performance
-                      </Link>
-                    </Button>
-                    <Button variant="outline" asChild className="w-full justify-start">
-                      <Link to="/admin/documentation">
-                        <HelpCircle className="w-4 h-4 mr-2" />
-                        Documentation
-                      </Link>
-                    </Button>
-                  </div>
-                )}
+                 {/* Broadcaster features */}
+                 {(isBroadcaster() || isAdmin()) && <>
+                     <Button variant="outline" asChild className="w-full justify-start">
+                       <Link to="/discover">{t('navigation.findScreens')}</Link>
+                     </Button>
+                     <Button variant="outline" asChild className="w-full justify-start">
+                       <Link to="/my-campaigns">{t('navigation.myCampaigns')}</Link>
+                     </Button>
+                   </>}
+                 
+                 {/* Screen Owner features */}
+                  {(isScreenOwner() || isAdmin()) && <Button variant="outline" asChild className="w-full justify-start">
+                     <Link to="/my-screens">{t('navigation.dashboard')}</Link>
+                   </Button>}
+                 
+                 {/* Admin features */}
+                 {isAdmin() && (
+                   <div className="space-y-2">
+                     <div className="text-sm font-medium text-muted-foreground px-3 py-2">{t('components.navigation.adminPanel')}</div>
+                     <Button variant="outline" asChild className="w-full justify-start">
+                       <Link to="/admin">
+                         <BarChart3 className="w-4 h-4 mr-2" />
+                         {t('navigation.dashboard')}
+                       </Link>
+                     </Button>
+                     <Button variant="outline" asChild className="w-full justify-start">
+                       <Link to="/admin/overview">
+                         <Settings className="w-4 h-4 mr-2" />
+                         {t('components.navigation.projectOverview')}
+                       </Link>
+                     </Button>
+                     <Button variant="outline" asChild className="w-full justify-start">
+                       <Link to="/admin/performance">
+                         <BarChart3 className="w-4 h-4 mr-2" />
+                         {t('components.navigation.performance')}
+                       </Link>
+                     </Button>
+                     <Button variant="outline" asChild className="w-full justify-start">
+                       <Link to="/admin/documentation">
+                         <HelpCircle className="w-4 h-4 mr-2" />
+                         {t('components.navigation.documentation')}
+                       </Link>
+                     </Button>
+                   </div>
+                 )}
 
-                <Button variant="outline" asChild className="w-full justify-start">
-                  <Link to="/profile">Profile Settings</Link>
-                </Button>
-                
-                {/* Role-specific options */}
-                {(isScreenOwner() || isAdmin()) && <>
-                    <Button variant="outline" asChild className="w-full justify-start">
-                      <Link to="/register-screen">Register New Screen</Link>
-                    </Button>
-                    <Button variant="outline" asChild className="w-full justify-start">
-                      <Link to="/device-setup">Device Setup</Link>
-                    </Button>
-                    <Button variant="outline" asChild className="w-full justify-start">
-                      <Link to="/subscription">Subscription</Link>
-                    </Button>
-                  </>}
-                
-                {isBroadcaster() && !isScreenOwner() && !isAdmin() && <Button variant="outline" asChild className="w-full justify-start">
-                    <Link to="/register-screen">Become Screen Owner</Link>
-                  </Button>}
-                
-                <Button onClick={signOut} variant="outline" className="w-full justify-start">
-                  <LogOut className="w-4 h-4 mr-2" />
-                  Sign Out
-                </Button>
-                </> : <>
-                  <Button variant="outline" asChild className="w-full justify-start">
-                    <Link to="/how-it-works">How It Works</Link>
-                  </Button>
-                  <Button variant="outline" asChild className="w-full justify-start">
-                    <Link to="/learn">Learn</Link>
-                  </Button>
-                  <Button variant="outline" asChild className="w-full justify-start">
-                    <Link to="/download">
-                      <Smartphone className="w-4 h-4 mr-2" />
-                      Download App
-                    </Link>
-                  </Button>
-                  <Button variant="outline" asChild className="w-full justify-start">
-                    <Link to="/discover">Find Screens</Link>
-                  </Button>
-                  <Button variant="outline" asChild className="w-full justify-start">
-                    <Link to="/auth">Sign In</Link>
-                  </Button>
-                  <Button className="bg-gradient-primary w-full justify-start" asChild>
-                    <Link to="/auth">Get Started</Link>
-                  </Button>
-                </>}
+                 <Button variant="outline" asChild className="w-full justify-start">
+                   <Link to="/profile">{t('components.navigation.profileSettings')}</Link>
+                 </Button>
+                 
+                 {/* Role-specific options */}
+                 {(isScreenOwner() || isAdmin()) && <>
+                     <Button variant="outline" asChild className="w-full justify-start">
+                       <Link to="/register-screen">{t('components.navigation.registerNewScreen')}</Link>
+                     </Button>
+                     <Button variant="outline" asChild className="w-full justify-start">
+                       <Link to="/device-setup">{t('components.navigation.deviceSetup')}</Link>
+                     </Button>
+                     <Button variant="outline" asChild className="w-full justify-start">
+                       <Link to="/subscription">{t('components.navigation.subscription')}</Link>
+                     </Button>
+                   </>}
+                 
+                 {isBroadcaster() && !isScreenOwner() && !isAdmin() && <Button variant="outline" asChild className="w-full justify-start">
+                     <Link to="/register-screen">{t('components.navigation.becomeScreenOwner')}</Link>
+                   </Button>}
+                 
+                 <Button onClick={signOut} variant="outline" className="w-full justify-start">
+                   <LogOut className="w-4 h-4 mr-2" />
+                   {t('common.logout')}
+                 </Button>
+                 </> : <>
+                   <Button variant="outline" asChild className="w-full justify-start">
+                     <Link to="/how-it-works">{t('navigation.howItWorks')}</Link>
+                   </Button>
+                   <Button variant="outline" asChild className="w-full justify-start">
+                     <Link to="/learn">{t('navigation.learn')}</Link>
+                   </Button>
+                   <Button variant="outline" asChild className="w-full justify-start">
+                     <Link to="/download">
+                       <Smartphone className="w-4 h-4 mr-2" />
+                       {t('navigation.downloadApp')}
+                     </Link>
+                   </Button>
+                   <Button variant="outline" asChild className="w-full justify-start">
+                     <Link to="/discover">{t('navigation.findScreens')}</Link>
+                   </Button>
+                   <Button variant="outline" asChild className="w-full justify-start">
+                     <Link to="/auth">{t('common.login')}</Link>
+                   </Button>
+                   <Button className="bg-gradient-primary w-full justify-start" asChild>
+                     <Link to="/auth">{t('navigation.getStarted')}</Link>
+                   </Button>
+                 </>}
             </div>
           </div>}
       </div>
