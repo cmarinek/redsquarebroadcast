@@ -132,6 +132,15 @@ const resources = {
       budgetUsage: "Budget Usage",
       targetAudience: "Target Audience"
     },
+    navigation: {
+      findScreens: "Find Screens",
+      myCampaigns: "My Campaigns",
+      dashboard: "Dashboard",
+      learn: "Learn",
+      downloadApp: "Download App",
+      getStarted: "Get Started",
+      howItWorks: "How It Works"
+    },
     components: {
       hero: {
         title: "Democratize Screen-Based Advertising",
@@ -238,7 +247,25 @@ const resources = {
         dashboard: "Dashboard",
         profile: "Profile",
         settings: "Settings",
-        logout: "Logout"
+        logout: "Logout",
+        findScreens: "Find Screens",
+        myCampaigns: "My Campaigns",
+        learn: "Learn",
+        downloadApp: "Download App",
+        getStarted: "Get Started",
+        adminPanel: "Admin Panel",
+        projectOverview: "Project Overview",
+        performance: "Performance",
+        documentation: "Documentation",
+        myAccount: "My Account",
+        profileSettings: "Profile Settings",
+        registerNewScreen: "Register New Screen",
+        deviceSetup: "Device Setup",
+        becomeScreenOwner: "Become Screen Owner",
+        broadcasterGuide: "Broadcaster Guide",
+        screenOwnerGuide: "Screen Owner Guide",
+        becomeABroadcaster: "Become a Broadcaster",
+        subscription: "Subscription"
       },
       footer: {
         company: "Company",
