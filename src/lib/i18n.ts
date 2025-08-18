@@ -133,24 +133,6 @@ const resources = {
       budgetUsage: "Budget Usage",
       targetAudience: "Target Audience"
     },
-    navigation: {
-      findScreens: "Find Screens",
-      myCampaigns: "My Campaigns",
-      dashboard: "Dashboard",
-      learn: "Learn",
-      downloadApp: "Download App",
-      getStarted: "Get Started",
-      howItWorks: "How It Works",
-      home: "Home",
-      features: "Features",
-      pricing: "Pricing",
-      contact: "Contact",
-      login: "Login",
-      signup: "Sign Up",
-      profile: "Profile",
-      settings: "Settings",
-      logout: "Logout"
-    },
     components: {
       hero: {
         title: "Democratize Screen-Based Advertising",

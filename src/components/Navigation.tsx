@@ -55,19 +55,19 @@ export const Navigation = () => {
             {user ? <>
                 {/* Broadcaster features */}
                 {(isBroadcaster() || isAdmin()) && <>
-                    <Button variant="outline" asChild>
-                      <Link to="/discover">{t('navigation.findScreens')}</Link>
-                    </Button>
-                    <Button variant="outline" asChild>
-                      <Link to="/my-campaigns">{t('navigation.myCampaigns')}</Link>
-                    </Button>
+                     <Button variant="outline" asChild>
+                       <Link to="/discover">{t('components.navigation.findScreens')}</Link>
+                     </Button>
+                     <Button variant="outline" asChild>
+                       <Link to="/my-campaigns">{t('components.navigation.myCampaigns')}</Link>
+                     </Button>
                   </>}
                 
                 {/* Screen Owner features */}
                 {(isScreenOwner() || isAdmin()) && <>
-                    <Button variant="outline" asChild>
-                      <Link to="/my-screens">{t('navigation.dashboard')}</Link>
-                    </Button>
+                     <Button variant="outline" asChild>
+                       <Link to="/my-screens">{t('components.navigation.dashboard')}</Link>
+                     </Button>
                      <Button variant="outline" asChild>
                        <Link to="/subscription">{t('components.navigation.subscription')}</Link>
                      </Button>
@@ -86,10 +86,10 @@ export const Navigation = () => {
                     <DropdownMenuLabel>{t('components.navigation.adminPanel')}</DropdownMenuLabel>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem asChild>
-                      <Link to="/admin" className="flex items-center">
-                        <BarChart3 className="w-4 h-4 mr-2" />
-                        {t('navigation.dashboard')}
-                      </Link>
+                       <Link to="/admin" className="flex items-center">
+                         <BarChart3 className="w-4 h-4 mr-2" />
+                         {t('components.navigation.dashboard')}
+                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
                       <Link to="/admin/overview" className="flex items-center">
@@ -135,10 +135,10 @@ export const Navigation = () => {
                      {/* Screen Owner specific options */}
                     {(isScreenOwner() || isAdmin()) && <>
                         <DropdownMenuItem asChild>
-                          <Link to="/my-screens" className="flex items-center">
-                            <BarChart3 className="w-4 h-4 mr-2" />
-                            {t('navigation.dashboard')}
-                          </Link>
+                           <Link to="/my-screens" className="flex items-center">
+                             <BarChart3 className="w-4 h-4 mr-2" />
+                             {t('components.navigation.dashboard')}
+                           </Link>
                         </DropdownMenuItem>
                         <DropdownMenuItem asChild>
                           <Link to="/register-screen" className="flex items-center">
@@ -197,25 +197,25 @@ export const Navigation = () => {
                 </DropdownMenu>
               </> : <>
                 <Button variant="outline" asChild>
-                  <Link to="/how-it-works">{t('navigation.howItWorks')}</Link>
+                  <Link to="/how-it-works">{t('components.navigation.howItWorks')}</Link>
                 </Button>
                 <Button variant="outline" asChild>
-                  <Link to="/learn">{t('navigation.learn')}</Link>
+                  <Link to="/learn">{t('components.navigation.learn')}</Link>
                 </Button>
                 <Button variant="outline" asChild>
                   <Link to="/download">
                     <Smartphone className="w-4 h-4 mr-2" />
-                    {t('navigation.downloadApp')}
+                    {t('components.navigation.downloadApp')}
                   </Link>
                 </Button>
                 <Button variant="outline" asChild>
-                  <Link to="/discover">{t('navigation.findScreens')}</Link>
+                  <Link to="/discover">{t('components.navigation.findScreens')}</Link>
                 </Button>
                 <Button variant="outline" asChild>
                   <Link to="/auth">{t('common.login')}</Link>
                 </Button>
                 <Button className="bg-gradient-primary hover:shadow-[var(--shadow-red)] transition-all duration-300" asChild>
-                  <Link to="/auth">{t('navigation.getStarted')}</Link>
+                  <Link to="/auth">{t('components.navigation.getStarted')}</Link>
                 </Button>
               </>}
           </div>
@@ -233,29 +233,29 @@ export const Navigation = () => {
             <div className="flex flex-col space-y-3">
               {user ? <>
                  {/* Broadcaster features */}
-                 {(isBroadcaster() || isAdmin()) && <>
-                     <Button variant="outline" asChild className="w-full justify-start">
-                       <Link to="/discover">{t('navigation.findScreens')}</Link>
-                     </Button>
-                     <Button variant="outline" asChild className="w-full justify-start">
-                       <Link to="/my-campaigns">{t('navigation.myCampaigns')}</Link>
-                     </Button>
-                   </>}
+                  {(isBroadcaster() || isAdmin()) && <>
+                      <Button variant="outline" asChild className="w-full justify-start">
+                        <Link to="/discover">{t('components.navigation.findScreens')}</Link>
+                      </Button>
+                      <Button variant="outline" asChild className="w-full justify-start">
+                        <Link to="/my-campaigns">{t('components.navigation.myCampaigns')}</Link>
+                      </Button>
+                    </>}
                  
                  {/* Screen Owner features */}
-                  {(isScreenOwner() || isAdmin()) && <Button variant="outline" asChild className="w-full justify-start">
-                     <Link to="/my-screens">{t('navigation.dashboard')}</Link>
-                   </Button>}
+                   {(isScreenOwner() || isAdmin()) && <Button variant="outline" asChild className="w-full justify-start">
+                      <Link to="/my-screens">{t('components.navigation.dashboard')}</Link>
+                    </Button>}
                  
                  {/* Admin features */}
                  {isAdmin() && (
                    <div className="space-y-2">
                      <div className="text-sm font-medium text-muted-foreground px-3 py-2">{t('components.navigation.adminPanel')}</div>
                      <Button variant="outline" asChild className="w-full justify-start">
-                       <Link to="/admin">
-                         <BarChart3 className="w-4 h-4 mr-2" />
-                         {t('navigation.dashboard')}
-                       </Link>
+                        <Link to="/admin">
+                          <BarChart3 className="w-4 h-4 mr-2" />
+                          {t('components.navigation.dashboard')}
+                        </Link>
                      </Button>
                      <Button variant="outline" asChild className="w-full justify-start">
                        <Link to="/admin/overview">
@@ -304,27 +304,27 @@ export const Navigation = () => {
                    {t('common.logout')}
                  </Button>
                  </> : <>
-                   <Button variant="outline" asChild className="w-full justify-start">
-                     <Link to="/how-it-works">{t('navigation.howItWorks')}</Link>
-                   </Button>
-                   <Button variant="outline" asChild className="w-full justify-start">
-                     <Link to="/learn">{t('navigation.learn')}</Link>
-                   </Button>
-                   <Button variant="outline" asChild className="w-full justify-start">
-                     <Link to="/download">
-                       <Smartphone className="w-4 h-4 mr-2" />
-                       {t('navigation.downloadApp')}
-                     </Link>
-                   </Button>
-                   <Button variant="outline" asChild className="w-full justify-start">
-                     <Link to="/discover">{t('navigation.findScreens')}</Link>
-                   </Button>
-                   <Button variant="outline" asChild className="w-full justify-start">
-                     <Link to="/auth">{t('common.login')}</Link>
-                   </Button>
-                   <Button className="bg-gradient-primary w-full justify-start" asChild>
-                     <Link to="/auth">{t('navigation.getStarted')}</Link>
-                   </Button>
+                    <Button variant="outline" asChild className="w-full justify-start">
+                      <Link to="/how-it-works">{t('components.navigation.howItWorks')}</Link>
+                    </Button>
+                    <Button variant="outline" asChild className="w-full justify-start">
+                      <Link to="/learn">{t('components.navigation.learn')}</Link>
+                    </Button>
+                    <Button variant="outline" asChild className="w-full justify-start">
+                      <Link to="/download">
+                        <Smartphone className="w-4 h-4 mr-2" />
+                        {t('components.navigation.downloadApp')}
+                      </Link>
+                    </Button>
+                    <Button variant="outline" asChild className="w-full justify-start">
+                      <Link to="/discover">{t('components.navigation.findScreens')}</Link>
+                    </Button>
+                    <Button variant="outline" asChild className="w-full justify-start">
+                      <Link to="/auth">{t('common.login')}</Link>
+                    </Button>
+                    <Button className="bg-gradient-primary w-full justify-start" asChild>
+                      <Link to="/auth">{t('components.navigation.getStarted')}</Link>
+                    </Button>
                  </>}
             </div>
           </div>}
