@@ -455,7 +455,9 @@ export type Database = {
           created_at: string
           currency: string
           duration_minutes: number
+          exchange_rate: number | null
           id: string
+          local_currency: string | null
           payment_status: string
           screen_id: string
           start_time: string
@@ -470,7 +472,9 @@ export type Database = {
           created_at?: string
           currency?: string
           duration_minutes: number
+          exchange_rate?: number | null
           id?: string
+          local_currency?: string | null
           payment_status?: string
           screen_id: string
           start_time: string
@@ -485,7 +489,9 @@ export type Database = {
           created_at?: string
           currency?: string
           duration_minutes?: number
+          exchange_rate?: number | null
           id?: string
+          local_currency?: string | null
           payment_status?: string
           screen_id?: string
           start_time?: string
@@ -670,6 +676,89 @@ export type Database = {
           screen_id?: string | null
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      countries: {
+        Row: {
+          code: string
+          created_at: string | null
+          currency_code: string
+          display_name: string
+          id: string
+          is_active: boolean | null
+          name: string
+          phone_prefix: string | null
+          region_id: string | null
+          tax_rate: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          code: string
+          created_at?: string | null
+          currency_code: string
+          display_name: string
+          id?: string
+          is_active?: boolean | null
+          name: string
+          phone_prefix?: string | null
+          region_id?: string | null
+          tax_rate?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          code?: string
+          created_at?: string | null
+          currency_code?: string
+          display_name?: string
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          phone_prefix?: string | null
+          region_id?: string | null
+          tax_rate?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "countries_region_id_fkey"
+            columns: ["region_id"]
+            isOneToOne: false
+            referencedRelation: "regions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      currencies: {
+        Row: {
+          code: string
+          decimal_places: number | null
+          exchange_rate: number | null
+          id: string
+          is_active: boolean | null
+          name: string
+          symbol: string
+          updated_at: string | null
+        }
+        Insert: {
+          code: string
+          decimal_places?: number | null
+          exchange_rate?: number | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          symbol: string
+          updated_at?: string | null
+        }
+        Update: {
+          code?: string
+          decimal_places?: number | null
+          exchange_rate?: number | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          symbol?: string
+          updated_at?: string | null
         }
         Relationships: []
       }
@@ -1033,6 +1122,36 @@ export type Database = {
         }
         Relationships: []
       }
+      languages: {
+        Row: {
+          code: string
+          created_at: string | null
+          direction: string | null
+          display_name: string
+          id: string
+          is_active: boolean | null
+          name: string
+        }
+        Insert: {
+          code: string
+          created_at?: string | null
+          direction?: string | null
+          display_name: string
+          id?: string
+          is_active?: boolean | null
+          name: string
+        }
+        Update: {
+          code?: string
+          created_at?: string | null
+          direction?: string | null
+          display_name?: string
+          id?: string
+          is_active?: boolean | null
+          name?: string
+        }
+        Relationships: []
+      }
       media_jobs: {
         Row: {
           attempts: number
@@ -1144,7 +1263,9 @@ export type Database = {
           booking_id: string
           created_at: string
           currency: string
+          exchange_rate: number | null
           id: string
+          local_currency: string | null
           owner_amount_cents: number
           platform_fee_cents: number
           status: string
@@ -1158,7 +1279,9 @@ export type Database = {
           booking_id: string
           created_at?: string
           currency?: string
+          exchange_rate?: number | null
           id?: string
+          local_currency?: string | null
           owner_amount_cents?: number
           platform_fee_cents?: number
           status?: string
@@ -1172,7 +1295,9 @@ export type Database = {
           booking_id?: string
           created_at?: string
           currency?: string
+          exchange_rate?: number | null
           id?: string
+          local_currency?: string | null
           owner_amount_cents?: number
           platform_fee_cents?: number
           status?: string
@@ -1305,6 +1430,107 @@ export type Database = {
         }
         Relationships: []
       }
+      region_languages: {
+        Row: {
+          is_primary: boolean | null
+          language_id: string
+          region_id: string
+        }
+        Insert: {
+          is_primary?: boolean | null
+          language_id: string
+          region_id: string
+        }
+        Update: {
+          is_primary?: boolean | null
+          language_id?: string
+          region_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "region_languages_language_id_fkey"
+            columns: ["language_id"]
+            isOneToOne: false
+            referencedRelation: "languages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "region_languages_region_id_fkey"
+            columns: ["region_id"]
+            isOneToOne: false
+            referencedRelation: "regions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      regional_settings: {
+        Row: {
+          description: string | null
+          id: string
+          key: string
+          region_id: string | null
+          updated_at: string | null
+          value: Json
+        }
+        Insert: {
+          description?: string | null
+          id?: string
+          key: string
+          region_id?: string | null
+          updated_at?: string | null
+          value: Json
+        }
+        Update: {
+          description?: string | null
+          id?: string
+          key?: string
+          region_id?: string | null
+          updated_at?: string | null
+          value?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "regional_settings_region_id_fkey"
+            columns: ["region_id"]
+            isOneToOne: false
+            referencedRelation: "regions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      regions: {
+        Row: {
+          code: string
+          created_at: string | null
+          display_name: string
+          id: string
+          is_active: boolean | null
+          name: string
+          timezone: string
+          updated_at: string | null
+        }
+        Insert: {
+          code: string
+          created_at?: string | null
+          display_name: string
+          id?: string
+          is_active?: boolean | null
+          name: string
+          timezone: string
+          updated_at?: string | null
+        }
+        Update: {
+          code?: string
+          created_at?: string | null
+          display_name?: string
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          timezone?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       screen_groups: {
         Row: {
           created_at: string
@@ -1336,11 +1562,13 @@ export type Database = {
         Row: {
           availability_end: string | null
           availability_start: string | null
+          country_id: string | null
           created_at: string
           currency: string | null
           group_id: string | null
           id: string
           latitude: number | null
+          local_currency: string | null
           location: string | null
           longitude: number | null
           owner_user_id: string
@@ -1348,6 +1576,7 @@ export type Database = {
           platform_fee_percent: number | null
           price_per_10s_cents: number | null
           pricing_cents: number | null
+          region_id: string | null
           screen_name: string | null
           status: string
           unit_rounding_threshold_seconds: number
@@ -1356,11 +1585,13 @@ export type Database = {
         Insert: {
           availability_end?: string | null
           availability_start?: string | null
+          country_id?: string | null
           created_at?: string
           currency?: string | null
           group_id?: string | null
           id: string
           latitude?: number | null
+          local_currency?: string | null
           location?: string | null
           longitude?: number | null
           owner_user_id: string
@@ -1368,6 +1599,7 @@ export type Database = {
           platform_fee_percent?: number | null
           price_per_10s_cents?: number | null
           pricing_cents?: number | null
+          region_id?: string | null
           screen_name?: string | null
           status?: string
           unit_rounding_threshold_seconds?: number
@@ -1376,11 +1608,13 @@ export type Database = {
         Update: {
           availability_end?: string | null
           availability_start?: string | null
+          country_id?: string | null
           created_at?: string
           currency?: string | null
           group_id?: string | null
           id?: string
           latitude?: number | null
+          local_currency?: string | null
           location?: string | null
           longitude?: number | null
           owner_user_id?: string
@@ -1388,6 +1622,7 @@ export type Database = {
           platform_fee_percent?: number | null
           price_per_10s_cents?: number | null
           pricing_cents?: number | null
+          region_id?: string | null
           screen_name?: string | null
           status?: string
           unit_rounding_threshold_seconds?: number
@@ -1395,10 +1630,24 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "screens_country_id_fkey"
+            columns: ["country_id"]
+            isOneToOne: false
+            referencedRelation: "countries"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "screens_group_id_fkey"
             columns: ["group_id"]
             isOneToOne: false
             referencedRelation: "screen_groups"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "screens_region_id_fkey"
+            columns: ["region_id"]
+            isOneToOne: false
+            referencedRelation: "regions"
             referencedColumns: ["id"]
           },
         ]

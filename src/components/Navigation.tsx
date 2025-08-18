@@ -8,11 +8,14 @@ import { useOnboarding } from "@/hooks/useOnboarding";
 import { RealTimeNotifications } from "@/components/RealTimeNotifications";
 import { BroadcasterOnboarding } from "@/components/onboarding/BroadcasterOnboarding";
 import { ScreenOwnerOnboarding } from "@/components/onboarding/ScreenOwnerOnboarding";
+import { RegionalSelector } from "@/components/RegionalSelector";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { useTranslation } from "react-i18next";
 export const Navigation = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showBroadcasterOnboarding, setShowBroadcasterOnboarding] = useState(false);
   const [showScreenOwnerOnboarding, setShowScreenOwnerOnboarding] = useState(false);
+  const { t } = useTranslation();
   const {
     user,
     signOut
@@ -33,13 +36,18 @@ export const Navigation = () => {
     <nav className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md border-b border-border">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16 items-center">
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-4">
             <img 
               src="/lovable-uploads/901ca0b5-a900-440e-b16d-bdd30112cc94.png" 
               alt="Red Square Logo" 
               className="w-8 h-8 rounded-lg"
             />
             <span className="text-xl font-bold text-foreground">RedSquare</span>
+            
+            {/* Language selector for mobile-first approach */}
+            <div className="hidden lg:block">
+              <RegionalSelector compact showLanguageOnly />
+            </div>
           </div>
 
           {/* Desktop Navigation */}
@@ -48,17 +56,17 @@ export const Navigation = () => {
                 {/* Broadcaster features */}
                 {(isBroadcaster() || isAdmin()) && <>
                     <Button variant="outline" asChild>
-                      <Link to="/discover">Find Screens</Link>
+                      <Link to="/discover">{t('navigation.findScreens')}</Link>
                     </Button>
                     <Button variant="outline" asChild>
-                      <Link to="/my-campaigns">My Campaigns</Link>
+                      <Link to="/my-campaigns">{t('navigation.myCampaigns')}</Link>
                     </Button>
                   </>}
                 
                 {/* Screen Owner features */}
                 {(isScreenOwner() || isAdmin()) && <>
                     <Button variant="outline" asChild>
-                      <Link to="/my-screens">Dashboard</Link>
+                      <Link to="/my-screens">{t('navigation.dashboard')}</Link>
                     </Button>
                     <Button variant="outline" asChild>
                       <Link to="/subscription">Subscription</Link>
@@ -189,25 +197,25 @@ export const Navigation = () => {
                 </DropdownMenu>
               </> : <>
                 <Button variant="outline" asChild>
-                  <Link to="/how-it-works">How It Works</Link>
+                  <Link to="/how-it-works">{t('navigation.howItWorks')}</Link>
                 </Button>
                 <Button variant="outline" asChild>
-                  <Link to="/learn">Learn</Link>
+                  <Link to="/learn">{t('navigation.learn')}</Link>
                 </Button>
                 <Button variant="outline" asChild>
                   <Link to="/download">
                     <Smartphone className="w-4 h-4 mr-2" />
-                    Download App
+                    {t('navigation.downloadApp')}
                   </Link>
                 </Button>
                 <Button variant="outline" asChild>
-                  <Link to="/discover">Find Screens</Link>
+                  <Link to="/discover">{t('navigation.findScreens')}</Link>
                 </Button>
                 <Button variant="outline" asChild>
-                  <Link to="/auth">Sign In</Link>
+                  <Link to="/auth">{t('common.login')}</Link>
                 </Button>
                 <Button className="bg-gradient-primary hover:shadow-[var(--shadow-red)] transition-all duration-300" asChild>
-                  <Link to="/auth">Get Started</Link>
+                  <Link to="/auth">{t('navigation.getStarted')}</Link>
                 </Button>
               </>}
           </div>

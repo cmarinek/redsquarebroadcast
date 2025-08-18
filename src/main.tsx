@@ -3,8 +3,10 @@ import { BrowserRouter } from 'react-router-dom'
 import App from './App.tsx'
 import MobileApp from './pages/MobileApp.tsx'
 import './index.css'
+import './lib/i18n.ts'
 import { Toaster } from "@/components/ui/toaster"
 import { AuthProvider } from '@/context/AuthContext'
+import { LanguageProvider } from '@/contexts/LanguageContext'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { initWebVitals } from '@/utils/telemetry'
 import { initErrorReporting } from '@/utils/errorReporting'
@@ -59,10 +61,12 @@ createRoot(document.getElementById("root")!).render(
   <ErrorBoundary>
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
-        <AuthProvider>
-          {isMobileApp ? <MobileApp /> : <App />}
-          <Toaster />
-        </AuthProvider>
+        <LanguageProvider>
+          <AuthProvider>
+            {isMobileApp ? <MobileApp /> : <App />}
+            <Toaster />
+          </AuthProvider>
+        </LanguageProvider>
       </BrowserRouter>
     </QueryClientProvider>
   </ErrorBoundary>

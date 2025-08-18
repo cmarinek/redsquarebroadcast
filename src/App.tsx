@@ -41,6 +41,7 @@ const Learn = lazy(() => import("./pages/Learn"));
 const AdminDocumentation = lazy(() => import("./pages/AdminDocumentation"));
 const DownloadApp = lazy(() => import("./pages/DownloadApp"));
 const MobileApp = lazy(() => import("./pages/MobileApp"));
+const RegionalSettings = lazy(() => import("./pages/RegionalSettings"));
 import AdminRoute from "@/components/routing/AdminRoute";
 
 const App = () => (
@@ -87,6 +88,7 @@ const App = () => (
             <Route path="/learn" element={<Learn />} />
             <Route path="/download" element={<DownloadApp />} />
             <Route path="/mobile-app" element={<MobileApp />} />
+            <Route path="/regional-settings" element={<RegionalSettings />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
