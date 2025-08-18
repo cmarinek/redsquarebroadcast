@@ -5,7 +5,13 @@ import heroImage from "@/assets/hero-screen.jpg";
 import { Link } from "react-router-dom";
 import { useTranslation } from 'react-i18next';
 export const Hero = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  
+  // Debug logging
+  console.log('i18n isInitialized:', i18n.isInitialized);
+  console.log('i18n language:', i18n.language);
+  console.log('Translation test:', t('translation.hero.publicAdvertisingTitle'));
+  console.log('Available resources:', i18n.getResourceBundle('en', 'translation'));
   
   return <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
       {/* Background with gradient overlay */}
