@@ -8,38 +8,38 @@ export const Features = () => {
   const features = [
     {
       icon: Monitor,
-      title: t('components.features.smartScreenNetwork'),
-      description: t('components.features.smartScreenNetworkDesc'),
+      title: t('translation.features.smartScreenNetwork'),
+      description: t('translation.features.smartScreenNetworkDesc'),
       gradient: "from-red-primary to-red-secondary"
     },
     {
       icon: Upload,
-      title: t('components.features.easyContentUpload'),
-      description: t('components.features.easyContentUploadDesc'),
+      title: t('translation.features.easyContentUpload'),
+      description: t('translation.features.easyContentUploadDesc'),
       gradient: "from-red-secondary to-red-glow"
     },
     {
       icon: Calendar,
-      title: t('components.features.advancedScheduling'),
-      description: t('components.features.advancedSchedulingDesc'),
+      title: t('translation.features.advancedScheduling'),
+      description: t('translation.features.advancedSchedulingDesc'),
       gradient: "from-red-glow to-red-primary"
     },
     {
       icon: DollarSign,
-      title: t('components.features.flexiblePricing'),
-      description: t('components.features.flexiblePricingDesc'),
+      title: t('translation.features.flexiblePricing'),
+      description: t('translation.features.flexiblePricingDesc'),
       gradient: "from-red-primary to-red-secondary"
     },
     {
       icon: Shield,
-      title: t('components.features.secureReliable'),
-      description: t('components.features.secureReliableDesc'),
+      title: t('translation.features.secureReliable'),
+      description: t('translation.features.secureReliableDesc'),
       gradient: "from-red-secondary to-red-glow"
     },
     {
       icon: Zap,
-      title: t('components.features.realTimeAnalytics'),
-      description: t('components.features.realTimeAnalyticsDesc'),
+      title: t('translation.features.realTimeAnalytics'),
+      description: t('translation.features.realTimeAnalyticsDesc'),
       gradient: "from-red-glow to-red-primary"
     }
   ];
@@ -48,14 +48,14 @@ export const Features = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
           <h2 className="text-4xl lg:text-5xl font-bold mb-4">
-            <span className="text-foreground">{t('components.features.title')}</span>
+            <span className="text-foreground">{t('translation.features.title')}</span>
             <br />
             <span className="bg-gradient-primary bg-clip-text text-transparent">
-              {t('components.features.subtitle')}
+              {t('translation.features.subtitle')}
             </span>
           </h2>
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-            {t('components.features.description')}
+            {t('translation.features.description')}
           </p>
         </div>
 
