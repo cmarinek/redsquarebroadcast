@@ -23,7 +23,9 @@ const resources = {
       no: 'No',
       uploading: 'Uploading...',
       downloading: 'Downloading...',
-      tryAgain: 'Please try again.'
+      tryAgain: 'Please try again.',
+      login: 'Login',
+      logout: 'Logout'
     },
     dashboard: {
       title: "Powerful Dashboard Experience",
@@ -139,7 +141,16 @@ const resources = {
       learn: "Learn",
       downloadApp: "Download App",
       getStarted: "Get Started",
-      howItWorks: "How It Works"
+      howItWorks: "How It Works",
+      home: "Home",
+      features: "Features",
+      pricing: "Pricing",
+      contact: "Contact",
+      login: "Login",
+      signup: "Sign Up",
+      profile: "Profile",
+      settings: "Settings",
+      logout: "Logout"
     },
     components: {
       hero: {
