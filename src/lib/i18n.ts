@@ -127,6 +127,7 @@ const resources = {
   }
 };
 
+// Initialize i18n synchronously
 i18n
   .use(LanguageDetector)
   .use(initReactI18next)
@@ -134,7 +135,7 @@ i18n
     resources,
     lng: 'en',
     fallbackLng: 'en',
-    debug: false, // Disable debug now that issue is fixed
+    debug: false,
     interpolation: {
       escapeValue: false,
     },
@@ -142,10 +143,14 @@ i18n
       order: ['localStorage', 'navigator', 'htmlTag'],
       caches: ['localStorage'],
     },
-    initImmediate: false, // Ensures i18n is ready synchronously
     react: {
-      useSuspense: false, // Disable suspense to avoid loading issues
+      useSuspense: false,
     },
   });
+
+// Ensure i18n is ready before exporting
+if (!i18n.isInitialized) {
+  i18n.init();
+}
 
 export default i18n;
