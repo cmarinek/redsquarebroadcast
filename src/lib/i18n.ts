@@ -78,13 +78,17 @@ i18n
     resources,
     lng: 'en',
     fallbackLng: 'en',
-    debug: false,
+    debug: true, // Enable debug temporarily
     interpolation: {
       escapeValue: false,
     },
     detection: {
       order: ['localStorage', 'navigator', 'htmlTag'],
       caches: ['localStorage'],
+    },
+    initImmediate: false, // Ensures i18n is ready synchronously
+    react: {
+      useSuspense: false, // Disable suspense to avoid loading issues
     },
   });
 
