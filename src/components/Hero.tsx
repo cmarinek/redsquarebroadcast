@@ -23,49 +23,49 @@ export const Hero = () => {
           <div className="text-center lg:text-left">
             {/* Live Badge */}
              <div className="flex justify-center lg:justify-start mb-4">
-               <Badge className="bg-green-500/10 text-green-600 border-green-500/20 px-3 py-1">
-                 <CheckCircle className="w-3 h-3 mr-1" />
-                 {t('components.hero.platformLiveReady')}
-               </Badge>
+                <Badge className="bg-green-500/10 text-green-600 border-green-500/20 px-3 py-1">
+                  <CheckCircle className="w-3 h-3 mr-1" />
+                  {t('hero.platformLiveReady')}
+                </Badge>
              </div>
              
-             <h1 className="text-5xl lg:text-7xl font-bold mb-6 leading-tight">
-               <span className="text-foreground text-6xl">{t('components.hero.publicAdvertisingTitle')}</span>
-               <br />
-               <span className="bg-gradient-primary bg-clip-text text-transparent text-6xl">{t('components.hero.forEveryoneTitle')}</span>
-             </h1>
+              <h1 className="text-5xl lg:text-7xl font-bold mb-6 leading-tight">
+                <span className="text-foreground text-6xl">{t('hero.publicAdvertisingTitle')}</span>
+                <br />
+                <span className="bg-gradient-primary bg-clip-text text-transparent text-6xl">{t('hero.forEveryoneTitle')}</span>
+              </h1>
              
-             <p className="text-xl text-muted-foreground mb-8 max-w-lg">{t('components.hero.subtitle')} </p>
+              <p className="text-xl text-muted-foreground mb-8 max-w-lg">{t('hero.subtitle')} </p>
 
-             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-12">
-               <Button size="lg" asChild className="bg-gradient-primary hover:shadow-[var(--shadow-red)] transition-all duration-300 animate-glow-pulse-4_4s">
-                 <Link to="/discover">
-                   <Play className="mr-2 h-5 w-5" />
-                   {t('components.hero.startBroadcasting')}
-                 </Link>
-               </Button>
-               <Button size="lg" variant="outline" asChild>
-                 <Link to="/demo">
-                   {t('components.hero.viewDemo')}
-                 </Link>
-               </Button>
-             </div>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-12">
+                <Button size="lg" asChild className="bg-gradient-primary hover:shadow-[var(--shadow-red)] transition-all duration-300 animate-glow-pulse-4_4s">
+                  <Link to="/discover">
+                    <Play className="mr-2 h-5 w-5" />
+                    {t('hero.startBroadcasting')}
+                  </Link>
+                </Button>
+                <Button size="lg" variant="outline" asChild>
+                  <Link to="/demo">
+                    {t('hero.viewDemo')}
+                  </Link>
+                </Button>
+              </div>
 
-             {/* Quick stats */}
-             <div className="grid grid-cols-3 gap-6 max-w-md mx-auto lg:mx-0">
-               <div className="text-center">
-                 <div className="text-2xl font-bold text-foreground">10K+</div>
-                 <div className="text-sm text-muted-foreground">{t('components.hero.activeScreens')}</div>
-               </div>
-               <div className="text-center">
-                 <div className="text-2xl font-bold text-foreground">50M+</div>
-                 <div className="text-sm text-muted-foreground">{t('components.hero.monthlyViews')}</div>
-               </div>
-               <div className="text-center">
-                 <div className="text-2xl font-bold text-foreground">99.9%</div>
-                 <div className="text-sm text-muted-foreground">{t('components.hero.uptime')}</div>
-               </div>
-             </div>
+              {/* Quick stats */}
+              <div className="grid grid-cols-3 gap-6 max-w-md mx-auto lg:mx-0">
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-foreground">10K+</div>
+                  <div className="text-sm text-muted-foreground">{t('hero.activeScreens')}</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-foreground">50M+</div>
+                  <div className="text-sm text-muted-foreground">{t('hero.monthlyViews')}</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-foreground">99.9%</div>
+                  <div className="text-sm text-muted-foreground">{t('hero.uptime')}</div>
+                </div>
+              </div>
           </div>
 
           {/* Right Column - Hero Image */}
@@ -76,21 +76,21 @@ export const Hero = () => {
             </div>
 
             {/* Floating UI elements */}
-             <div className="absolute -top-4 -right-4 bg-card border border-border rounded-lg p-4 shadow-lg animate-float">
-               <div className="flex items-center space-x-2">
-                 <div className="w-3 h-3 bg-primary rounded-full animate-pulse-slow"></div>
-                 <span className="text-sm font-medium">{t('components.hero.liveBroadcast')}</span>
-               </div>
-             </div>
+              <div className="absolute -top-4 -right-4 bg-card border border-border rounded-lg p-4 shadow-lg animate-float">
+                <div className="flex items-center space-x-2">
+                  <div className="w-3 h-3 bg-primary rounded-full animate-pulse-slow"></div>
+                  <span className="text-sm font-medium">{t('hero.liveBroadcast')}</span>
+                </div>
+              </div>
 
-             <div className="absolute -bottom-4 -left-4 bg-card border border-border rounded-lg p-4 shadow-lg animate-float" style={{
-             animationDelay: '0.5s'
-           }}>
-               <div className="flex items-center space-x-2">
-                 <Upload className="w-4 h-4 text-primary" />
-                 <span className="text-sm font-medium">{t('components.hero.uploadReady')}</span>
-               </div>
-             </div>
+              <div className="absolute -bottom-4 -left-4 bg-card border border-border rounded-lg p-4 shadow-lg animate-float" style={{
+              animationDelay: '0.5s'
+            }}>
+                <div className="flex items-center space-x-2">
+                  <Upload className="w-4 h-4 text-primary" />
+                  <span className="text-sm font-medium">{t('hero.uploadReady')}</span>
+                </div>
+              </div>
           </div>
         </div>
       </div>

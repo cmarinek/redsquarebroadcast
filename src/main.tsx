@@ -3,7 +3,6 @@ import { BrowserRouter } from 'react-router-dom'
 import App from './App.tsx'
 import MobileApp from './pages/MobileApp.tsx'
 import './index.css'
-import './lib/i18n.ts'
 import { Toaster } from "@/components/ui/toaster"
 import { AuthProvider } from '@/context/AuthContext'
 import { LanguageProvider } from '@/contexts/LanguageContext'
@@ -13,6 +12,8 @@ import { initErrorReporting } from '@/utils/errorReporting'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
 import { cleanupAuthState } from '@/utils/authCleanup'
 import { supabase, SUPABASE_PROJECT_REF } from '@/integrations/supabase/client'
+import i18n from './lib/i18n'
+import { I18nextProvider } from 'react-i18next'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -61,12 +62,14 @@ createRoot(document.getElementById("root")!).render(
   <ErrorBoundary>
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
-        <LanguageProvider>
-          <AuthProvider>
-            {isMobileApp ? <MobileApp /> : <App />}
-            <Toaster />
-          </AuthProvider>
-        </LanguageProvider>
+        <I18nextProvider i18n={i18n}>
+          <LanguageProvider>
+            <AuthProvider>
+              {isMobileApp ? <MobileApp /> : <App />}
+              <Toaster />
+            </AuthProvider>
+          </LanguageProvider>
+        </I18nextProvider>
       </BrowserRouter>
     </QueryClientProvider>
   </ErrorBoundary>
