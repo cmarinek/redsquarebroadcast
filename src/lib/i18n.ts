@@ -138,11 +138,34 @@ const resources = {
         subtitle: "Upload your content to nearby digital screens instantly. Turn any screen into an advertising opportunity.",
         uploadContent: "Upload Content",
         discoverScreens: "Discover Screens",
-        registerScreen: "Register Your Screen"
+        registerScreen: "Register Your Screen",
+        platformLiveReady: "Platform Live & Ready",
+        publicAdvertisingTitle: "PUBLIC ADVERTISING",
+        forEveryoneTitle: "FOR EVERYONE",
+        startBroadcasting: "Start Broadcasting",
+        viewDemo: "View Demo",
+        activeScreens: "Active Screens",
+        monthlyViews: "Monthly Views",
+        uptime: "Uptime",
+        liveBroadcast: "Live Broadcast",
+        uploadReady: "Upload Ready"
       },
       features: {
         title: "Why Choose Red Square?",
         subtitle: "Everything you need to succeed in digital advertising",
+        description: "Transform how advertising works with our innovative platform that connects broadcasters directly with screen owners.",
+        smartScreenNetwork: "Smart Screen Network",
+        smartScreenNetworkDesc: "Connect with thousands of screens worldwide through our intelligent matching system.",
+        easyContentUpload: "Easy Content Upload",
+        easyContentUploadDesc: "Upload your content in seconds with support for images, videos, and interactive media.",
+        advancedScheduling: "Advanced Scheduling",
+        advancedSchedulingDesc: "Schedule your campaigns with precision timing and automated optimization.",
+        flexiblePricing: "Flexible Pricing",
+        flexiblePricingDesc: "Choose from multiple pricing models that fit your budget and campaign goals.",
+        secureReliable: "Secure & Reliable",
+        secureReliableDesc: "Enterprise-grade security with 99.9% uptime guarantee for your campaigns.",
+        realTimeAnalytics: "Real-time Analytics",
+        realTimeAnalyticsDesc: "Track performance, engagement, and ROI with comprehensive analytics dashboard.",
         accessibleAdvertising: {
           title: "Accessible Advertising",
           description: "No minimum spends, complex contracts, or lengthy approval processes. Just upload and broadcast."
@@ -159,10 +182,6 @@ const resources = {
           title: "Instant Broadcasting",
           description: "Upload your content and see it live on screens within minutes."
         },
-        flexiblePricing: {
-          title: "Flexible Pricing",
-          description: "Screen owners set their own rates. Broadcasters choose what works for their budget."
-        },
         globalReach: {
           title: "Global Reach",
           description: "Connect with screens and audiences worldwide through our growing network."
@@ -171,6 +190,12 @@ const resources = {
       howItWorks: {
         title: "How Red Square Works",
         subtitle: "Getting started is simple",
+        step1Title: "Discover & Connect",
+        step1Desc: "Find screens near you or register your own screen to start earning revenue.",
+        step2Title: "Upload & Schedule", 
+        step2Desc: "Upload your content and schedule when it should be displayed on target screens.",
+        step3Title: "Track & Optimize",
+        step3Desc: "Monitor performance in real-time and optimize your campaigns for better results.",
         forBroadcasters: {
           title: "For Broadcasters",
           step1: {
@@ -237,7 +262,21 @@ const resources = {
         newsletter: "Subscribe to our newsletter",
         emailPlaceholder: "Enter your email",
         subscribe: "Subscribe",
-        allRightsReserved: "All rights reserved."
+        allRightsReserved: "All rights reserved.",
+        brandDescription: "Democratizing screen-based advertising for everyone. Connect broadcasters with screen owners worldwide.",
+        platform: "Platform",
+        forAdvertisers: "For Advertisers",
+        forScreenOwners: "For Screen Owners", 
+        hardwareSolutions: "Hardware Solutions",
+        apiDocumentation: "API Documentation",
+        helpCenter: "Help Center",
+        gettingStarted: "Getting Started",
+        productionPlan: "Production Plan",
+        technicalSupport: "Technical Support",
+        contactSales: "Contact Sales",
+        privacyPolicy: "Privacy Policy",
+        termsOfService: "Terms of Service",
+        cookiePolicy: "Cookie Policy"
       }
     },
     screenDiscovery: {
