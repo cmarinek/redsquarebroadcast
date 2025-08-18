@@ -54,7 +54,7 @@ const ScreenRegistration = () => {
     const validation = validateForm(formData);
     if (!validation.success) {
       toast({
-        title: t('common.error'),
+        title: t('translation.common.error'),
         description: t('errors.validationFailed'),
         variant: "destructive"
       });
@@ -101,7 +101,7 @@ const ScreenRegistration = () => {
         title: t('pages.screenRegistration.registrationFailed'),
         description: isConstraintError 
           ? t('pages.screenRegistration.duplicateScreenError')
-          : `${t('common.error')}: ${errorMessage}`,
+          : `${t('translation.common.error')}: ${errorMessage}`,
         variant: "destructive"
       });
     } finally {
@@ -377,7 +377,7 @@ const ScreenRegistration = () => {
                   className="flex-1"
                   disabled={loading}
                 >
-                  {t('common.cancel')}
+                  {t('translation.common.cancel')}
                 </Button>
                 <Button 
                   type="submit" 

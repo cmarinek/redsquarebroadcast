@@ -39,7 +39,7 @@ const RegionalSettings: React.FC = () => {
         <div className="container mx-auto py-8 px-4">
           <div className="flex items-center justify-center min-h-[400px]">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-            <span className="ml-3 text-muted-foreground">{t('common.loading')}</span>
+            <span className="ml-3 text-muted-foreground">{t('translation.common.loading')}</span>
           </div>
         </div>
       </Layout>
