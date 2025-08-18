@@ -8,38 +8,38 @@ export const Features = () => {
   const features = [
     {
       icon: Monitor,
-      title: t('translation.features.smartScreenNetwork'),
-      description: t('translation.features.smartScreenNetworkDesc'),
+      title: t('features.smartScreenNetwork'),
+      description: t('features.smartScreenNetworkDesc'),
       gradient: "from-red-primary to-red-secondary"
     },
     {
       icon: Upload,
-      title: t('translation.features.easyContentUpload'),
-      description: t('translation.features.easyContentUploadDesc'),
+      title: t('features.easyContentUpload'),
+      description: t('features.easyContentUploadDesc'),
       gradient: "from-red-secondary to-red-glow"
     },
     {
       icon: Calendar,
-      title: t('translation.features.advancedScheduling'),
-      description: t('translation.features.advancedSchedulingDesc'),
+      title: t('features.advancedScheduling'),
+      description: t('features.advancedSchedulingDesc'),
       gradient: "from-red-glow to-red-primary"
     },
     {
       icon: DollarSign,
-      title: t('translation.features.flexiblePricing'),
-      description: t('translation.features.flexiblePricingDesc'),
+      title: t('features.flexiblePricing'),
+      description: t('features.flexiblePricingDesc'),
       gradient: "from-red-primary to-red-secondary"
     },
     {
       icon: Shield,
-      title: t('translation.features.secureReliable'),
-      description: t('translation.features.secureReliableDesc'),
+      title: t('features.secureReliable'),
+      description: t('features.secureReliableDesc'),
       gradient: "from-red-secondary to-red-glow"
     },
     {
       icon: Zap,
-      title: t('translation.features.realTimeAnalytics'),
-      description: t('translation.features.realTimeAnalyticsDesc'),
+      title: t('features.realTimeAnalytics'),
+      description: t('features.realTimeAnalyticsDesc'),
       gradient: "from-red-glow to-red-primary"
     }
   ];
@@ -48,14 +48,14 @@ export const Features = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
           <h2 className="text-4xl lg:text-5xl font-bold mb-4">
-            <span className="text-foreground">{t('translation.features.title')}</span>
+            <span className="text-foreground">{t('features.title')}</span>
             <br />
             <span className="bg-gradient-primary bg-clip-text text-transparent">
-              {t('translation.features.subtitle')}
+              {t('features.subtitle')}
             </span>
           </h2>
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-            {t('translation.features.description')}
+            {t('features.description')}
           </p>
         </div>
 

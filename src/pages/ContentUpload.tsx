@@ -224,7 +224,7 @@ export default function ContentUpload() {
         title: t('pages.contentUpload.uploadFailed'),
         description: isNetworkError 
           ? t('pages.contentUpload.networkErrorDescription')
-          : `${t('translation.common.error')}: ${errorMessage}`,
+          : `${t('common.error')}: ${errorMessage}`,
         variant: "destructive"
       });
     } finally {

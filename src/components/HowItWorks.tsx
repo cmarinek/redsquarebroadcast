@@ -10,20 +10,20 @@ export const HowItWorks = () => {
     {
       number: "01",
       icon: Upload,
-      title: t('translation.howItWorks.step1Title'),
-      description: t('translation.howItWorks.step1Desc')
+      title: t('howItWorks.step1Title'),
+      description: t('howItWorks.step1Desc')
     },
     {
       number: "02",
       icon: Monitor,
-      title: t('translation.howItWorks.step2Title'),
-      description: t('translation.howItWorks.step2Desc')
+      title: t('howItWorks.step2Title'),
+      description: t('howItWorks.step2Desc')
     },
     {
       number: "03",
       icon: DollarSign,
-      title: t('translation.howItWorks.step3Title'),
-      description: t('translation.howItWorks.step3Desc')
+      title: t('howItWorks.step3Title'),
+      description: t('howItWorks.step3Desc')
     }
   ];
   return (
@@ -31,14 +31,14 @@ export const HowItWorks = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
           <h2 className="text-4xl lg:text-5xl font-bold mb-4">
-            <span className="text-foreground">{t('translation.howItWorks.title')}</span>
+            <span className="text-foreground">{t('howItWorks.title')}</span>
             <br />
             <span className="bg-gradient-primary bg-clip-text text-transparent">
-              {t('translation.howItWorks.subtitle')}
+              {t('howItWorks.subtitle')}
             </span>
           </h2>
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-            {t('translation.howItWorks.description')}
+            {t('howItWorks.description')}
           </p>
         </div>
 
@@ -75,31 +75,31 @@ export const HowItWorks = () => {
         <div className="grid lg:grid-cols-2 gap-12 items-center">
           <div>
             <h3 className="text-3xl font-bold mb-6">
-              <span className="text-foreground">{t('translation.howItWorks.professionalTitle')}</span>
+              <span className="text-foreground">{t('howItWorks.professionalTitle')}</span>
               <br />
               <span className="bg-gradient-primary bg-clip-text text-transparent">
-                {t('translation.howItWorks.hardwareSolutionTitle')}
+                {t('howItWorks.hardwareSolutionTitle')}
               </span>
             </h3>
             <p className="text-lg text-muted-foreground mb-6">
-              {t('translation.howItWorks.hardwareDescription')}
+              {t('howItWorks.hardwareDescription')}
             </p>
             <ul className="space-y-3 text-muted-foreground">
               <li className="flex items-center">
                 <div className="w-2 h-2 bg-primary rounded-full mr-3"></div>
-                {t('translation.howItWorks.feature4kSupport')}
+                {t('howItWorks.feature4kSupport')}
               </li>
               <li className="flex items-center">
                 <div className="w-2 h-2 bg-primary rounded-full mr-3"></div>
-                {t('translation.howItWorks.featureConnectivity')}
+                {t('howItWorks.featureConnectivity')}
               </li>
               <li className="flex items-center">
                 <div className="w-2 h-2 bg-primary rounded-full mr-3"></div>
-                {t('translation.howItWorks.featureRemoteManagement')}
+                {t('howItWorks.featureRemoteManagement')}
               </li>
               <li className="flex items-center">
                 <div className="w-2 h-2 bg-primary rounded-full mr-3"></div>
-                {t('translation.howItWorks.featureMonitoring')}
+                {t('howItWorks.featureMonitoring')}
               </li>
             </ul>
           </div>

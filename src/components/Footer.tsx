@@ -18,7 +18,7 @@ export const Footer = () => {
               <span className="text-xl font-bold text-foreground">Red Square</span>
             </div>
             <p className="text-muted-foreground">
-              {t('translation.footer.brandDescription')}
+              {t('footer.brandDescription')}
             </p>
           </div>
 
@@ -47,7 +47,7 @@ export const Footer = () => {
 
           {/* Contact */}
           <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-foreground">{t('translation.footer.contact')}</h3>
+            <h3 className="text-lg font-semibold text-foreground">{t('footer.contact')}</h3>
             <div className="space-y-3">
               <div className="flex items-center space-x-2 text-muted-foreground">
                 <Mail className="w-4 h-4" />
