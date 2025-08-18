@@ -14,12 +14,14 @@ import { useAuth } from "@/context/AuthContext";
 import { LoadingOverlay } from "@/components/ui/loading-spinner";
 import { useFormValidation } from "@/hooks/useFormValidation";
 import { screenRegistrationSchema } from "@/utils/validation";
+import { useTranslation } from 'react-i18next';
 
 const ScreenRegistration = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
+  const { t } = useTranslation();
   const [formData, setFormData] = useState({
     screen_name: "",
     address: "",
@@ -52,8 +54,8 @@ const ScreenRegistration = () => {
     const validation = validateForm(formData);
     if (!validation.success) {
       toast({
-        title: "Please fix validation errors",
-        description: "Check the form for errors and try again.",
+        title: t('common.error'),
+        description: t('errors.validationFailed'),
         variant: "destructive"
       });
       return;
@@ -84,8 +86,8 @@ const ScreenRegistration = () => {
       if (error) throw error;
 
       toast({
-        title: "Screen registered successfully!",
-        description: "Your screen is now available for booking.",
+        title: t('pages.screenRegistration.screenRegisteredSuccess'),
+        description: t('pages.screenRegistration.screenRegisteredDescription'),
       });
 
       navigate(`/screen/${screenId}`);
@@ -96,10 +98,10 @@ const ScreenRegistration = () => {
       const isConstraintError = errorMessage.includes('unique') || errorMessage.includes('duplicate');
       
       toast({
-        title: "Registration failed",
+        title: t('pages.screenRegistration.registrationFailed'),
         description: isConstraintError 
-          ? "A screen with this information already exists. Please try different details."
-          : `Error: ${errorMessage}`,
+          ? t('pages.screenRegistration.duplicateScreenError')
+          : `${t('common.error')}: ${errorMessage}`,
         variant: "destructive"
       });
     } finally {
@@ -110,8 +112,8 @@ const ScreenRegistration = () => {
   const getCurrentLocation = () => {
     if (!navigator.geolocation) {
       toast({
-        title: "Geolocation not supported",
-        description: "Please enter coordinates manually.",
+        title: t('pages.screenRegistration.geolocationNotSupported'),
+        description: t('pages.screenRegistration.enterCoordinatesManually'),
         variant: "destructive"
       });
       return;
@@ -132,27 +134,27 @@ const ScreenRegistration = () => {
         markFieldAsTouched('location_lng');
         
         toast({
-          title: "Location detected",
-          description: "GPS coordinates have been automatically filled.",
+          title: t('pages.screenRegistration.locationDetected'),
+          description: t('pages.screenRegistration.locationDetectedDescription'),
         });
       },
       (error) => {
-        let errorMessage = "Please enter coordinates manually.";
+        let errorMessage = t('pages.screenRegistration.enterCoordinatesManually');
         
         switch (error.code) {
           case error.PERMISSION_DENIED:
-            errorMessage = "Location access denied. Please enable location services.";
+            errorMessage = t('pages.screenRegistration.locationAccessDenied');
             break;
           case error.POSITION_UNAVAILABLE:
-            errorMessage = "Location information unavailable.";
+            errorMessage = t('pages.screenRegistration.locationUnavailable');
             break;
           case error.TIMEOUT:
-            errorMessage = "Location request timed out.";
+            errorMessage = t('pages.screenRegistration.locationTimeout');
             break;
         }
         
         toast({
-          title: "Location access failed",
+          title: t('pages.screenRegistration.locationAccessFailed'),
           description: errorMessage,
           variant: "destructive"
         });
@@ -169,15 +171,15 @@ const ScreenRegistration = () => {
     <div className="min-h-screen bg-background">
       <Navigation />
       
-      <LoadingOverlay isLoading={loading} loadingText="Registering your screen...">
+      <LoadingOverlay isLoading={loading} loadingText={t('pages.screenRegistration.registeringScreen')}>
         <div className="container mx-auto px-4 py-8">
           <div className="max-w-2xl mx-auto">
             <div className="mb-8">
               <h1 className="text-3xl font-bold text-foreground mb-2">
-                Register Your Screen
+                {t('pages.screenRegistration.title')}
               </h1>
               <p className="text-muted-foreground">
-                Add your digital screen to the Red Square network and start earning
+                {t('pages.screenRegistration.subtitle')}
               </p>
             </div>
 
@@ -186,18 +188,18 @@ const ScreenRegistration = () => {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Monitor className="h-5 w-5" />
-                    Screen Details
+                    {t('pages.screenRegistration.screenDetails')}
                   </CardTitle>
                   <CardDescription>
-                    Basic information about your screen
+                    {t('pages.screenRegistration.screenDetailsDescription')}
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="screen_name">Screen Name *</Label>
+                    <Label htmlFor="screen_name">{t('pages.screenRegistration.screenNameLabel')}</Label>
                     <Input
                       id="screen_name"
-                      placeholder="e.g., Downtown Coffee Shop Display"
+                      placeholder={t('pages.screenRegistration.screenNamePlaceholder')}
                       value={formData.screen_name}
                       onChange={(e) => handleInputChange('screen_name', e.target.value)}
                       className={getFieldError('screen_name') ? 'border-destructive' : ''}
@@ -209,10 +211,10 @@ const ScreenRegistration = () => {
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="address">Address *</Label>
+                      <Label htmlFor="address">{t('pages.screenRegistration.addressLabel')}</Label>
                       <Input
                         id="address"
-                        placeholder="123 Main Street"
+                        placeholder={t('pages.screenRegistration.addressPlaceholder')}
                         value={formData.address}
                         onChange={(e) => handleInputChange('address', e.target.value)}
                         className={getFieldError('address') ? 'border-destructive' : ''}
@@ -222,10 +224,10 @@ const ScreenRegistration = () => {
                       )}
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="city">City *</Label>
+                      <Label htmlFor="city">{t('pages.screenRegistration.cityLabel')}</Label>
                       <Input
                         id="city"
-                        placeholder="New York"
+                        placeholder={t('pages.screenRegistration.cityPlaceholder')}
                         value={formData.city}
                         onChange={(e) => handleInputChange('city', e.target.value)}
                         className={getFieldError('city') ? 'border-destructive' : ''}
@@ -242,10 +244,10 @@ const ScreenRegistration = () => {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <MapPin className="h-5 w-5" />
-                    Location
+                    {t('pages.screenRegistration.locationTitle')}
                   </CardTitle>
                   <CardDescription>
-                    Help users find your screen
+                    {t('pages.screenRegistration.locationDescription')}
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -258,17 +260,17 @@ const ScreenRegistration = () => {
                       disabled={loading}
                     >
                       <MapPin className="h-4 w-4" />
-                      Use Current Location
+                      {t('pages.screenRegistration.useCurrentLocation')}
                     </Button>
-                    <span className="text-sm text-muted-foreground">or enter manually</span>
+                    <span className="text-sm text-muted-foreground">{t('pages.screenRegistration.orEnterManually')}</span>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="location_lat">Latitude</Label>
+                      <Label htmlFor="location_lat">{t('pages.screenRegistration.latitudeLabel')}</Label>
                       <Input
                         id="location_lat"
-                        placeholder="40.7128"
+                        placeholder={t('pages.screenRegistration.latitudePlaceholder')}
                         type="number"
                         step="any"
                         value={formData.location_lat}
@@ -280,10 +282,10 @@ const ScreenRegistration = () => {
                       )}
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="location_lng">Longitude</Label>
+                      <Label htmlFor="location_lng">{t('pages.screenRegistration.longitudeLabel')}</Label>
                       <Input
                         id="location_lng"
-                        placeholder="-74.0060"
+                        placeholder={t('pages.screenRegistration.longitudePlaceholder')}
                         type="number"
                         step="any"
                         value={formData.location_lng}
@@ -302,21 +304,21 @@ const ScreenRegistration = () => {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <DollarSign className="h-5 w-5" />
-                    Pricing & Availability
+                    {t('pages.screenRegistration.pricingTitle')}
                   </CardTitle>
                   <CardDescription>
-                    Set your rates and operating hours
+                    {t('pages.screenRegistration.pricingDescription')}
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="price_per_hour">Price per Hour (USD) *</Label>
+                    <Label htmlFor="price_per_hour">{t('pages.screenRegistration.pricePerHourLabel')}</Label>
                     <Input
                       id="price_per_hour"
                       type="number"
                       min="1"
                       max="10000"
-                      placeholder="25"
+                      placeholder={t('pages.screenRegistration.pricePerHourPlaceholder')}
                       value={formData.price_per_hour}
                       onChange={(e) => handleInputChange('price_per_hour', e.target.value)}
                       className={getFieldError('price_per_hour') ? 'border-destructive' : ''}
@@ -325,13 +327,13 @@ const ScreenRegistration = () => {
                       <p className="text-sm text-destructive">{getFieldError('price_per_hour')}</p>
                     )}
                     <p className="text-xs text-muted-foreground">
-                      Red Square takes a 10% platform fee
+                      {t('pages.screenRegistration.platformFeeNote')}
                     </p>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="availability_start">Available From *</Label>
+                      <Label htmlFor="availability_start">{t('pages.screenRegistration.availableFromLabel')}</Label>
                       <Input
                         id="availability_start"
                         type="time"
@@ -344,7 +346,7 @@ const ScreenRegistration = () => {
                       )}
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="availability_end">Available Until *</Label>
+                      <Label htmlFor="availability_end">{t('pages.screenRegistration.availableUntilLabel')}</Label>
                       <Input
                         id="availability_end"
                         type="time"
@@ -363,7 +365,7 @@ const ScreenRegistration = () => {
               <Alert>
                 <QrCode className="h-4 w-4" />
                 <AlertDescription>
-                  After registration, you'll receive a unique QR code that users can scan to find and book your screen.
+                  {t('pages.screenRegistration.qrCodeNote')}
                 </AlertDescription>
               </Alert>
 
@@ -375,14 +377,14 @@ const ScreenRegistration = () => {
                   className="flex-1"
                   disabled={loading}
                 >
-                  Cancel
+                  {t('common.cancel')}
                 </Button>
                 <Button 
                   type="submit" 
                   disabled={loading || hasErrors}
                   className="flex-1"
                 >
-                  {loading ? "Registering..." : "Register Screen"}
+                  {loading ? t('pages.screenRegistration.registering') : t('pages.screenRegistration.registerScreen')}
                 </Button>
               </div>
             </form>

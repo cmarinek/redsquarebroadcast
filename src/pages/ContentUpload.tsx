@@ -13,6 +13,7 @@ import { LoadingOverlay } from "@/components/ui/loading-spinner";
 import { useFormValidation } from "@/hooks/useFormValidation";
 import { contentUploadSchema, moderationChecks } from "@/utils/validation";
 import { z } from "zod";
+import { useTranslation } from 'react-i18next';
 
 interface UploadedFile {
   file: File;
@@ -25,6 +26,7 @@ export default function ContentUpload() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { t } = useTranslation();
   
   const [uploadedFile, setUploadedFile] = useState<UploadedFile | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -41,12 +43,12 @@ export default function ContentUpload() {
     // File type validation
     const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'video/mp4'];
     if (!allowedTypes.includes(file.type)) {
-      errors.push("Invalid file type. Please upload JPG, PNG, GIF, or MP4 files only.");
+      errors.push(t('pages.contentUpload.invalidFileType'));
     }
 
     // File size validation
     if (file.size > 50 * 1024 * 1024) {
-      errors.push("File too large. Maximum size is 50MB.");
+      errors.push(t('pages.contentUpload.fileTooLarge'));
     }
 
     // Content moderation checks
@@ -76,7 +78,7 @@ export default function ContentUpload() {
     if (errors.length > 0) {
       setValidationErrors(errors);
       toast({
-        title: "File validation failed",
+        title: t('pages.contentUpload.fileValidationFailed'),
         description: errors[0],
         variant: "destructive"
       });
@@ -121,8 +123,8 @@ export default function ContentUpload() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         toast({
-          title: "Authentication required",
-          description: "Please log in to upload content.",
+          title: t('pages.contentUpload.authenticationRequired'),
+          description: t('pages.contentUpload.authenticationRequiredDescription'),
           variant: "destructive"
         });
         return;
@@ -195,16 +197,16 @@ export default function ContentUpload() {
       // Check moderation results
       if (moderationResult && !moderationResult.approved) {
         toast({
-          title: "Content not approved",
-          description: `Your content was rejected: ${moderationResult.issues?.join(', ') || 'Content policy violation'}`,
+          title: t('pages.contentUpload.contentNotApproved'),
+          description: `${t('errors.somethingWentWrong')}: ${moderationResult.issues?.join(', ') || 'Content policy violation'}`,
           variant: "destructive"
         });
         return;
       }
 
       toast({
-        title: "Content uploaded successfully!",
-        description: moderationResult?.approved ? "Content approved and ready for scheduling" : "Proceeding to scheduling..."
+        title: t('pages.contentUpload.contentUploadedSuccess'),
+        description: moderationResult?.approved ? t('pages.contentUpload.contentApproved') : t('pages.contentUpload.proceedingToScheduling')
       });
 
       // Navigate to scheduling with content ID
@@ -219,10 +221,10 @@ export default function ContentUpload() {
       const isNetworkError = error?.code === 'NETWORK_ERROR' || !navigator.onLine;
       
       toast({
-        title: "Upload failed",
+        title: t('pages.contentUpload.uploadFailed'),
         description: isNetworkError 
-          ? "Network error. Please check your connection and try again."
-          : `Upload error: ${errorMessage}`,
+          ? t('pages.contentUpload.networkErrorDescription')
+          : `${t('common.error')}: ${errorMessage}`,
         variant: "destructive"
       });
     } finally {
@@ -234,7 +236,7 @@ export default function ContentUpload() {
 
   return (
     <Layout>
-      <LoadingOverlay isLoading={uploading} loadingText="Uploading and processing content...">
+      <LoadingOverlay isLoading={uploading} loadingText={t('pages.contentUpload.uploadingAndProcessing')}>
         <div className="container mx-auto px-4 py-8">
           <div className="max-w-2xl mx-auto">
             <div className="mb-8">
@@ -244,14 +246,14 @@ export default function ContentUpload() {
                 className="mb-4"
                 disabled={uploading}
               >
-                ← Back to Screen Details
+                {t('pages.contentUpload.backToScreenDetails')}
               </Button>
               
               <h1 className="text-3xl font-bold text-foreground mb-2">
-                Upload Your Content
+                {t('pages.contentUpload.title')}
               </h1>
               <p className="text-muted-foreground">
-                Upload images, videos, or GIFs to broadcast on the selected screen
+                {t('pages.contentUpload.subtitle')}
               </p>
             </div>
 
@@ -261,7 +263,7 @@ export default function ContentUpload() {
                 <AlertTriangle className="h-4 w-4" />
                 <AlertDescription>
                   <div>
-                    <strong>Content Validation Issues:</strong>
+                    <strong>{t('pages.contentUpload.contentValidationIssues')}</strong>
                     <ul className="list-disc list-inside mt-2 space-y-1">
                       {validationErrors.map((error, index) => (
                         <li key={index} className="text-sm">{error}</li>
@@ -275,9 +277,9 @@ export default function ContentUpload() {
           {!uploadedFile ? (
             <Card>
               <CardHeader>
-                <CardTitle>Select Content</CardTitle>
+                <CardTitle>{t('pages.contentUpload.selectContent')}</CardTitle>
                 <CardDescription>
-                  Supported formats: JPG, PNG, GIF, MP4 (max 50MB)
+                  {t('pages.contentUpload.supportedFormats')}
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -286,28 +288,28 @@ export default function ContentUpload() {
                   onClick={() => fileInputRef.current?.click()}
                 >
                   <Upload className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                  <h3 className="text-lg font-medium mb-2">Drag & Drop or Click to Upload</h3>
+                  <h3 className="text-lg font-medium mb-2">{t('pages.contentUpload.dragDropOrClick')}</h3>
                   <p className="text-muted-foreground mb-4">
-                    Choose from your device or drag files here
+                    {t('pages.contentUpload.chooseFromDevice')}
                   </p>
                   
                   <div className="flex justify-center gap-4 mb-6">
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
                       <Image className="h-4 w-4" />
-                      Images
+                      {t('pages.contentUpload.images')}
                     </div>
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
                       <Video className="h-4 w-4" />
-                      Videos
+                      {t('pages.contentUpload.videos')}
                     </div>
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
                       <FileText className="h-4 w-4" />
-                      GIFs
+                      {t('pages.contentUpload.gifs')}
                     </div>
                   </div>
                   
                   <Button>
-                    Choose File
+                    {t('pages.contentUpload.chooseFile')}
                   </Button>
                 </div>
                 
@@ -327,7 +329,7 @@ export default function ContentUpload() {
                 <CardHeader>
                   <div className="flex justify-between items-center">
                     <div>
-                      <CardTitle>Content Preview</CardTitle>
+                      <CardTitle>{t('pages.contentUpload.contentPreview')}</CardTitle>
                       <CardDescription>{uploadedFile.file.name}</CardDescription>
                     </div>
                     <Badge variant="outline" className="capitalize">
@@ -375,13 +377,13 @@ export default function ContentUpload() {
                   
                   <div className="grid grid-cols-2 gap-4 text-sm">
                     <div>
-                      <span className="font-medium">File size:</span>
+                      <span className="font-medium">{t('pages.contentUpload.fileSize')}</span>
                       <p className="text-muted-foreground">
                         {(uploadedFile.file.size / (1024 * 1024)).toFixed(2)} MB
                       </p>
                     </div>
                     <div>
-                      <span className="font-medium">Type:</span>
+                      <span className="font-medium">{t('pages.contentUpload.type')}</span>
                       <p className="text-muted-foreground capitalize">
                         {uploadedFile.type}
                       </p>
@@ -396,7 +398,7 @@ export default function ContentUpload() {
                   <CardContent className="p-6">
                     <div className="space-y-2">
                       <div className="flex justify-between text-sm">
-                        <span>Uploading...</span>
+                        <span>{t('pages.contentUpload.uploading')}</span>
                         <span>{uploadProgress}%</span>
                       </div>
                       <Progress value={uploadProgress} />
@@ -413,14 +415,14 @@ export default function ContentUpload() {
                   disabled={uploading}
                   className="flex-1"
                 >
-                  Choose Different File
+                  {t('pages.contentUpload.chooseDifferentFile')}
                 </Button>
                 <Button 
                   onClick={uploadToSupabase}
                   disabled={uploading}
                   className="flex-1"
                 >
-                  {uploading ? "Uploading..." : "Continue to Scheduling"}
+                  {uploading ? t('pages.contentUpload.uploading') : t('pages.contentUpload.continueToScheduling')}
                 </Button>
               </div>
             </div>

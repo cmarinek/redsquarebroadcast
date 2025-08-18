@@ -11,6 +11,7 @@ import { Layout } from "@/components/Layout";
 import MapboxMap from "@/components/maps/MapboxMap";
 import { QrScanner } from "@yudiel/react-qr-scanner";
 import SEO from "@/components/SEO";
+import { useTranslation } from 'react-i18next';
 
 
 interface Screen {
@@ -31,6 +32,7 @@ export default function ScreenDiscovery() {
   const [showScanner, setShowScanner] = useState(false);
   const watchIdRef = useRef<number | null>(null);
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   useEffect(() => {
     fetchScreens("");
@@ -154,10 +156,10 @@ const orderedScreens = [...filteredScreens].sort((a, b) => {
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-8">
             <h1 className="text-4xl font-bold text-foreground mb-4">
-              Discover Screens
+              {t('pages.screenDiscovery.title')}
             </h1>
             <p className="text-muted-foreground text-lg">
-              Find the perfect screen to broadcast your content
+              {t('pages.screenDiscovery.subtitle')}
             </p>
           </div>
 
@@ -166,7 +168,7 @@ const orderedScreens = [...filteredScreens].sort((a, b) => {
             <div className="flex-1 relative">
               <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Search by city, screen name, or location..."
+                placeholder={t('pages.screenDiscovery.searchPlaceholder')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-10"
@@ -174,7 +176,7 @@ const orderedScreens = [...filteredScreens].sort((a, b) => {
             </div>
             <Button onClick={handleQRScan} variant="outline" className="flex items-center gap-2">
               <QrCode className="h-4 w-4" />
-              Scan QR Code
+              {t('pages.screenDiscovery.scanQrCode')}
             </Button>
           </div>
 
@@ -194,7 +196,7 @@ const orderedScreens = [...filteredScreens].sort((a, b) => {
           <Dialog open={showScanner} onOpenChange={setShowScanner}>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Scan Screen QR Code</DialogTitle>
+                <DialogTitle>{t('pages.screenDiscovery.scanScreenQrCode')}</DialogTitle>
               </DialogHeader>
               <div className="rounded overflow-hidden">
                 <QrScanner
@@ -208,7 +210,7 @@ const orderedScreens = [...filteredScreens].sort((a, b) => {
 
           {/* Screens List */}
           <div className="space-y-4">
-            <h2 className="text-2xl font-semibold mb-4">Available Screens</h2>
+            <h2 className="text-2xl font-semibold mb-4">{t('pages.screenDiscovery.availableScreens')}</h2>
             
             {loading ? (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -226,8 +228,8 @@ const orderedScreens = [...filteredScreens].sort((a, b) => {
               <Card>
                 <CardContent className="p-8 text-center">
                   <MapPin className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                  <p className="text-lg font-medium mb-2">No screens found</p>
-                  <p className="text-muted-foreground">Try adjusting your search criteria</p>
+                  <p className="text-lg font-medium mb-2">{t('pages.screenDiscovery.noScreensFound')}</p>
+                  <p className="text-muted-foreground">{t('pages.screenDiscovery.noScreensDescription')}</p>
                 </CardContent>
               </Card>
             ) : (
@@ -238,14 +240,14 @@ const orderedScreens = [...filteredScreens].sort((a, b) => {
                       <div className="flex justify-between items-start">
                         <div>
                           <CardTitle className="text-lg">
-                            {screen.screen_name || "Digital Screen"}
+                            {screen.screen_name || t('pages.screenDiscovery.digitalScreen')}
                           </CardTitle>
                           <CardDescription className="flex items-center gap-1 mt-1">
                             <MapPin className="h-4 w-4" />
-                            {screen.location || 'Location not specified'}
+                            {screen.location || t('pages.screenDiscovery.locationNotSpecified')}
                             {coords && screen.latitude != null && screen.longitude != null && (
                               <span className="ml-2 text-xs text-muted-foreground">
-                                {distanceKm(coords, { lat: screen.latitude, lng: screen.longitude }).toFixed(1)} km away
+                                {distanceKm(coords, { lat: screen.latitude, lng: screen.longitude }).toFixed(1)} {t('pages.screenDiscovery.kmAway')}
                               </span>
                             )}
                           </CardDescription>
@@ -271,7 +273,7 @@ const orderedScreens = [...filteredScreens].sort((a, b) => {
                         className="w-full"
                         onClick={() => navigate(`/screen/${screen.id}`)}
                       >
-                        View Details & Book
+                        {t('pages.screenDiscovery.viewDetailsAndBook')}
                       </Button>
                     </CardContent>
                   </Card>
