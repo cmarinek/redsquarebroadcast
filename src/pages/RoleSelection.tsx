@@ -8,6 +8,7 @@ import { Loader2, Monitor, User } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Navigation } from "@/components/Navigation";
 import { useAuth } from "@/context/AuthContext";
+import { useTranslation } from "react-i18next";
 
 const RoleSelection = () => {
   const [loading, setLoading] = useState(false);
@@ -16,6 +17,7 @@ const RoleSelection = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { user } = useAuth();
+  const { t } = useTranslation();
 
   useEffect(() => {
     if (!user) {
@@ -54,8 +56,8 @@ const RoleSelection = () => {
         setError(error.message);
       } else {
         toast({
-          title: "Account setup complete!",
-          description: `Welcome to Red Square as a ${selectedRole === 'screen_owner' ? 'Screen Owner' : 'Broadcaster'}!`,
+          title: t('roleSelection.setupComplete'),
+          description: `${t('roleSelection.welcome')} ${selectedRole === 'screen_owner' ? t('roleSelection.screenOwner') : t('roleSelection.broadcaster')}!`,
         });
         navigate("/");
       }
@@ -67,7 +69,7 @@ const RoleSelection = () => {
   };
 
   if (!user) {
-    return null; // Will redirect to auth
+    return null;
   }
 
   return (
@@ -77,9 +79,9 @@ const RoleSelection = () => {
       <div className="pt-24 pb-16">
         <div className="max-w-2xl mx-auto px-4">
           <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold mb-2">Choose Your Account Type</h1>
+            <h1 className="text-3xl font-bold mb-2">{t('roleSelection.title')}</h1>
             <p className="text-muted-foreground">
-              Select how you'd like to use the Red Square platform
+              {t('roleSelection.subtitle')}
             </p>
           </div>
 
@@ -94,17 +96,17 @@ const RoleSelection = () => {
                 <div className="mx-auto w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-4">
                   <User className="w-6 h-6 text-primary" />
                 </div>
-                <CardTitle>Broadcaster</CardTitle>
+                <CardTitle>{t('roleSelection.broadcaster')}</CardTitle>
                 <CardDescription>
-                  Upload and schedule content to display on screens
+                  {t('roleSelection.broadcasterDescription')}
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <ul className="space-y-2 text-sm text-muted-foreground">
-                  <li>• Upload images, videos, and GIFs</li>
-                  <li>• Book time slots on available screens</li>
-                  <li>• Target specific audiences and locations</li>
-                  <li>• Track campaign performance</li>
+                  <li>• {t('roleSelection.broadcasterFeatures.upload')}</li>
+                  <li>• {t('roleSelection.broadcasterFeatures.book')}</li>
+                  <li>• {t('roleSelection.broadcasterFeatures.target')}</li>
+                  <li>• {t('roleSelection.broadcasterFeatures.track')}</li>
                 </ul>
               </CardContent>
             </Card>
@@ -119,17 +121,17 @@ const RoleSelection = () => {
                 <div className="mx-auto w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-4">
                   <Monitor className="w-6 h-6 text-primary" />
                 </div>
-                <CardTitle>Screen Owner</CardTitle>
+                <CardTitle>{t('roleSelection.screenOwner')}</CardTitle>
                 <CardDescription>
-                  Rent out your screen space and earn revenue
+                  {t('roleSelection.screenOwnerDescription')}
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <ul className="space-y-2 text-sm text-muted-foreground">
-                  <li>• Register your digital screens</li>
-                  <li>• Set pricing and availability</li>
-                  <li>• Approve or reject content</li>
-                  <li>• Earn money from bookings</li>
+                  <li>• {t('roleSelection.screenOwnerFeatures.register')}</li>
+                  <li>• {t('roleSelection.screenOwnerFeatures.pricing')}</li>
+                  <li>• {t('roleSelection.screenOwnerFeatures.approve')}</li>
+                  <li>• {t('roleSelection.screenOwnerFeatures.earn')}</li>
                 </ul>
               </CardContent>
             </Card>
@@ -149,7 +151,7 @@ const RoleSelection = () => {
               className="min-w-48"
             >
               {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Get Started as {selectedRole === 'broadcaster' ? 'Broadcaster' : selectedRole === 'screen_owner' ? 'Screen Owner' : '...'}
+              {t('roleSelection.getStartedAs')} {selectedRole === 'broadcaster' ? t('roleSelection.broadcaster') : selectedRole === 'screen_owner' ? t('roleSelection.screenOwner') : '...'}
             </Button>
           </div>
         </div>
