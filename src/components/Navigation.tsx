@@ -68,20 +68,20 @@ export const Navigation = () => {
                     <Button variant="outline" asChild>
                       <Link to="/my-screens">{t('navigation.dashboard')}</Link>
                     </Button>
-                    <Button variant="outline" asChild>
-                      <Link to="/subscription">Subscription</Link>
-                    </Button>
+                     <Button variant="outline" asChild>
+                       <Link to="/subscription">{t('components.navigation.subscription')}</Link>
+                     </Button>
                   </>}
                 
                 {/* Admin features */}
                 {isAdmin() && (
                   <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="outline">
-                        <Shield className="w-4 h-4 mr-2" />
-                        Admin
-                      </Button>
-                    </DropdownMenuTrigger>
+                     <DropdownMenuTrigger asChild>
+                       <Button variant="outline">
+                         <Shield className="w-4 h-4 mr-2" />
+                         {t('components.navigation.adminPanel')}
+                       </Button>
+                     </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
                     <DropdownMenuLabel>{t('components.navigation.adminPanel')}</DropdownMenuLabel>
                     <DropdownMenuSeparator />
@@ -117,10 +117,10 @@ export const Navigation = () => {
                 
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="sm" className="flex items-center space-x-2">
-                      <User className="w-4 h-4" />
-                      <span className="hidden sm:inline">Account</span>
-                    </Button>
+                     <Button variant="ghost" size="sm" className="flex items-center space-x-2">
+                       <User className="w-4 h-4" />
+                       <span className="hidden sm:inline">{t('components.navigation.myAccount')}</span>
+                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
                     <DropdownMenuLabel>{t('components.navigation.myAccount')}</DropdownMenuLabel>
