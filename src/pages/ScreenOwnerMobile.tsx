@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { 
   Smartphone, 
   Monitor,
@@ -238,7 +239,8 @@ export default function ScreenOwnerMobile() {
   };
 
   return (
-    <div className="min-h-screen bg-background p-4">
+    <TooltipProvider>
+      <div className="min-h-screen bg-background p-4">
       <SEO 
         title="Red Square - Screen Owner Dashboard"
         description="Manage your digital screens, track earnings, and control your broadcasting network from your mobile device."
@@ -316,26 +318,61 @@ export default function ScreenOwnerMobile() {
 
         <Tabs defaultValue="dashboard" className="w-full">
           <TabsList className="grid w-full grid-cols-5 h-12">
-            <TabsTrigger value="dashboard" className="text-xs flex-col py-1">
-              <BarChart3 className="h-4 w-4 mb-1" />
-              Dashboard
-            </TabsTrigger>
-            <TabsTrigger value="screens" className="text-xs flex-col py-1">
-              <Monitor className="h-4 w-4 mb-1" />
-              Screens
-            </TabsTrigger>
-            <TabsTrigger value="player" className="text-xs flex-col py-1">
-              <Video className="h-4 w-4 mb-1" />
-              Player
-            </TabsTrigger>
-            <TabsTrigger value="earnings" className="text-xs flex-col py-1">
-              <DollarSign className="h-4 w-4 mb-1" />
-              Earnings
-            </TabsTrigger>
-            <TabsTrigger value="settings" className="text-xs flex-col py-1">
-              <Settings className="h-4 w-4 mb-1" />
-              Settings
-            </TabsTrigger>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <TabsTrigger value="dashboard" className="text-xs flex-col py-1">
+                  <BarChart3 className="h-4 w-4 mb-1" />
+                  Dashboard
+                </TabsTrigger>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Overview of screens and earnings</p>
+              </TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <TabsTrigger value="screens" className="text-xs flex-col py-1">
+                  <Monitor className="h-4 w-4 mb-1" />
+                  Screens
+                </TabsTrigger>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Manage your digital screens</p>
+              </TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <TabsTrigger value="player" className="text-xs flex-col py-1">
+                  <Video className="h-4 w-4 mb-1" />
+                  Player
+                </TabsTrigger>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Preview content on selected screen</p>
+              </TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <TabsTrigger value="earnings" className="text-xs flex-col py-1">
+                  <DollarSign className="h-4 w-4 mb-1" />
+                  Earnings
+                </TabsTrigger>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Track your revenue and payouts</p>
+              </TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <TabsTrigger value="settings" className="text-xs flex-col py-1">
+                  <Settings className="h-4 w-4 mb-1" />
+                  Settings
+                </TabsTrigger>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Device settings and pairing</p>
+              </TooltipContent>
+            </Tooltip>
           </TabsList>
 
           <TabsContent value="dashboard" className="space-y-4">
@@ -419,9 +456,16 @@ export default function ScreenOwnerMobile() {
                     <Monitor className="h-5 w-5" />
                     My Screens
                   </CardTitle>
-                  <Button size="sm" variant="outline" onClick={() => setShowOnboarding(true)}>
-                    <HelpCircle className="h-4 w-4" />
-                  </Button>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button size="sm" variant="outline" onClick={() => setShowOnboarding(true)}>
+                        <HelpCircle className="h-4 w-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Show help & onboarding guide</p>
+                    </TooltipContent>
+                  </Tooltip>
                 </div>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -446,25 +490,39 @@ export default function ScreenOwnerMobile() {
                       </p>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Button
-                        size="sm"
-                        variant={selectedScreenId === screen.id ? "default" : "outline"}
-                        onClick={() => setSelectedScreenId(screen.id)}
-                        className="h-8 w-8 p-0"
-                      >
-                        <Video className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => toggleScreenStatus(screen.id, screen.status)}
-                        className="h-8 w-8 p-0"
-                      >
-                        {screen.status === 'active' ? 
-                          <PauseCircle className="h-4 w-4" /> : 
-                          <PlayCircle className="h-4 w-4" />
-                        }
-                      </Button>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            size="sm"
+                            variant={selectedScreenId === screen.id ? "default" : "outline"}
+                            onClick={() => setSelectedScreenId(screen.id)}
+                            className="h-8 w-8 p-0"
+                          >
+                            <Video className="h-4 w-4" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Select screen for content player</p>
+                        </TooltipContent>
+                      </Tooltip>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => toggleScreenStatus(screen.id, screen.status)}
+                            className="h-8 w-8 p-0"
+                          >
+                            {screen.status === 'active' ? 
+                              <PauseCircle className="h-4 w-4" /> : 
+                              <PlayCircle className="h-4 w-4" />
+                            }
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>{screen.status === 'active' ? 'Deactivate screen (stop accepting bookings)' : 'Activate screen (allow bookings)'}</p>
+                        </TooltipContent>
+                      </Tooltip>
                     </div>
                   </div>
                 ))}
@@ -479,14 +537,21 @@ export default function ScreenOwnerMobile() {
                     value={newScreenName}
                     onChange={(e) => setNewScreenName(e.target.value)}
                   />
-                  <Button 
-                    onClick={registerNewScreen} 
-                    disabled={isRegistering}
-                    className="w-full"
-                  >
-                    <Plus className="h-4 w-4 mr-2" />
-                    {isRegistering ? 'Registering...' : 'Register New Screen'}
-                  </Button>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button 
+                        onClick={registerNewScreen} 
+                        disabled={isRegistering}
+                        className="w-full"
+                      >
+                        <Plus className="h-4 w-4 mr-2" />
+                        {isRegistering ? 'Registering...' : 'Register New Screen'}
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Add a new digital screen to your network</p>
+                    </TooltipContent>
+                  </Tooltip>
                 </div>
               </CardContent>
             </Card>
@@ -602,10 +667,17 @@ export default function ScreenOwnerMobile() {
                   </p>
                   
                   {!pairingCode ? (
-                    <Button onClick={generatePairingCode} className="w-full">
-                      <QrCode className="h-4 w-4 mr-2" />
-                      Generate Pairing Code
-                    </Button>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button onClick={generatePairingCode} className="w-full">
+                          <QrCode className="h-4 w-4 mr-2" />
+                          Generate Pairing Code
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Create QR code to pair this device as a display screen</p>
+                      </TooltipContent>
+                    </Tooltip>
                   ) : (
                     <div className="space-y-3">
                       <div className="p-3 bg-card border rounded-lg">
@@ -628,5 +700,6 @@ export default function ScreenOwnerMobile() {
         </Tabs>
       </div>
     </div>
+    </TooltipProvider>
   );
 }
