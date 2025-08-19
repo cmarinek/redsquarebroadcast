@@ -40,7 +40,7 @@ const Cookies = lazy(() => import("./pages/Cookies"));
 const Learn = lazy(() => import("./pages/Learn"));
 const AdminDocumentation = lazy(() => import("./pages/AdminDocumentation"));
 const DownloadApp = lazy(() => import("./pages/DownloadApp"));
-const MobileApp = lazy(() => import("./pages/MobileApp"));
+const ScreenOwnerMobile = lazy(() => import("./pages/ScreenOwnerMobile"));
 const RegionalSettings = lazy(() => import("./pages/RegionalSettings"));
 import AdminRoute from "@/components/routing/AdminRoute";
 
@@ -87,7 +87,8 @@ const App = () => (
             <Route path="/cookies" element={<Cookies />} />
             <Route path="/learn" element={<Learn />} />
             <Route path="/download" element={<DownloadApp />} />
-            <Route path="/mobile-app" element={<MobileApp />} />
+            <Route path="/screen-owner-mobile" element={<ScreenOwnerMobile />} />
+            <Route path="/mobile-app" element={<ScreenOwnerMobile />} /> {/* Legacy redirect */}
             <Route path="/regional-settings" element={<RegionalSettings />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />

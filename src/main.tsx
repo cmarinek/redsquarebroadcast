@@ -1,7 +1,7 @@
 import { createRoot } from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
 import App from './App.tsx'
-import MobileApp from './pages/MobileApp.tsx'
+import ScreenOwnerMobile from './pages/ScreenOwnerMobile.tsx'
 import './index.css'
 import { Toaster } from "@/components/ui/toaster"
 import { AuthProvider } from '@/context/AuthContext'
@@ -65,7 +65,7 @@ createRoot(document.getElementById("root")!).render(
         <I18nextProvider i18n={i18n}>
           <LanguageProvider>
             <AuthProvider>
-              {isMobileApp ? <MobileApp /> : <App />}
+              {isMobileApp ? <ScreenOwnerMobile /> : <App />}
               <Toaster />
             </AuthProvider>
           </LanguageProvider>
