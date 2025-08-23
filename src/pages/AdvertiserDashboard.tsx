@@ -12,7 +12,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { Navigation } from "@/components/Navigation";
-import BroadcasterSetupGuide from "@/components/broadcaster/BroadcasterSetupGuide";
+import AdvertiserSetupGuide from "@/components/advertiser/AdvertiserSetupGuide";
 import { AdvancedAnalyticsDashboard } from "@/components/broadcaster/AdvancedAnalyticsDashboard";
 import { ContentSchedulingAutomation } from "@/components/broadcaster/ContentSchedulingAutomation";
 import AudienceTargeting from "@/components/broadcaster/AudienceTargeting";
@@ -144,6 +144,21 @@ const AdvertiserDashboard = () => {
   const totalBookings = bookings.length;
   const activeBookings = bookings.filter(booking => booking.status === 'active').length;
   const totalSpent = bookings.reduce((acc, booking) => acc + (booking.amount_cents / 100), 0);
+
+  // Transform bookings for analytics component
+  const analyticsBookings = bookings.map(booking => ({
+    id: booking.id,
+    screen: {
+      screen_name: screens.find(s => s.id === booking.screen_id)?.name || 'Unknown Screen'
+    }
+  }));
+
+  // Transform screens for scheduling component
+  const schedulingScreens = screens.map(screen => ({
+    id: screen.id,
+    screen_name: screen.name,
+    city: screen.location
+  }));
 
   const filteredBookings = React.useMemo(() => {
     let filtered = bookings;
@@ -423,15 +438,15 @@ const AdvertiserDashboard = () => {
                   </TabsContent>
 
                   <TabsContent value="setup">
-                    <BroadcasterSetupGuide />
+                    <AdvertiserSetupGuide />
                   </TabsContent>
 
                   <TabsContent value="analytics">
-                    <AdvancedAnalyticsDashboard />
+                    <AdvancedAnalyticsDashboard bookings={analyticsBookings} />
                   </TabsContent>
 
                   <TabsContent value="scheduling">
-                    <ContentSchedulingAutomation />
+                    <ContentSchedulingAutomation contentUploads={contentUploads} screens={schedulingScreens} />
                   </TabsContent>
 
                   <TabsContent value="targeting">
