@@ -50,9 +50,9 @@ const resources = {
         registerNewScreen: "Register New Screen",
         deviceSetup: "Device Setup",
         becomeScreenOwner: "Become Screen Owner",
-        broadcasterGuide: "Broadcaster Guide",
+        advertiserGuide: "Advertiser Guide",
         screenOwnerGuide: "Screen Owner Guide",
-        becomeABroadcaster: "Become a Broadcaster",
+        becomeAnAdvertiser: "Become an Advertiser",
         subscription: "Subscription"
       },
       hero: {
@@ -213,9 +213,9 @@ const resources = {
         registerNewScreen: "Registrar Nueva Pantalla",
         deviceSetup: "Configuración del Dispositivo",
         becomeScreenOwner: "Convertirse en Propietario de Pantalla",
-        broadcasterGuide: "Guía del Transmisor",
+        advertiserGuide: "Guía del Anunciante",
         screenOwnerGuide: "Guía del Propietario de Pantalla",
-        becomeABroadcaster: "Convertirse en Transmisor",
+        becomeAnAdvertiser: "Convertirse en Anunciante",
         subscription: "Suscripción"
       },
       hero: {
@@ -376,9 +376,9 @@ const resources = {
         registerNewScreen: "Enregistrer un Nouvel Écran",
         deviceSetup: "Configuration de l'Appareil",
         becomeScreenOwner: "Devenir Propriétaire d'Écran",
-        broadcasterGuide: "Guide du Diffuseur",
+        advertiserGuide: "Guide de l'Annonceur",
         screenOwnerGuide: "Guide du Propriétaire d'Écran",
-        becomeABroadcaster: "Devenir un Diffuseur",
+        becomeAnAdvertiser: "Devenir un Annonceur",
         subscription: "Abonnement"
       },
       hero: {
@@ -539,9 +539,9 @@ const resources = {
         registerNewScreen: "Neuen Bildschirm Registrieren",
         deviceSetup: "Geräteeinrichtung",
         becomeScreenOwner: "Bildschirmbesitzer Werden",
-        broadcasterGuide: "Broadcaster-Leitfaden",
+        advertiserGuide: "Werbetreibenden-Leitfaden",
         screenOwnerGuide: "Bildschirmbesitzer-Leitfaden",
-        becomeABroadcaster: "Broadcaster Werden",
+        becomeAnAdvertiser: "Werbetreibender Werden",
         subscription: "Abonnement"
       },
       hero: {
