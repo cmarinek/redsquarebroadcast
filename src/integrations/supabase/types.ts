@@ -1399,6 +1399,7 @@ export type Database = {
           avatar_url: string | null
           created_at: string
           display_name: string | null
+          has_completed_advertiser_onboarding: boolean
           has_completed_broadcaster_onboarding: boolean
           has_completed_screen_owner_onboarding: boolean
           role: string
@@ -1410,6 +1411,7 @@ export type Database = {
           avatar_url?: string | null
           created_at?: string
           display_name?: string | null
+          has_completed_advertiser_onboarding?: boolean
           has_completed_broadcaster_onboarding?: boolean
           has_completed_screen_owner_onboarding?: boolean
           role?: string
@@ -1421,6 +1423,7 @@ export type Database = {
           avatar_url?: string | null
           created_at?: string
           display_name?: string | null
+          has_completed_advertiser_onboarding?: boolean
           has_completed_broadcaster_onboarding?: boolean
           has_completed_screen_owner_onboarding?: boolean
           role?: string
@@ -1975,7 +1978,7 @@ export type Database = {
       }
     }
     Enums: {
-      app_role: "broadcaster" | "screen_owner" | "admin"
+      app_role: "broadcaster" | "screen_owner" | "admin" | "advertiser"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -2103,7 +2106,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["broadcaster", "screen_owner", "admin"],
+      app_role: ["broadcaster", "screen_owner", "admin", "advertiser"],
     },
   },
 } as const
