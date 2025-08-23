@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/context/AuthContext";
 
-export type UserRole = 'broadcaster' | 'screen_owner' | 'admin';
+export type UserRole = 'advertiser' | 'broadcaster' | 'screen_owner' | 'admin';
 
 interface UserProfile {
   display_name?: string;
@@ -58,7 +58,8 @@ export const useUserRoles = () => {
   };
 
   const hasRole = (role: UserRole): boolean => roles.includes(role);
-  const isBroadcaster = (): boolean => hasRole('broadcaster');
+  const isAdvertiser = (): boolean => hasRole('advertiser') || hasRole('broadcaster'); // Backward compatibility
+  const isBroadcaster = (): boolean => hasRole('advertiser') || hasRole('broadcaster'); // Legacy compatibility
   const isScreenOwner = (): boolean => hasRole('screen_owner');
   const isAdmin = (): boolean => hasRole('admin');
 
@@ -67,7 +68,8 @@ export const useUserRoles = () => {
     roles,
     loading,
     hasRole,
-    isBroadcaster,
+    isAdvertiser,
+    isBroadcaster, // Keep for backward compatibility
     isScreenOwner,
     isAdmin,
     refetch: fetchUserData,

@@ -8,19 +8,21 @@ const getOnboardingKeys = (uid?: string) => {
   const ref = SUPABASE_PROJECT_REF;
   const id = uid || 'anon';
   return {
-    broadcaster: `onboarding.${ref}.${id}.broadcaster.done`,
+    advertiser: `onboarding.${ref}.${id}.advertiser.done`,
+    broadcaster: `onboarding.${ref}.${id}.broadcaster.done`, // Legacy compatibility
     screenOwner: `onboarding.${ref}.${id}.screen_owner.done`,
   };
 };
 
 interface OnboardingStatus {
-  has_completed_broadcaster_onboarding: boolean;
+  has_completed_advertiser_onboarding: boolean;
+  has_completed_broadcaster_onboarding: boolean; // Legacy compatibility
   has_completed_screen_owner_onboarding: boolean;
 }
 
 export const useOnboarding = () => {
   const { user } = useAuth();
-  const { profile, roles, loading: profileLoading, isBroadcaster, isScreenOwner } = useUserRoles();
+  const { profile, roles, loading: profileLoading, isAdvertiser, isBroadcaster, isScreenOwner } = useUserRoles();
   const [onboardingStatus, setOnboardingStatus] = useState<OnboardingStatus | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -50,27 +52,60 @@ export const useOnboarding = () => {
     try {
       const { data, error } = await supabase
         .from('profiles')
-        .select('has_completed_broadcaster_onboarding, has_completed_screen_owner_onboarding')
+        .select('has_completed_advertiser_onboarding, has_completed_broadcaster_onboarding, has_completed_screen_owner_onboarding')
         .eq('user_id', user!.id)
         .single();
 
       if (error) throw error;
 
       setOnboardingStatus({
+        has_completed_advertiser_onboarding: !!data.has_completed_advertiser_onboarding,
         has_completed_broadcaster_onboarding: !!data.has_completed_broadcaster_onboarding,
         has_completed_screen_owner_onboarding: !!data.has_completed_screen_owner_onboarding
       });
     } catch (error) {
       console.error("Error fetching onboarding status:", error);
       const keys = getOnboardingKeys(user?.id);
+      const localAdvertiserDone = localStorage.getItem(keys.advertiser) === 'true';
       const localBroadcasterDone = localStorage.getItem(keys.broadcaster) === 'true';
       const localScreenOwnerDone = localStorage.getItem(keys.screenOwner) === 'true';
       setOnboardingStatus({
+        has_completed_advertiser_onboarding: localAdvertiserDone || localBroadcasterDone,
         has_completed_broadcaster_onboarding: localBroadcasterDone,
         has_completed_screen_owner_onboarding: localScreenOwnerDone
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const markAdvertiserOnboardingComplete = async () => {
+    if (!user) return;
+
+    const keys = getOnboardingKeys(user.id);
+    // Optimistic local fallback to prevent modal reopen loops
+    localStorage.setItem(keys.advertiser, 'true');
+    setOnboardingStatus(prev => prev ? {
+      ...prev,
+      has_completed_advertiser_onboarding: true
+    } : { 
+      has_completed_advertiser_onboarding: true, 
+      has_completed_broadcaster_onboarding: false,
+      has_completed_screen_owner_onboarding: false 
+    });
+    
+    // Persist to profile without touching role (multi-role now lives in user_roles)
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .upsert({
+          user_id: user.id,
+          has_completed_advertiser_onboarding: true,
+        });
+
+      if (error) throw error;
+    } catch (error) {
+      console.error("Error updating advertiser onboarding status:", error);
     }
   };
 
@@ -80,10 +115,16 @@ export const useOnboarding = () => {
     const keys = getOnboardingKeys(user.id);
     // Optimistic local fallback to prevent modal reopen loops
     localStorage.setItem(keys.broadcaster, 'true');
+    localStorage.setItem(keys.advertiser, 'true'); // Also mark advertiser as done
     setOnboardingStatus(prev => prev ? {
       ...prev,
+      has_completed_advertiser_onboarding: true,
       has_completed_broadcaster_onboarding: true
-    } : { has_completed_broadcaster_onboarding: true, has_completed_screen_owner_onboarding: false });
+    } : { 
+      has_completed_advertiser_onboarding: true,
+      has_completed_broadcaster_onboarding: true, 
+      has_completed_screen_owner_onboarding: false 
+    });
     
     // Persist to profile without touching role (multi-role now lives in user_roles)
     try {
@@ -91,6 +132,7 @@ export const useOnboarding = () => {
         .from('profiles')
         .upsert({
           user_id: user.id,
+          has_completed_advertiser_onboarding: true,
           has_completed_broadcaster_onboarding: true,
         });
 
@@ -109,7 +151,11 @@ export const useOnboarding = () => {
     setOnboardingStatus(prev => prev ? {
       ...prev,
       has_completed_screen_owner_onboarding: true
-    } : { has_completed_broadcaster_onboarding: false, has_completed_screen_owner_onboarding: true });
+    } : { 
+      has_completed_advertiser_onboarding: false,
+      has_completed_broadcaster_onboarding: false, 
+      has_completed_screen_owner_onboarding: true 
+    });
     
     // Persist to profile without touching role
     try {
@@ -126,14 +172,26 @@ export const useOnboarding = () => {
     }
   };
 
+  const shouldShowAdvertiserOnboarding = () => {
+    if (!user) return false;
+    const param = new URLSearchParams(window.location.search).get('onboarding');
+    if (param === 'force' || param === 'advertiser') return true;
+    return (
+      onboardingStatus &&
+      !onboardingStatus.has_completed_advertiser_onboarding &&
+      (isAdvertiser() || (roles?.length ?? 0) === 0)
+    );
+  };
+
   const shouldShowBroadcasterOnboarding = () => {
     if (!user) return false;
     const param = new URLSearchParams(window.location.search).get('onboarding');
     if (param === 'force' || param === 'broadcaster') return true;
+    // Show for legacy users who still have broadcaster role or if they want to see broadcaster guide
     return (
       onboardingStatus &&
       !onboardingStatus.has_completed_broadcaster_onboarding &&
-      (isBroadcaster() || (roles?.length ?? 0) === 0)
+      isBroadcaster()
     );
   };
 
@@ -151,9 +209,11 @@ export const useOnboarding = () => {
   return {
     onboardingStatus,
     loading,
-    shouldShowBroadcasterOnboarding,
+    shouldShowAdvertiserOnboarding,
+    shouldShowBroadcasterOnboarding, // Legacy compatibility
     shouldShowScreenOwnerOnboarding,
-    markBroadcasterOnboardingComplete,
+    markAdvertiserOnboardingComplete,
+    markBroadcasterOnboardingComplete, // Legacy compatibility
     markScreenOwnerOnboardingComplete,
     refetch: fetchOnboardingStatus
   };

@@ -13,7 +13,7 @@ import { useTranslation } from "react-i18next";
 const RoleSelection = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [selectedRole, setSelectedRole] = useState<"broadcaster" | "screen_owner" | null>(null);
+  const [selectedRole, setSelectedRole] = useState<"advertiser" | "screen_owner" | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
   const { user } = useAuth();
@@ -57,7 +57,7 @@ const RoleSelection = () => {
       } else {
         toast({
           title: t('roleSelection.setupComplete'),
-          description: `${t('roleSelection.welcome')} ${selectedRole === 'screen_owner' ? t('roleSelection.screenOwner') : t('roleSelection.broadcaster')}!`,
+          description: `${t('roleSelection.welcome')} ${selectedRole === 'screen_owner' ? t('roleSelection.screenOwner') : t('roleSelection.advertiser')}!`,
         });
         navigate("/");
       }
@@ -88,25 +88,25 @@ const RoleSelection = () => {
           <div className="grid md:grid-cols-2 gap-6 mb-8">
             <Card 
               className={`cursor-pointer transition-all hover:shadow-lg ${
-                selectedRole === 'broadcaster' ? 'ring-2 ring-primary' : ''
+                selectedRole === 'advertiser' ? 'ring-2 ring-primary' : ''
               }`}
-              onClick={() => setSelectedRole('broadcaster')}
+              onClick={() => setSelectedRole('advertiser')}
             >
               <CardHeader className="text-center">
                 <div className="mx-auto w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-4">
                   <User className="w-6 h-6 text-primary" />
                 </div>
-                <CardTitle>{t('roleSelection.broadcaster')}</CardTitle>
+                <CardTitle>{t('roleSelection.advertiser')}</CardTitle>
                 <CardDescription>
-                  {t('roleSelection.broadcasterDescription')}
+                  {t('roleSelection.advertiserDescription')}
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <ul className="space-y-2 text-sm text-muted-foreground">
-                  <li>• {t('roleSelection.broadcasterFeatures.upload')}</li>
-                  <li>• {t('roleSelection.broadcasterFeatures.book')}</li>
-                  <li>• {t('roleSelection.broadcasterFeatures.target')}</li>
-                  <li>• {t('roleSelection.broadcasterFeatures.track')}</li>
+                  <li>• {t('roleSelection.advertiserFeatures.upload')}</li>
+                  <li>• {t('roleSelection.advertiserFeatures.book')}</li>
+                  <li>• {t('roleSelection.advertiserFeatures.target')}</li>
+                  <li>• {t('roleSelection.advertiserFeatures.track')}</li>
                 </ul>
               </CardContent>
             </Card>
@@ -151,7 +151,7 @@ const RoleSelection = () => {
               className="min-w-48"
             >
               {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {t('roleSelection.getStartedAs')} {selectedRole === 'broadcaster' ? t('roleSelection.broadcaster') : selectedRole === 'screen_owner' ? t('roleSelection.screenOwner') : '...'}
+              {t('roleSelection.getStartedAs')} {selectedRole === 'advertiser' ? t('roleSelection.advertiser') : selectedRole === 'screen_owner' ? t('roleSelection.screenOwner') : '...'}
             </Button>
           </div>
         </div>

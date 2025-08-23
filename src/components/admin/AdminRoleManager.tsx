@@ -28,7 +28,8 @@ type RoleRow = {
 };
 
 const roleLabel: Record<UserRole, string> = {
-  broadcaster: "Broadcaster",
+  advertiser: "Advertiser",
+  broadcaster: "Broadcaster", // Keep for backward compatibility
   screen_owner: "Screen Owner",
   admin: "Admin",
 };
@@ -39,7 +40,8 @@ const roleBadgeVariant = (role: UserRole) => {
       return "default" as const;
     case "screen_owner":
       return "secondary" as const;
-    case "broadcaster":
+    case "advertiser":
+    case "broadcaster": // Backward compatibility
       return "outline" as const;
     default:
       return "outline" as const;
@@ -237,7 +239,7 @@ export function AdminRoleManager() {
               )}
               {filtered.map((row) => {
                 const userRoles = rolesByUser[row.user_id] ?? [];
-                const isBroadcaster = userRoles.includes("broadcaster");
+                const isAdvertiser = userRoles.includes("advertiser") || userRoles.includes("broadcaster");
                 const isScreenOwner = userRoles.includes("screen_owner");
                 const isAdmin = userRoles.includes("admin");
                 return (
@@ -274,11 +276,11 @@ export function AdminRoleManager() {
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end gap-2">
                         <Button
-                          variant={isBroadcaster ? "default" : "outline"}
+                          variant={isAdvertiser ? "default" : "outline"}
                           size="sm"
-                          onClick={() => confirmToggle(row, "broadcaster")}
+                          onClick={() => confirmToggle(row, "advertiser")}
                         >
-                          Broadcaster
+                          Advertiser
                         </Button>
                         <Button
                           variant={isScreenOwner ? "default" : "outline"}

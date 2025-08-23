@@ -6,14 +6,14 @@ import { useAuth } from "@/context/AuthContext";
 import { useUserRoles } from "@/hooks/useUserRoles";
 import { useOnboarding } from "@/hooks/useOnboarding";
 import { RealTimeNotifications } from "@/components/RealTimeNotifications";
-import { BroadcasterOnboarding } from "@/components/onboarding/BroadcasterOnboarding";
+import { AdvertiserOnboarding } from "@/components/onboarding/AdvertiserOnboarding";
 import { ScreenOwnerOnboarding } from "@/components/onboarding/ScreenOwnerOnboarding";
 import { RegionalSelector } from "@/components/RegionalSelector";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useTranslation } from "react-i18next";
 export const Navigation = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [showBroadcasterOnboarding, setShowBroadcasterOnboarding] = useState(false);
+  const [showAdvertiserOnboarding, setShowAdvertiserOnboarding] = useState(false);
   const [showScreenOwnerOnboarding, setShowScreenOwnerOnboarding] = useState(false);
   const { t } = useTranslation();
   const {
@@ -21,15 +21,18 @@ export const Navigation = () => {
     signOut
   } = useAuth();
   const {
-    isBroadcaster,
+    isAdvertiser,
+    isBroadcaster, // Legacy compatibility
     isScreenOwner,
     isAdmin,
     loading: rolesLoading
   } = useUserRoles();
   const {
-    shouldShowBroadcasterOnboarding,
+    shouldShowAdvertiserOnboarding,
+    shouldShowBroadcasterOnboarding, // Legacy compatibility
     shouldShowScreenOwnerOnboarding,
-    markBroadcasterOnboardingComplete,
+    markAdvertiserOnboardingComplete,
+    markBroadcasterOnboardingComplete, // Legacy compatibility
     markScreenOwnerOnboardingComplete
   } = useOnboarding();
   return <>
@@ -53,8 +56,8 @@ export const Navigation = () => {
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-4">
             {user ? <>
-                {/* Broadcaster features */}
-                {(isBroadcaster() || isAdmin()) && <>
+                {/* Advertiser features */}
+                {(isAdvertiser() || isAdmin()) && <>
                      <Button variant="outline" asChild>
                         <Link to="/discover">{t('navigation.findScreens')}</Link>
                      </Button>
@@ -178,9 +181,9 @@ export const Navigation = () => {
                       </>
                     ) : (
                       <>
-                         <DropdownMenuItem onClick={() => setShowBroadcasterOnboarding(true)}>
-                           <HelpCircle className="w-4 h-4 mr-2" />
-                           {t('navigation.broadcasterGuide')}
+                          <DropdownMenuItem onClick={() => setShowAdvertiserOnboarding(true)}>
+                            <HelpCircle className="w-4 h-4 mr-2" />
+                            {t('navigation.advertiserGuide')}
                          </DropdownMenuItem>
                          <DropdownMenuItem onClick={() => setShowScreenOwnerOnboarding(true)}>
                            <HelpCircle className="w-4 h-4 mr-2" />
@@ -332,10 +335,10 @@ export const Navigation = () => {
     </nav>
     
     {/* Onboarding Modals */}
-    <BroadcasterOnboarding isOpen={showBroadcasterOnboarding || shouldShowBroadcasterOnboarding()} onClose={() => {
-      setShowBroadcasterOnboarding(false);
-      markBroadcasterOnboardingComplete();
-    }} onComplete={markBroadcasterOnboardingComplete} />
+                    <AdvertiserOnboarding isOpen={showAdvertiserOnboarding || shouldShowAdvertiserOnboarding()} onClose={() => {
+      setShowAdvertiserOnboarding(false);
+      markAdvertiserOnboardingComplete();
+    }} onComplete={markAdvertiserOnboardingComplete} />
     
     <ScreenOwnerOnboarding isOpen={showScreenOwnerOnboarding || shouldShowScreenOwnerOnboarding()} onClose={() => {
       setShowScreenOwnerOnboarding(false);

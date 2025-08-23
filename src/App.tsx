@@ -19,7 +19,7 @@ const ScreenDetails = lazy(() => import("./pages/ScreenDetails"));
 const ContentUpload = lazy(() => import("./pages/ContentUpload"));
 const DeviceSetup = lazy(() => import("./pages/DeviceSetup"));
 const SmartTVApp = lazy(() => import("./pages/SmartTVApp"));
-const BroadcasterDashboard = lazy(() => import("./pages/BroadcasterDashboard"));
+const AdvertiserDashboard = lazy(() => import("./pages/AdvertiserDashboard"));
 const ScreenOwnerDashboard = lazy(() => import("./pages/ScreenOwnerDashboard"));
 const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
 const Profile = lazy(() => import("./pages/Profile"));
@@ -66,7 +66,7 @@ const App = () => (
             <Route path="/admin/monetization" element={<AdminRoute><AdminMonetization /></AdminRoute>} />
             <Route path="/admin/ops-infra" element={<AdminRoute><AdminOpsInfra /></AdminRoute>} />
             <Route path="/admin/documentation" element={<AdminRoute><AdminDocumentation /></AdminRoute>} />
-            <Route path="/my-campaigns" element={<BroadcasterDashboard />} />
+            <Route path="/my-campaigns" element={<AdvertiserDashboard />} />
             <Route path="/my-screens" element={<ScreenOwnerDashboard />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/register-screen" element={<ScreenRegistration />} />
