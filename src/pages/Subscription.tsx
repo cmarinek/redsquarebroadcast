@@ -262,7 +262,7 @@ const Subscription = () => {
                     {getPlanIcon(plan.name)}
                   </div>
                   <CardTitle className="text-2xl">{plan.name}</CardTitle>
-                  <p className="text-base text-foreground/80 h-12">
+                  <p className="text-base text-foreground/80 min-h-12">
                     {plan.description}
                   </p>
                   <div className="mt-4">
