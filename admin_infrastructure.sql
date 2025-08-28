@@ -257,11 +257,15 @@ END;
 $$;
 
 -- Function to get real-time analytics
--- Function to get real-time analytics
+-- Function to get real-time analytics (V2 - No Random Data)
 CREATE OR REPLACE FUNCTION public.get_platform_analytics()
 RETURNS JSONB
 LANGUAGE plpgsql
 SECURITY DEFINER
+COMMENT ON FUNCTION public.get_platform_analytics IS
+'Retrieves a snapshot of key platform-wide analytics.
+Known limitations:
+- Active user counts (daily, weekly, monthly) are based on the user''s creation date (`created_at`), which serves as a proxy. A more accurate implementation would use a `last_seen` timestamp updated by application logic.'
 AS $$
 DECLARE
     result JSONB := '{}'::jsonb;
@@ -287,9 +291,6 @@ BEGIN
     
     -- Get total revenue
     SELECT COALESCE(SUM(total_amount), 0) INTO total_revenue FROM public.bookings WHERE payment_status = 'paid';
-    
-    -- NOTE: Active user counts are based on user creation date, which is a proxy.
-    -- A real implementation would use a `last_seen` timestamp updated by triggers or application logic.
     
     -- Get daily, weekly, and monthly active users (users created in the respective periods)
     SELECT
