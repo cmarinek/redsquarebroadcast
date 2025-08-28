@@ -257,7 +257,7 @@ END;
 $$;
 
 -- Function to get real-time analytics
--- Function to get real-time analytics (V2 - No Random Data)
+-- Function to get real-time analytics
 CREATE OR REPLACE FUNCTION public.get_platform_analytics()
 RETURNS JSONB
 LANGUAGE plpgsql
