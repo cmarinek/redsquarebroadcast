@@ -95,7 +95,7 @@ jobs:
 
           # Get the public URL of the bucket
           BUCKET_URL="${{ secrets.SUPABASE_URL }}/storage/v1/object/public/${SUPABASE_BUCKET}/${FILE_NAME}"
-          echo "::set-output name=artifact_url::$BUCKET_URL"
+          echo "artifact_url=$BUCKET_URL" >> $GITHUB_OUTPUT
 
           curl -X POST \
             "${{ secrets.SUPABASE_URL }}/storage/v1/object/${SUPABASE_BUCKET}/${FILE_NAME}" \
