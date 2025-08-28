@@ -12,7 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { optimizeImageUrl } from "@/utils/media";
 import { useToast } from "@/hooks/use-toast";
 import { Layout } from "@/components/Layout";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { format } from "date-fns";
 import { useUserRoles } from "@/hooks/useUserRoles";
 

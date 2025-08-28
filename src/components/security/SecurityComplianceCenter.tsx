@@ -7,7 +7,7 @@ import { Progress } from "@/components/ui/progress";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { 
+import {
   Shield,
   AlertTriangle,
   CheckCircle,
@@ -17,7 +17,7 @@ import {
   UserCheck,
   FileText,
   Database,
-  RefreshCw
+  RefreshCw,
 } from "lucide-react";
 
 interface SecurityAlert {
@@ -42,91 +42,45 @@ interface ComplianceCheck {
 
 export const SecurityComplianceCenter = () => {
   const { toast } = useToast();
+  const [loading, setLoading] = useState(true);
   const [alerts, setAlerts] = useState<SecurityAlert[]>([]);
   const [complianceChecks, setComplianceChecks] = useState<ComplianceCheck[]>([]);
   const [isScanning, setIsScanning] = useState(false);
 
-  const mockAlerts: SecurityAlert[] = [
-    {
-      id: '1',
-      type: 'failed_login_attempts',
-      severity: 'medium',
-      title: 'Multiple Failed Login Attempts',
-      description: 'Detected 15 failed login attempts from IP 192.168.1.100',
-      timestamp: '2024-01-15T10:30:00Z',
-      status: 'open',
-      affectedUsers: 1
-    },
-    {
-      id: '2',
-      type: 'suspicious_content_upload',
-      severity: 'high',
-      title: 'Suspicious Content Upload Pattern',
-      description: 'User uploaded 50+ similar files in rapid succession',
-      timestamp: '2024-01-15T09:15:00Z',
-      status: 'acknowledged',
-      affectedUsers: 1
-    }
-  ];
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('get-security-data');
+      if (error) throw error;
 
-  const mockComplianceChecks: ComplianceCheck[] = [
-    {
-      id: '1',
-      name: 'GDPR Data Processing',
-      description: 'Ensures proper consent collection and data processing compliance',
-      status: 'compliant',
-      lastChecked: '2024-01-15T08:00:00Z',
-      category: 'data_protection'
-    },
-    {
-      id: '2',
-      name: 'Content Moderation Policy',
-      description: 'Verifies content moderation workflows meet platform standards',
-      status: 'warning',
-      lastChecked: '2024-01-15T07:30:00Z',
-      category: 'content_policy'
-    },
-    {
-      id: '3',
-      name: 'User Privacy Settings',
-      description: 'Checks user privacy controls and data visibility settings',
-      status: 'compliant',
-      lastChecked: '2024-01-15T08:15:00Z',
-      category: 'user_privacy'
-    },
-    {
-      id: '4',
-      name: 'Security Headers',
-      description: 'Validates security headers and HTTPS enforcement',
-      status: 'non_compliant',
-      lastChecked: '2024-01-15T08:00:00Z',
-      category: 'security'
+      setAlerts(data.alerts || []);
+      setComplianceChecks(data.complianceChecks || []);
+    } catch (error) {
+      console.error("Error fetching security data:", error);
+      toast({
+        title: "Failed to load security data",
+        description: "Please try again later.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
     }
-  ];
+  };
 
   useEffect(() => {
-    setAlerts(mockAlerts);
-    setComplianceChecks(mockComplianceChecks);
+    fetchData();
   }, []);
 
   const runSecurityScan = async () => {
     setIsScanning(true);
-    
     try {
-      // Simulate security scan
-      await new Promise(resolve => setTimeout(resolve, 3000));
-      
-      // Update compliance checks with new results
-      setComplianceChecks(prev => prev.map(check => ({
-        ...check,
-        lastChecked: new Date().toISOString(),
-        status: Math.random() > 0.7 ? 'compliant' : check.status
-      })));
-
+      await supabase.functions.invoke('run-security-scan');
       toast({
         title: "Security Scan Complete",
         description: "All security checks have been updated with latest results.",
       });
+      // Re-fetch data to show updated results
+      fetchData();
     } catch (error) {
       toast({
         title: "Scan Failed",
@@ -139,6 +93,7 @@ export const SecurityComplianceCenter = () => {
   };
 
   const resolveAlert = (alertId: string) => {
+    // In a real app, this would be an API call
     setAlerts(prev => prev.map(alert => 
       alert.id === alertId 
         ? { ...alert, status: 'resolved' as const }
@@ -185,10 +140,14 @@ export const SecurityComplianceCenter = () => {
     }
   };
 
-  const complianceScore = Math.round(
+  const complianceScore = complianceChecks.length > 0 ? Math.round(
     (complianceChecks.filter(check => check.status === 'compliant').length / 
      complianceChecks.length) * 100
-  );
+  ) : 100;
+
+  if (loading) {
+    return <div>Loading security data...</div>;
+  }
 
   return (
     <div className="space-y-6">
@@ -222,9 +181,11 @@ export const SecurityComplianceCenter = () => {
           <CardContent>
             <div className="text-2xl font-bold">{complianceScore}%</div>
             <Progress value={complianceScore} className="mt-2" />
-            <p className="text-xs text-muted-foreground mt-2">
-              {complianceChecks.filter(c => c.status === 'compliant').length} of {complianceChecks.length} checks passing
-            </p>
+            {complianceChecks.length > 0 && (
+              <p className="text-xs text-muted-foreground mt-2">
+                {complianceChecks.filter(c => c.status === 'compliant').length} of {complianceChecks.length} checks passing
+              </p>
+            )}
           </CardContent>
         </Card>
 
@@ -353,32 +314,39 @@ export const SecurityComplianceCenter = () => {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="space-y-3">
-                {complianceChecks.map((check) => (
-                  <div key={check.id} className="p-4 border rounded-lg">
-                    <div className="flex justify-between items-start">
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-2">
-                          {getComplianceIcon(check.status)}
-                          <span className="font-medium">{check.name}</span>
-                          <Badge className={getComplianceColor(check.status)}>
-                            {check.status.replace('_', ' ')}
-                          </Badge>
+              {complianceChecks.length === 0 ? (
+                 <div className="text-center py-8 text-muted-foreground">
+                    <CheckCircle className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                    <p>No compliance checks found.</p>
+                 </div>
+              ) : (
+                <div className="space-y-3">
+                  {complianceChecks.map((check) => (
+                    <div key={check.id} className="p-4 border rounded-lg">
+                      <div className="flex justify-between items-start">
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2">
+                            {getComplianceIcon(check.status)}
+                            <span className="font-medium">{check.name}</span>
+                            <Badge className={getComplianceColor(check.status)}>
+                              {check.status.replace('_', ' ')}
+                            </Badge>
+                          </div>
+                          <p className="text-sm text-muted-foreground">
+                            {check.description}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            Last checked: {new Date(check.lastChecked).toLocaleString()}
+                          </p>
                         </div>
-                        <p className="text-sm text-muted-foreground">
-                          {check.description}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          Last checked: {new Date(check.lastChecked).toLocaleString()}
-                        </p>
+                        <Button size="sm" variant="outline">
+                          View Details
+                        </Button>
                       </div>
-                      <Button size="sm" variant="outline">
-                        View Details
-                      </Button>
                     </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>

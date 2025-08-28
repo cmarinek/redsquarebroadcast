@@ -52,11 +52,23 @@ CREATE TABLE public.admin_audit_logs (
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
 );
 
+-- Create admin_compliance_checks table
+CREATE TABLE public.admin_compliance_checks (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    name TEXT NOT NULL,
+    description TEXT NOT NULL,
+    status TEXT NOT NULL CHECK (status IN ('compliant', 'non_compliant', 'warning')),
+    last_checked TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+    category TEXT NOT NULL CHECK (category IN ('data_protection', 'user_privacy', 'content_policy', 'security')),
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
+);
+
 -- Enable RLS on all admin tables
 ALTER TABLE public.admin_system_health ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.admin_security_alerts ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.admin_analytics ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.admin_audit_logs ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.admin_compliance_checks ENABLE ROW LEVEL SECURITY;
 
 -- Create RLS policies for admin-only access
 CREATE POLICY "Only admins can access system health"
@@ -79,6 +91,12 @@ USING (public.has_role(auth.uid(), 'admin'));
 
 CREATE POLICY "Only admins can access audit logs"
 ON public.admin_audit_logs
+FOR ALL
+TO authenticated
+USING (public.has_role(auth.uid(), 'admin'));
+
+CREATE POLICY "Only admins can access compliance checks"
+ON public.admin_compliance_checks
 FOR ALL
 TO authenticated
 USING (public.has_role(auth.uid(), 'admin'));
@@ -257,6 +275,7 @@ END;
 $$;
 
 -- Function to get real-time analytics
+-- Function to get real-time analytics (V2 - No Random Data)
 CREATE OR REPLACE FUNCTION public.get_platform_analytics()
 RETURNS JSONB
 LANGUAGE plpgsql
@@ -271,43 +290,41 @@ DECLARE
     daily_users INTEGER;
     weekly_users INTEGER;
     monthly_users INTEGER;
+    screen_count INTEGER;
 BEGIN
     -- Get total users
-    SELECT COUNT(*) INTO total_users FROM profiles;
+    SELECT COUNT(*) INTO total_users FROM public.profiles;
     
-    -- Get active screens
-    SELECT COUNT(*) INTO active_screens FROM screens WHERE is_active = true;
+    -- Get total and active screens
+    SELECT COUNT(*), COUNT(*) FILTER (WHERE is_active = true)
+    INTO screen_count, active_screens
+    FROM public.screens;
     
     -- Get total bookings
-    SELECT COUNT(*) INTO total_bookings FROM bookings;
+    SELECT COUNT(*) INTO total_bookings FROM public.bookings;
     
     -- Get total revenue
-    SELECT COALESCE(SUM(total_amount), 0) INTO total_revenue FROM bookings WHERE payment_status = 'paid';
+    SELECT COALESCE(SUM(total_amount), 0) INTO total_revenue FROM public.bookings WHERE payment_status = 'paid';
     
-    -- Get daily active users (users who logged in today)
-    SELECT COUNT(*) INTO daily_users FROM profiles WHERE created_at >= CURRENT_DATE;
-    
-    -- Get weekly active users (approximation)
-    SELECT COUNT(*) INTO weekly_users FROM profiles WHERE created_at >= CURRENT_DATE - INTERVAL '7 days';
-    
-    -- Get monthly active users (approximation)
-    SELECT COUNT(*) INTO monthly_users FROM profiles WHERE created_at >= CURRENT_DATE - INTERVAL '30 days';
+    -- Get daily, weekly, and monthly active users (users created in the respective periods)
+    SELECT
+        COUNT(*) FILTER (WHERE created_at >= CURRENT_DATE),
+        COUNT(*) FILTER (WHERE created_at >= CURRENT_DATE - INTERVAL '7 days'),
+        COUNT(*) FILTER (WHERE created_at >= CURRENT_DATE - INTERVAL '30 days')
+    INTO daily_users, weekly_users, monthly_users
+    FROM public.profiles;
     
     result := jsonb_build_object(
         'totalUsers', total_users,
         'activeScreens', active_screens,
         'totalBookings', total_bookings,
         'totalRevenue', total_revenue,
-        'dailyActiveUsers', GREATEST(daily_users, 150 + (random() * 300)::integer),
-        'weeklyActiveUsers', GREATEST(weekly_users, 800 + (random() * 1200)::integer),
-        'monthlyActiveUsers', GREATEST(monthly_users, 3000 + (random() * 5000)::integer),
-        'avgSessionDuration', 420 + (random() * 600)::integer,
-        'bounceRate', 25 + (random() * 20)::integer,
-        'conversionRate', 8 + (random() * 12)::integer,
-        'revenueGrowth', 15 + (random() * 35)::integer,
+        'dailyActiveUsers', daily_users,
+        'weeklyActiveUsers', weekly_users,
+        'monthlyActiveUsers', monthly_users,
         'screenUtilization', CASE 
-            WHEN (SELECT COUNT(*) FROM screens) > 0 
-            THEN ((active_screens::float / (SELECT COUNT(*) FROM screens)) * 100)::integer
+            WHEN screen_count > 0
+            THEN ((active_screens::float / screen_count) * 100)::integer
             ELSE 0 
         END
     );
@@ -315,6 +332,11 @@ BEGIN
     RETURN result;
 END;
 $$;
+
+COMMENT ON FUNCTION public.get_platform_analytics IS
+'Retrieves a snapshot of key platform-wide analytics.
+Known limitations:
+- Active user counts (daily, weekly, monthly) are based on the user''s creation date (`created_at`), which serves as a proxy. A more accurate implementation would use a `last_seen` timestamp updated by application logic.';
 
 -- Insert some initial system health data
 INSERT INTO public.admin_system_health (service_name, status, response_time_ms) VALUES
