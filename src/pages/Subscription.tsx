@@ -205,7 +205,7 @@ const Subscription = () => {
           {/* Header */}
           <div className="text-center mb-12">
             <h1 className="text-4xl font-bold mb-4">Choose Your Plan</h1>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+            <p className="text-xl text-foreground/80 max-w-2xl mx-auto">
               Scale your digital advertising with Red Square's powerful platform. Choose the plan that fits your needs.
             </p>
           </div>
@@ -214,22 +214,22 @@ const Subscription = () => {
           {currentSubscription && (
             <Card className="max-w-2xl mx-auto mb-8 border-emerald-200 bg-emerald-50">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-emerald-800">
+                <CardTitle className="flex items-center gap-2 text-emerald-900">
                   <Check className="h-5 w-5" />
                   Active Subscription
                 </CardTitle>
-                <CardDescription className="text-emerald-700">
+                <CardDescription className="text-emerald-800">
                   You're currently subscribed to our {plans.find(p => p.id === currentSubscription.plan_id)?.name} plan
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-emerald-700">
+                    <p className="text-sm text-emerald-800">
                       Status: <span className="font-medium capitalize">{currentSubscription.status}</span>
                     </p>
                     {currentSubscription.current_period_end && (
-                      <p className="text-sm text-emerald-700">
+                      <p className="text-sm text-emerald-800">
                         Renews: {new Date(currentSubscription.current_period_end).toLocaleDateString()}
                       </p>
                     )}
@@ -262,9 +262,9 @@ const Subscription = () => {
                     {getPlanIcon(plan.name)}
                   </div>
                   <CardTitle className="text-2xl">{plan.name}</CardTitle>
-                  <CardDescription className="text-base">
+                  <p className="text-base text-foreground/80 h-12">
                     {plan.description}
-                  </CardDescription>
+                  </p>
                   <div className="mt-4">
                     <span className="text-4xl font-bold">
                       {formatPrice(plan.price_cents, plan.currency, plan.interval_type)}
@@ -345,7 +345,7 @@ const Subscription = () => {
                   <Zap className="h-6 w-6 text-blue-600" />
                 </div>
                 <h3 className="font-semibold">Lightning Fast</h3>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-sm text-foreground/80">
                   Deploy campaigns in minutes with our streamlined platform
                 </p>
               </div>
@@ -355,7 +355,7 @@ const Subscription = () => {
                   <BarChart3 className="h-6 w-6 text-emerald-600" />
                 </div>
                 <h3 className="font-semibold">Advanced Analytics</h3>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-sm text-foreground/80">
                   Real-time insights and performance metrics for optimization
                 </p>
               </div>
@@ -365,7 +365,7 @@ const Subscription = () => {
                   <Shield className="h-6 w-6 text-violet-600" />
                 </div>
                 <h3 className="font-semibold">Enterprise Security</h3>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-sm text-foreground/80">
                   Bank-level security with 99.9% uptime guarantee
                 </p>
               </div>
