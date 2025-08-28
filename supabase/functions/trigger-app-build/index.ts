@@ -6,10 +6,6 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-// These should be set in your Supabase project's environment variables
-const GITHUB_REPO_OWNER = Deno.env.get("GITHUB_REPO_OWNER") || "redsquare-dev";
-const GITHUB_REPO_NAME = Deno.env.get("GITHUB_REPO_NAME") || "redsquare-app";
-
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -20,9 +16,20 @@ serve(async (req) => {
     const anonKey = Deno.env.get("SUPABASE_ANON_KEY");
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
     const githubToken = Deno.env.get("GITHUB_ACCESS_TOKEN");
+    const githubRepoOwner = Deno.env.get("GITHUB_REPO_OWNER");
+    const githubRepoName = Deno.env.get("GITHUB_REPO_NAME");
 
-    if (!supabaseUrl || !anonKey || !serviceKey || !githubToken) {
-      throw new Error("Missing required environment variables for Supabase or GitHub.");
+    if (!supabaseUrl || !anonKey || !serviceKey) {
+      throw new Error("Internal server error: Missing Supabase configuration.");
+    }
+
+    if (!githubToken || !githubRepoOwner || !githubRepoName) {
+        return new Response(JSON.stringify({
+            error: "Configuration Error: GitHub integration variables (GITHUB_REPO_OWNER, GITHUB_REPO_NAME, GITHUB_ACCESS_TOKEN) must be set in the Supabase project's environment variables."
+        }), {
+            status: 500,
+            headers: { ...corsHeaders, "Content-Type": "application/json" }
+        });
     }
 
     // 1. Authenticate user and check for admin role
@@ -63,7 +70,7 @@ serve(async (req) => {
     if (insertError) throw insertError;
 
     // 3. Dispatch GitHub Action workflow
-    const dispatchUrl = `https://api.github.com/repos/${GITHUB_REPO_OWNER}/${GITHUB_REPO_NAME}/dispatches`;
+    const dispatchUrl = `https://api.github.com/repos/${githubRepoOwner}/${githubRepoName}/dispatches`;
     // Sanitize app_type to be safe for an event name
     const sanitizedAppType = app_type.replace(/[^a-zA-Z0-9_-]/g, '');
     const eventType = `trigger-${sanitizedAppType}-build`;

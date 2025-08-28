@@ -21,11 +21,11 @@ jobs:
         id: build_info
         run: |
           if [ -n "${{ github.event.client_payload.build_id }}" ]; then
-            echo "build_id=${{ github.event.client_payload.build_id }}" >> $GITHUB_OUTPUT
-            echo "version=${{ github.event.client_payload.version }}" >> $GITHUB_OUTPUT
+            echo "::set-output name=build_id::${{ github.event.client_payload.build_id }}"
+            echo "::set-output name=version::${{ github.event.client_payload.version }}"
           else
-            echo "build_id=${{ github.event.inputs.build_id }}" >> $GITHUB_OUTPUT
-            echo "version=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
+            echo "::set-output name=build_id::${{ github.event.inputs.build_id }}"
+            echo "::set-output name=version::${{ github.event.inputs.version }}"
           fi
 
       - name: Update Build Status to 'In Progress'
@@ -95,7 +95,7 @@ jobs:
 
           # Get the public URL of the bucket
           BUCKET_URL="${{ secrets.SUPABASE_URL }}/storage/v1/object/public/${SUPABASE_BUCKET}/${FILE_NAME}"
-          echo "artifact_url=$BUCKET_URL" >> $GITHUB_OUTPUT
+          echo "::set-output name=artifact_url::$BUCKET_URL"
 
           curl -X POST \
             "${{ secrets.SUPABASE_URL }}/storage/v1/object/${SUPABASE_BUCKET}/${FILE_NAME}" \
