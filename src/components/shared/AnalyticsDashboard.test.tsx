@@ -99,6 +99,7 @@ describe('AnalyticsDashboard (Shared Component)', () => {
       expect(screen.getByText('Could not load analytics data.')).toBeInTheDocument();
     });
   });
+
   it('displays a message when no analytics data is available', async () => {
     (supabase.functions.invoke as vi.Mock).mockResolvedValue({
       data: { summary: null, timeSeries: [] },
@@ -111,5 +112,4 @@ describe('AnalyticsDashboard (Shared Component)', () => {
       expect(screen.getByText('No analytics data available.')).toBeInTheDocument();
     });
   });
-
 });

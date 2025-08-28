@@ -2,7 +2,6 @@ import { render, screen, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { ABTestingTools } from './ABTestingTools';
 import { Toaster } from '@/components/ui/toaster';
-
 import { supabase } from '@/integrations/supabase/client';
 import { AuthProvider } from '@/contexts/AuthContext'; // To provide user context
 
@@ -124,5 +123,4 @@ describe('ABTestingTools (Shared Component)', () => {
       expect(screen.getByText('Could not load A/B test campaigns.')).toBeInTheDocument();
     });
   });
-
 });
