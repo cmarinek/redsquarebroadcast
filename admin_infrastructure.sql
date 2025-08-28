@@ -291,14 +291,13 @@ BEGIN
     -- NOTE: Active user counts are based on user creation date, which is a proxy.
     -- A real implementation would use a `last_seen` timestamp updated by triggers or application logic.
     
-    -- Get daily active users (users created today)
-    SELECT COUNT(*) INTO daily_users FROM public.profiles WHERE created_at >= CURRENT_DATE;
-    
-    -- Get weekly active users (users created in the last 7 days)
-    SELECT COUNT(*) INTO weekly_users FROM public.profiles WHERE created_at >= CURRENT_DATE - INTERVAL '7 days';
-
-    -- Get monthly active users (users created in the last 30 days)
-    SELECT COUNT(*) INTO monthly_users FROM public.profiles WHERE created_at >= CURRENT_DATE - INTERVAL '30 days';
+    -- Get daily, weekly, and monthly active users (users created in the respective periods)
+    SELECT
+        COUNT(*) FILTER (WHERE created_at >= CURRENT_DATE),
+        COUNT(*) FILTER (WHERE created_at >= CURRENT_DATE - INTERVAL '7 days'),
+        COUNT(*) FILTER (WHERE created_at >= CURRENT_DATE - INTERVAL '30 days')
+    INTO daily_users, weekly_users, monthly_users
+    FROM public.profiles;
     
     result := jsonb_build_object(
         'totalUsers', total_users,
