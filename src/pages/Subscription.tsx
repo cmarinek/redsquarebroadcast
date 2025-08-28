@@ -219,8 +219,9 @@ const Subscription = () => {
                   Active Subscription
                 </CardTitle>
                 <CardDescription className="text-emerald-800">
+
                   You're currently subscribed to our {plans.find(p => p.id === currentSubscription.plan_id)?.name} plan
-                </CardDescription>
+                </p>
               </CardHeader>
               <CardContent>
                 <div className="flex items-center justify-between">
@@ -263,6 +264,7 @@ const Subscription = () => {
                   </div>
                   <CardTitle className="text-2xl">{plan.name}</CardTitle>
                   <p className="text-base text-foreground/80 h-12">
+
                     {plan.description}
                   </p>
                   <div className="mt-4">

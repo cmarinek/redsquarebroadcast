@@ -10,6 +10,7 @@ const createAdminClient = (req: Request) => {
   )
 }
 
+
 serve(async (req) => {
   const corsHeaders = {
     'Access-Control-Allow-Origin': '*',
@@ -64,6 +65,7 @@ serve(async (req) => {
     return new Response(JSON.stringify({ error: e.message }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 500,
+
     })
   }
 })

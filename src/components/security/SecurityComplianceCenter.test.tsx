@@ -152,4 +152,5 @@ describe('SecurityComplianceCenter', () => {
       expect(screen.getByText('Failed to load security data')).toBeInTheDocument();
     });
   });
+
 });
