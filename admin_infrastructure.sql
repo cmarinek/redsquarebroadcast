@@ -262,10 +262,6 @@ CREATE OR REPLACE FUNCTION public.get_platform_analytics()
 RETURNS JSONB
 LANGUAGE plpgsql
 SECURITY DEFINER
-COMMENT ON FUNCTION public.get_platform_analytics IS
-'Retrieves a snapshot of key platform-wide analytics.
-Known limitations:
-- Active user counts (daily, weekly, monthly) are based on the user''s creation date (`created_at`), which serves as a proxy. A more accurate implementation would use a `last_seen` timestamp updated by application logic.'
 AS $$
 DECLARE
     result JSONB := '{}'::jsonb;
@@ -318,6 +314,11 @@ BEGIN
     RETURN result;
 END;
 $$;
+
+COMMENT ON FUNCTION public.get_platform_analytics IS
+'Retrieves a snapshot of key platform-wide analytics.
+Known limitations:
+- Active user counts (daily, weekly, monthly) are based on the user''s creation date (`created_at`), which serves as a proxy. A more accurate implementation would use a `last_seen` timestamp updated by application logic.';
 
 -- Insert some initial system health data
 INSERT INTO public.admin_system_health (service_name, status, response_time_ms) VALUES
