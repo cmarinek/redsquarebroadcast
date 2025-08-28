@@ -30,7 +30,7 @@ import {
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { useAuth } from '@/context/AuthContext';
+import { useAuth } from '@/contexts/AuthContext';
 import QRCode from 'react-qr-code';
 import SEO from '@/components/SEO';
 import ContentPlayer from '@/components/mobile/ContentPlayer';

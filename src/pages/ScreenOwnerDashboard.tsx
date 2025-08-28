@@ -26,7 +26,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Layout } from "@/components/Layout";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { RevenueOptimization } from "@/components/screen-owner/RevenueOptimization";
 import { DeviceMonitoring } from "@/components/screen-owner/DeviceMonitoring";
 import { ScreenNetworkManagement } from "@/components/screen-owner/ScreenNetworkManagement";

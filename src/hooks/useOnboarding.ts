@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from "react";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { useUserRoles } from "./useUserRoles";
 import { supabase, SUPABASE_PROJECT_REF } from "@/integrations/supabase/client";
 

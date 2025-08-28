@@ -4,7 +4,7 @@ import App from './App.tsx'
 import ScreenOwnerMobile from './pages/ScreenOwnerMobile.tsx'
 import './index.css'
 import { Toaster } from "@/components/ui/toaster"
-import { AuthProvider } from '@/context/AuthContext'
+import { AuthProvider } from '@/contexts/AuthContext'
 import { LanguageProvider } from '@/contexts/LanguageContext'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { initWebVitals } from '@/utils/telemetry'

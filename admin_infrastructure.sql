@@ -257,6 +257,7 @@ END;
 $$;
 
 -- Function to get real-time analytics
+-- Function to get real-time analytics (V2 - No Random Data)
 CREATE OR REPLACE FUNCTION public.get_platform_analytics()
 RETURNS JSONB
 LANGUAGE plpgsql
@@ -271,43 +272,45 @@ DECLARE
     daily_users INTEGER;
     weekly_users INTEGER;
     monthly_users INTEGER;
+    screen_count INTEGER;
 BEGIN
     -- Get total users
-    SELECT COUNT(*) INTO total_users FROM profiles;
+    SELECT COUNT(*) INTO total_users FROM public.profiles;
     
-    -- Get active screens
-    SELECT COUNT(*) INTO active_screens FROM screens WHERE is_active = true;
+    -- Get total and active screens
+    SELECT COUNT(*), COUNT(*) FILTER (WHERE is_active = true)
+    INTO screen_count, active_screens
+    FROM public.screens;
     
     -- Get total bookings
-    SELECT COUNT(*) INTO total_bookings FROM bookings;
+    SELECT COUNT(*) INTO total_bookings FROM public.bookings;
     
     -- Get total revenue
-    SELECT COALESCE(SUM(total_amount), 0) INTO total_revenue FROM bookings WHERE payment_status = 'paid';
+    SELECT COALESCE(SUM(total_amount), 0) INTO total_revenue FROM public.bookings WHERE payment_status = 'paid';
     
-    -- Get daily active users (users who logged in today)
-    SELECT COUNT(*) INTO daily_users FROM profiles WHERE created_at >= CURRENT_DATE;
+    -- NOTE: Active user counts are based on user creation date, which is a proxy.
+    -- A real implementation would use a `last_seen` timestamp updated by triggers or application logic.
     
-    -- Get weekly active users (approximation)
-    SELECT COUNT(*) INTO weekly_users FROM profiles WHERE created_at >= CURRENT_DATE - INTERVAL '7 days';
+    -- Get daily active users (users created today)
+    SELECT COUNT(*) INTO daily_users FROM public.profiles WHERE created_at >= CURRENT_DATE;
     
-    -- Get monthly active users (approximation)
-    SELECT COUNT(*) INTO monthly_users FROM profiles WHERE created_at >= CURRENT_DATE - INTERVAL '30 days';
+    -- Get weekly active users (users created in the last 7 days)
+    SELECT COUNT(*) INTO weekly_users FROM public.profiles WHERE created_at >= CURRENT_DATE - INTERVAL '7 days';
+
+    -- Get monthly active users (users created in the last 30 days)
+    SELECT COUNT(*) INTO monthly_users FROM public.profiles WHERE created_at >= CURRENT_DATE - INTERVAL '30 days';
     
     result := jsonb_build_object(
         'totalUsers', total_users,
         'activeScreens', active_screens,
         'totalBookings', total_bookings,
         'totalRevenue', total_revenue,
-        'dailyActiveUsers', GREATEST(daily_users, 150 + (random() * 300)::integer),
-        'weeklyActiveUsers', GREATEST(weekly_users, 800 + (random() * 1200)::integer),
-        'monthlyActiveUsers', GREATEST(monthly_users, 3000 + (random() * 5000)::integer),
-        'avgSessionDuration', 420 + (random() * 600)::integer,
-        'bounceRate', 25 + (random() * 20)::integer,
-        'conversionRate', 8 + (random() * 12)::integer,
-        'revenueGrowth', 15 + (random() * 35)::integer,
+        'dailyActiveUsers', daily_users,
+        'weeklyActiveUsers', weekly_users,
+        'monthlyActiveUsers', monthly_users,
         'screenUtilization', CASE 
-            WHEN (SELECT COUNT(*) FROM screens) > 0 
-            THEN ((active_screens::float / (SELECT COUNT(*) FROM screens)) * 100)::integer
+            WHEN screen_count > 0
+            THEN ((active_screens::float / screen_count) * 100)::integer
             ELSE 0 
         END
     );

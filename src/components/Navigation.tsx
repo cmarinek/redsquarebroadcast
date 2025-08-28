@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Menu, X, Monitor, Upload, Calendar, CreditCard, User, LogOut, Settings, BarChart3, Shield, HelpCircle, Smartphone } from "lucide-react";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { useUserRoles } from "@/hooks/useUserRoles";
 import { useOnboarding } from "@/hooks/useOnboarding";
 import { RealTimeNotifications } from "@/components/RealTimeNotifications";

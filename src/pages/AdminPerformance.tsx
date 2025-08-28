@@ -9,7 +9,7 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import { format } from 'date-fns';
 import { toast } from 'sonner';
 import { Navigation } from '@/components/Navigation';
-import { useAuth } from '@/context/AuthContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { Link } from 'react-router-dom';
 import { timeApi } from '@/utils/apm';
 
