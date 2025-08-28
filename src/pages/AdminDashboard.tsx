@@ -49,6 +49,7 @@ import {
 import { Link } from "react-router-dom";
 import { AdminSystemHealth } from "@/components/admin/AdminSystemHealth";
 import { AppManager } from "@/components/admin/AppManager";
+import { AutomatedBuilds } from "@/components/admin/AutomatedBuilds";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -1417,6 +1418,7 @@ const AdminDashboard = () => {
 
               <TabsContent value="mobile" className="mt-0 p-6">
                 <AppManager />
+                <AutomatedBuilds />
               </TabsContent>
 
             </Tabs>

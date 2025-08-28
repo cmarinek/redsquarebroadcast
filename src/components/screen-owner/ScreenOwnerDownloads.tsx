@@ -13,8 +13,8 @@ interface AppRelease {
   id: string;
   version_name: string;
   version_code: number;
-  platform: 'android' | 'ios' | 'tv';
-  file_extension: 'apk' | 'ipa' | 'zip';
+  platform: 'android' | 'ios' | 'tv' | 'desktop';
+  file_extension: 'apk' | 'ipa' | 'zip' | 'exe';
   file_path: string;
   file_size: number;
   release_notes?: string;
@@ -24,21 +24,46 @@ interface AppRelease {
   created_at: string;
 }
 
+interface AppBuild {
+  id: string;
+  created_at: string;
+  app_type: string;
+  version: string | null;
+  status: 'pending' | 'in_progress' | 'success' | 'failed' | 'cancelled';
+  artifact_url: string | null;
+  logs_url: string | null;
+  commit_hash: string | null;
+}
+
 interface ScreenOwnerDownloadsProps {
   screenCount: number;
 }
 
 const PLATFORM_CONFIG = {
+  desktop: {
+    icon: Monitor,
+    name: 'Desktop Client',
+    bucket: 'app_artifacts',
+    fileExtension: 'EXE',
+    description: 'Manage your screens from your Windows computer',
+    features: ['Full management features', 'Native performance', 'Offline access hints'],
+    instructions: [
+      'Download the installer (.exe)',
+      'Run the installer on your computer',
+      'Follow the on-screen instructions',
+      'Log in with your Red Square account'
+    ]
+  },
   tv: {
     icon: Tv,
     name: 'TV Player App',
-    bucket: 'tv-files',
-    fileExtension: 'ZIP',
+    bucket: 'app_artifacts',
+    fileExtension: 'APK',
     description: 'Essential player app for your digital screens',
     features: ['Content playback', 'Remote management', 'Real-time updates', 'QR code pairing'],
     instructions: [
       'Download the TV app package',
-      'Extract files to your computer',
+      'Sideload the APK onto your Android TV device',
       'Install on your TV or media player',
       'Pair with your screen using QR code'
     ]
@@ -83,30 +108,45 @@ export const ScreenOwnerDownloads = ({ screenCount }: ScreenOwnerDownloadsProps)
   const [loading, setLoading] = useState(true);
   const [downloading, setDownloading] = useState<string | null>(null);
 
-  useEffect(() => {
-    fetchLatestReleases();
-  }, []);
-
-  const fetchLatestReleases = async () => {
+  const fetchLatestReleases = useCallback(async () => {
+    setLoading(true);
     try {
-      // Use the new secure public endpoint instead of direct database access
-      const { data, error } = await supabase.functions.invoke('public-app-releases');
+      const { data, error } = await supabase
+        .from('app_builds')
+        .select('*')
+        .eq('status', 'success')
+        .order('created_at', { ascending: false });
 
       if (error) throw error;
 
-      const latestByPlatform: Record<string, AppRelease | null> = {
-        android: null,
-        ios: null,
-        tv: null
-      };
+      const builds: AppBuild[] = data || [];
+      const latestBuilds: Record<string, AppRelease> = {};
 
-      (data?.releases || []).forEach((release: AppRelease) => {
-        if (!latestByPlatform[release.platform]) {
-          latestByPlatform[release.platform] = release;
+      for (const build of builds) {
+        let platform: keyof typeof PLATFORM_CONFIG | null = null;
+        if (build.app_type === 'android_tv') platform = 'tv';
+        if (build.app_type === 'desktop_windows') platform = 'desktop';
+
+        if (platform && !latestBuilds[platform]) {
+          latestBuilds[platform] = {
+            id: build.id,
+            platform: platform,
+            version_name: build.version || 'N/A',
+            file_path: build.artifact_url || '',
+            created_at: build.created_at,
+            file_extension: 'EXE', // Placeholder
+            // If build.download_count exists, use it; otherwise, mark as unavailable
+            download_count: typeof build.download_count === 'number' ? build.download_count : null
+          };
         }
-      });
+      }
 
-      setReleases(latestByPlatform);
+      setReleases(prev => ({
+        ...prev,
+        tv: latestBuilds.tv || prev.tv,
+        desktop: latestBuilds.desktop || null,
+      }));
+
     } catch (error) {
       console.error("Error fetching latest releases:", error);
       toast({
@@ -117,7 +157,11 @@ export const ScreenOwnerDownloads = ({ screenCount }: ScreenOwnerDownloadsProps)
     } finally {
       setLoading(false);
     }
-  };
+  }, [toast]);
+
+  useEffect(() => {
+    fetchLatestReleases();
+  }, [fetchLatestReleases]);
 
   const formatFileSize = (bytes: number) => {
     if (bytes === 0) return '0 Bytes';
@@ -135,32 +179,28 @@ export const ScreenOwnerDownloads = ({ screenCount }: ScreenOwnerDownloadsProps)
     setDownloading(platform);
 
     try {
-      const { data, error } = await supabase.storage
-        .from(config.bucket)
-        .createSignedUrl(release.file_path, 3600);
+      let downloadUrl = release.file_path;
 
-      if (error) throw error;
-
-      await supabase.rpc('increment_app_download_count', {
-        release_id: release.id
-      });
+      if (!downloadUrl.startsWith('http')) {
+        const { data, error } = await supabase.storage
+          .from(config.bucket)
+          .createSignedUrl(release.file_path, 3600);
+        if (error) throw error;
+        downloadUrl = data.signedUrl;
+      }
 
       const link = document.createElement('a');
-      link.href = data.signedUrl;
-      link.download = `RedSquare-${platform}-v${release.version_name}.${release.file_extension.toLowerCase()}`;
+      link.href = downloadUrl;
+      link.download = `RedSquare-${platform}-v${release.version_name}`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-
-      setReleases(prev => ({
-        ...prev,
-        [platform]: prev[platform] ? {...prev[platform], download_count: prev[platform]!.download_count + 1} : null
-      }));
 
       toast({
         title: "Download started",
         description: `${config.name} v${release.version_name} is downloading.`,
       });
+
     } catch (error) {
       console.error(`Error downloading ${config.name}:`, error);
       toast({
@@ -236,9 +276,9 @@ export const ScreenOwnerDownloads = ({ screenCount }: ScreenOwnerDownloadsProps)
 
       {/* App Downloads */}
       <div className="grid gap-6 lg:grid-cols-3">
-        {(['tv', 'android', 'ios'] as const).map((platform) => {
-          const release = releases[platform];
-          const config = PLATFORM_CONFIG[platform];
+        {(['desktop', 'tv', 'android'] as const).map((platform) => {
+          const release = releases[platform as keyof typeof releases];
+          const config = PLATFORM_CONFIG[platform as keyof typeof PLATFORM_CONFIG];
           const IconComponent = config.icon;
           const isRecommended = platform === 'tv';
 
