@@ -218,9 +218,9 @@ const Subscription = () => {
                   <Check className="h-5 w-5" />
                   Active Subscription
                 </CardTitle>
-                <CardDescription className="text-emerald-800">
+                <p className="text-sm text-emerald-800">
                   You're currently subscribed to our {plans.find(p => p.id === currentSubscription.plan_id)?.name} plan
-                </CardDescription>
+                </p>
               </CardHeader>
               <CardContent>
                 <div className="flex items-center justify-between">
