@@ -34,36 +34,11 @@ serve(async (req) => {
       }
 
       case 'advertiser': {
-        let query_user_id = userId;
-        // In a real app, you might have more complex logic for campaign filtering
-        // For now, we just filter by user_id if no specific campaignId is passed
-        if (campaignId) {
-            const { data: booking, error } = await supabaseAdmin.from('bookings').select('user_id').eq('id', campaignId).single();
-            if(error) throw error;
-            query_user_id = booking.user_id;
-        }
-
-        const [
-          { count: impressions, error: impError },
-          { count: clicks, error: clickError },
-          { count: conversions, error: convError }
-        ] = await Promise.all([
-          supabaseAdmin.from('ad_impressions').select('*', { count: 'exact', head: true }).eq('user_id', query_user_id),
-          supabaseAdmin.from('ad_clicks').select('*', { count: 'exact', head: true }).eq('user_id', query_user_id),
-          supabaseAdmin.from('ad_conversions').select('*', { count: 'exact', head: true }).eq('user_id', query_user_id)
-        ]);
-
-        if (impError || clickError || convError) {
-            throw impError || clickError || convError;
-        }
-
-        const summary = {
-          impressions: impressions ?? 0,
-          clicks: clicks ?? 0,
-          conversions: conversions ?? 0,
-          ctr: (impressions && clicks) ? (clicks / impressions) * 100 : 0,
-        };
-        responseData = { summary, timeSeries: [] };
+        const { data, error } = await supabaseAdmin.rpc('get_advertiser_analytics_summary', {
+          p_user_id: userId,
+        });
+        if (error) throw error;
+        responseData = { summary: data, timeSeries: [] }; // timeSeries can be built out later
         break;
       }
 
@@ -98,7 +73,6 @@ serve(async (req) => {
     return new Response(JSON.stringify({ error: e.message }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 500,
-
     })
   }
 })

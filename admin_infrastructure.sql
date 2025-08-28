@@ -74,19 +74,13 @@ CREATE TABLE public.ad_impressions (
 
 CREATE TABLE public.ad_clicks (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    impression_id UUID NOT NULL REFERENCES public.ad_impressions(id),
-    booking_id UUID NOT NULL REFERENCES public.bookings(id),
-    screen_id UUID NOT NULL REFERENCES public.screens(id),
-    user_id UUID NOT NULL REFERENCES auth.users(id),
+    impression_id UUID NOT NULL REFERENCES public.ad_impressions(id) ON DELETE CASCADE,
     "timestamp" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
 );
 
 CREATE TABLE public.ad_conversions (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    click_id UUID NOT NULL REFERENCES public.ad_clicks(id),
-    booking_id UUID NOT NULL REFERENCES public.bookings(id),
-    screen_id UUID NOT NULL REFERENCES public.screens(id),
-    user_id UUID NOT NULL REFERENCES auth.users(id),
+    click_id UUID NOT NULL REFERENCES public.ad_clicks(id) ON DELETE CASCADE,
     "timestamp" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
     conversion_value_cents INTEGER
 );
@@ -133,12 +127,13 @@ TO authenticated
 USING (public.has_role(auth.uid(), 'admin'));
 
 -- Policies for analytics event tables
--- Users can insert their own events. Admins can read everything.
-CREATE POLICY "Users can insert their own ad impressions"
+CREATE POLICY "Users can insert impressions for their own bookings"
 ON public.ad_impressions
 FOR INSERT
 TO authenticated
-WITH CHECK (user_id = auth.uid());
+WITH CHECK (
+  (SELECT user_id FROM public.bookings WHERE id = booking_id) = auth.uid()
+);
 
 CREATE POLICY "Admins can select all ad impressions"
 ON public.ad_impressions
@@ -146,11 +141,13 @@ FOR SELECT
 TO authenticated
 USING (public.has_role(auth.uid(), 'admin'));
 
-CREATE POLICY "Users can insert their own ad clicks"
+CREATE POLICY "Users can insert clicks for their own impressions"
 ON public.ad_clicks
 FOR INSERT
 TO authenticated
-WITH CHECK (user_id = auth.uid());
+WITH CHECK (
+  (SELECT user_id FROM public.ad_impressions WHERE id = impression_id) = auth.uid()
+);
 
 CREATE POLICY "Admins can select all ad clicks"
 ON public.ad_clicks
@@ -158,11 +155,13 @@ FOR SELECT
 TO authenticated
 USING (public.has_role(auth.uid(), 'admin'));
 
-CREATE POLICY "Users can insert their own ad conversions"
+CREATE POLICY "Users can insert conversions for their own clicks"
 ON public.ad_conversions
 FOR INSERT
 TO authenticated
-WITH CHECK (user_id = auth.uid());
+WITH CHECK (
+  (SELECT i.user_id FROM public.ad_clicks c JOIN public.ad_impressions i ON c.impression_id = i.id WHERE c.id = click_id) = auth.uid()
+);
 
 CREATE POLICY "Admins can select all ad conversions"
 ON public.ad_conversions
@@ -408,6 +407,33 @@ COMMENT ON FUNCTION public.get_platform_analytics IS
 Known limitations:
 - Active user counts (daily, weekly, monthly) are based on the user''s creation date (`created_at`), which serves as a proxy. A more accurate implementation would use a `last_seen` timestamp updated by application logic.';
 
+CREATE OR REPLACE FUNCTION public.get_advertiser_analytics_summary(p_user_id UUID)
+RETURNS JSONB
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    result JSONB;
+    impression_count INTEGER;
+    click_count INTEGER;
+    conversion_count INTEGER;
+BEGIN
+    SELECT COUNT(*) INTO impression_count FROM public.ad_impressions WHERE user_id = p_user_id;
+
+    SELECT COUNT(*) INTO click_count FROM public.ad_clicks cl JOIN public.ad_impressions i ON cl.impression_id = i.id WHERE i.user_id = p_user_id;
+
+    SELECT COUNT(*) INTO conversion_count FROM public.ad_conversions co JOIN public.ad_clicks cl ON co.click_id = cl.id JOIN public.ad_impressions i ON cl.impression_id = i.id WHERE i.user_id = p_user_id;
+
+    result := jsonb_build_object(
+        'impressions', impression_count,
+        'clicks', click_count,
+        'conversions', conversion_count,
+        'ctr', CASE WHEN impression_count > 0 THEN (click_count::float / impression_count) * 100 ELSE 0 END
+    );
+
+    RETURN result;
+END;
+$$;
+
 -- Insert some initial system health data
 INSERT INTO public.admin_system_health (service_name, status, response_time_ms) VALUES
 ('database', 'healthy', 45),
@@ -434,9 +460,9 @@ WITH impression AS (
   RETURNING id
 ),
 click AS (
-  INSERT INTO public.ad_clicks (impression_id, booking_id, screen_id, user_id)
-  SELECT id, '1a7a7b8e-5b3a-4b0e-8c1e-8e1b1e1b1e1b', '2b8b8c8e-5b3a-4b0e-8c1e-8e1b1e1b1e1b', '3c9c9d8e-5b3a-4b0e-8c1e-8e1b1e1b1e1b' FROM impression
+  INSERT INTO public.ad_clicks (impression_id)
+  SELECT id FROM impression
   RETURNING id
 )
-INSERT INTO public.ad_conversions (click_id, booking_id, screen_id, user_id, conversion_value_cents)
-SELECT id, '1a7a7b8e-5b3a-4b0e-8c1e-8e1b1e1b1e1b', '2b8b8c8e-5b3a-4b0e-8c1e-8e1b1e1b1e1b', '3c9c9d8e-5b3a-4b0e-8c1e-8e1b1e1b1e1b', 5000 FROM click;
+INSERT INTO public.ad_conversions (click_id, conversion_value_cents)
+SELECT id, 5000 FROM click;
