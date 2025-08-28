@@ -36,11 +36,11 @@ import { Progress } from "@/components/ui/progress";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Layout } from "@/components/Layout";
-import { useAuth } from "@/context/AuthContext";
-import { AdvancedAnalyticsDashboard } from "@/components/broadcaster/AdvancedAnalyticsDashboard";
+import { useAuth } from "@/contexts/AuthContext";
+import { AnalyticsDashboard } from "@/components/shared/AnalyticsDashboard";
 import { ContentSchedulingAutomation } from "@/components/broadcaster/ContentSchedulingAutomation";
 import AudienceTargeting from "@/components/broadcaster/AudienceTargeting";
-import { ABTestingTools } from "@/components/broadcaster/ABTestingTools";
+import { ABTestingTools } from "@/components/shared/ABTestingTools";
 import MobileAppIntegration from "@/components/broadcaster/MobileAppIntegration";
 import { format, isAfter, isBefore, addDays } from "date-fns";
 import { getSignedViewUrl } from "@/utils/media";
@@ -447,7 +447,7 @@ const BroadcasterDashboard = () => {
                 <BroadcasterSetupGuide />
               </TabsContent>
               <TabsContent value="analytics" className="mt-6">
-                <AdvancedAnalyticsDashboard bookings={bookings} />
+                {user && <AnalyticsDashboard role="broadcaster" userId={user.id} />}
               </TabsContent>
               <TabsContent value="scheduling" className="mt-6">
                 <ContentSchedulingAutomation contentUploads={contentUploads} screens={screens} />
@@ -456,7 +456,7 @@ const BroadcasterDashboard = () => {
                 <AudienceTargeting />
               </TabsContent>
               <TabsContent value="testing" className="mt-6">
-                <ABTestingTools />
+                <ABTestingTools role="broadcaster" />
               </TabsContent>
               <TabsContent value="mobile" className="mt-6">
                 <MobileAppIntegration />

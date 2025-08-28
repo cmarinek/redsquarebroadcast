@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -13,10 +13,10 @@ import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { Navigation } from "@/components/Navigation";
 import AdvertiserSetupGuide from "@/components/advertiser/AdvertiserSetupGuide";
-import { AdvancedAnalyticsDashboard } from "@/components/broadcaster/AdvancedAnalyticsDashboard";
+import { AnalyticsDashboard } from "@/components/shared/AnalyticsDashboard";
 import { ContentSchedulingAutomation } from "@/components/broadcaster/ContentSchedulingAutomation";
 import AudienceTargeting from "@/components/broadcaster/AudienceTargeting";
-import { ABTestingTools } from "@/components/broadcaster/ABTestingTools";
+import { ABTestingTools } from "@/components/shared/ABTestingTools";
 import MobileAppIntegration from "@/components/broadcaster/MobileAppIntegration";
 
 interface Booking {
@@ -442,7 +442,7 @@ const AdvertiserDashboard = () => {
                   </TabsContent>
 
                   <TabsContent value="analytics">
-                    <AdvancedAnalyticsDashboard bookings={analyticsBookings} />
+                    {user && <AnalyticsDashboard role="advertiser" userId={user.id} />}
                   </TabsContent>
 
                   <TabsContent value="scheduling">
@@ -454,7 +454,7 @@ const AdvertiserDashboard = () => {
                   </TabsContent>
 
                   <TabsContent value="testing">
-                    <ABTestingTools />
+                    <ABTestingTools role="advertiser" />
                   </TabsContent>
 
                   <TabsContent value="mobile">
