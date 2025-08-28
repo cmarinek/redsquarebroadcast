@@ -21,11 +21,11 @@ jobs:
         id: build_info
         run: |
           if [ -n "${{ github.event.client_payload.build_id }}" ]; then
-            echo "::set-output name=build_id::${{ github.event.client_payload.build_id }}"
-            echo "::set-output name=version::${{ github.event.client_payload.version }}"
+            echo "build_id=${{ github.event.client_payload.build_id }}" >> $GITHUB_OUTPUT
+            echo "version=${{ github.event.client_payload.version }}" >> $GITHUB_OUTPUT
           else
-            echo "::set-output name=build_id::${{ github.event.inputs.build_id }}"
-            echo "::set-output name=version::${{ github.event.inputs.version }}"
+            echo "build_id=${{ github.event.inputs.build_id }}" >> $GITHUB_OUTPUT
+            echo "version=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
           fi
 
       - name: Update Build Status to 'In Progress'
