@@ -7,7 +7,7 @@ import { Progress } from "@/components/ui/progress";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { 
+import {
   Shield,
   AlertTriangle,
   CheckCircle,
@@ -17,7 +17,7 @@ import {
   UserCheck,
   FileText,
   Database,
-  RefreshCw
+  RefreshCw,
 } from "lucide-react";
 
 interface SecurityAlert {
@@ -182,9 +182,9 @@ export const SecurityComplianceCenter = () => {
             <div className="text-2xl font-bold">{complianceScore}%</div>
             <Progress value={complianceScore} className="mt-2" />
             {complianceChecks.length > 0 && (
-                <p className="text-xs text-muted-foreground mt-2">
-                    {complianceChecks.filter(c => c.status === 'compliant').length} of {complianceChecks.length} checks passing
-                </p>
+              <p className="text-xs text-muted-foreground mt-2">
+                {complianceChecks.filter(c => c.status === 'compliant').length} of {complianceChecks.length} checks passing
+              </p>
             )}
           </CardContent>
         </Card>
@@ -326,7 +326,7 @@ export const SecurityComplianceCenter = () => {
                       <div className="flex justify-between items-start">
                         <div className="space-y-1">
                           <div className="flex items-center gap-2">
-                          {getComplianceIcon(check.status)}
+                            {getComplianceIcon(check.status)}
                             <span className="font-medium">{check.name}</span>
                             <Badge className={getComplianceColor(check.status)}>
                               {check.status.replace('_', ' ')}
