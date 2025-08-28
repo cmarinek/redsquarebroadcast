@@ -12,13 +12,13 @@ import { format } from "date-fns";
 interface AppRelease {
   id: string;
   version_name: string;
-  version_code: number;
+  version_code: number | null;
   platform: 'android' | 'ios' | 'tv' | 'desktop';
   file_extension: 'apk' | 'ipa' | 'zip' | 'exe';
   file_path: string;
-  file_size: number;
+  file_size: number | null;
   release_notes?: string;
-  download_count: number;
+  download_count: number | null;
   minimum_os_version?: string;
   bundle_id?: string;
   created_at: string;
@@ -135,9 +135,9 @@ export const ScreenOwnerDownloads = ({ screenCount }: ScreenOwnerDownloadsProps)
             file_path: build.artifact_url || '',
             created_at: build.created_at,
             file_extension: 'EXE', // Placeholder
-            version_code: 0,
-            file_size: 0,
-            download_count: 0
+            version_code: null,
+            file_size: null,
+            download_count: null
           };
         }
       }
@@ -315,7 +315,9 @@ export const ScreenOwnerDownloads = ({ screenCount }: ScreenOwnerDownloadsProps)
                         v{release.version_name}
                       </Badge>
                       <p className="text-xs text-muted-foreground">
-                        {formatFileSize(release.file_size)} • {release.download_count} downloads
+                        {typeof release.file_size === 'number' && formatFileSize(release.file_size)}
+                        {typeof release.file_size === 'number' && typeof release.download_count === 'number' && ' • '}
+                        {typeof release.download_count === 'number' && `${release.download_count} downloads`}
                       </p>
                     </div>
 

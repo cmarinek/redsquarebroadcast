@@ -43,7 +43,7 @@ serve(async (req) => {
         return new Response(JSON.stringify({ error: 'unauthorized' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
       }
 
-      const { screen_id, device_id, command, payload } = body as { screen_id?: string; device_id?: string; command?: string; payload?: any };
+      const { screen_id, device_id, command, payload } = body as { screen_id?: string; device_id?: string; command?: string; payload?: Record<string, unknown> };
       if (!screen_id && !device_id) {
         return new Response(JSON.stringify({ error: 'target_required' }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
       }
@@ -65,8 +65,9 @@ serve(async (req) => {
         const { data: roles } = await service
           .from('user_roles')
           .select('role')
-          .eq('user_id', userData.user.id);
-        if ((roles || []).some((r: any) => r.role === 'admin')) isAuthorized = true;
+          .eq('user_id', userData.user.id)
+          .returns<{ role: string }[]>();
+        if ((roles || []).some((r) => r.role === 'admin')) isAuthorized = true;
       }
       if (!isAuthorized) {
         return new Response(JSON.stringify({ error: 'forbidden' }), { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
