@@ -1,6 +1,8 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { ABTestingTools } from './ABTestingTools';
+import { Toaster } from '@/components/ui/toaster';
+
 import { supabase } from '@/integrations/supabase/client';
 import { AuthProvider } from '@/contexts/AuthContext'; // To provide user context
 
@@ -94,4 +96,33 @@ describe('ABTestingTools (Shared Component)', () => {
     // Check that advertiser card content is NOT present
     expect(screen.queryByText('Adv Desc 1')).not.toBeInTheDocument();
   });
+
+  it('displays an empty state message when no campaigns are returned', async () => {
+    (supabase.functions.invoke as vi.Mock).mockResolvedValue({
+      data: { campaigns: [] },
+      error: null,
+    });
+
+    renderWithAuthProvider(<ABTestingTools role="advertiser" />);
+
+    await waitFor(() => {
+      expect(screen.getByText('No A/B Tests Yet')).toBeInTheDocument();
+    });
+  });
+
+  it('displays an error toast if fetching campaigns fails', async () => {
+    (supabase.functions.invoke as vi.Mock).mockRejectedValue(new Error('API Error'));
+
+    renderWithAuthProvider(
+      <>
+        <ABTestingTools role="advertiser" />
+        <Toaster />
+      </>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText('Could not load A/B test campaigns.')).toBeInTheDocument();
+    });
+  });
+
 });

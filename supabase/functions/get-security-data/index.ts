@@ -1,68 +1,43 @@
 import { serve } from 'https://deno.land/std@0.177.0/http/server.ts'
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
-// This is a placeholder implementation.
-// In a real production environment, this data would be fetched from a database,
-// analyzed, and compiled from various security monitoring sources.
-const mockApiData = {
-  alerts: [
-    {
-      id: 'api-alert-1',
-      type: 'api_test_type',
-      severity: 'critical',
-      title: 'API Security Alert',
-      description: 'This alert came from the mocked API.',
-      timestamp: new Date().toISOString(),
-      status: 'open',
-    },
-     {
-      id: 'api-alert-2',
-      type: 'failed_login_attempts',
-      severity: 'medium',
-      title: 'Multiple Failed Login Attempts',
-      description: 'Detected 15 failed login attempts from IP 192.168.1.100',
-      timestamp: '2024-01-15T10:30:00Z',
-      status: 'open',
-      affectedUsers: 1
-    },
-  ],
-  complianceChecks: [
-    {
-      id: 'api-compliance-1',
-      name: 'API GDPR Check',
-      description: 'This check came from the mocked API.',
-      status: 'compliant',
-      lastChecked: new Date().toISOString(),
-      category: 'data_protection',
-    },
-    {
-      id: 'api-compliance-2',
-      name: 'API Content Moderation Policy',
-      description: 'Verifies content moderation workflows meet platform standards',
-      status: 'warning',
-      lastChecked: '2024-01-15T07:30:00Z',
-      category: 'content_policy'
-    },
-  ],
-};
+serve(async (req) => {
 
-serve(async (_req) => {
-  // This is required for the Supabase client library to work
   const corsHeaders = {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
   }
 
-  // Supabase functions are by default deployed with a pre-flight OPTIONS request handler
-  if (_req.method === 'OPTIONS') {
+  if (req.method === 'OPTIONS') {
+
     return new Response('ok', { headers: corsHeaders })
   }
 
   try {
-    // Here you would add logic to fetch real data from your database
-    // For example: const { data, error } = await supabase.from('security_alerts').select('*');
+    // Create a Supabase client with the user's auth token
+    const supabaseClient = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+      { global: { headers: { Authorization: req.headers.get('Authorization')! } } }
+    )
+
+    // Fetch alerts and compliance checks in parallel
+    const [alertsRes, complianceChecksRes] = await Promise.all([
+      supabaseClient.from('admin_security_alerts').select('*').order('created_at', { ascending: false }).limit(10),
+      supabaseClient.from('admin_compliance_checks').select('*').order('last_checked', { ascending: false })
+    ]);
+
+    if (alertsRes.error) throw alertsRes.error;
+    if (complianceChecksRes.error) throw complianceChecksRes.error;
+
+    const responseData = {
+      alerts: alertsRes.data,
+      complianceChecks: complianceChecksRes.data,
+    };
 
     return new Response(
-      JSON.stringify(mockApiData),
+      JSON.stringify(responseData),
+
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
     )
   } catch (e) {

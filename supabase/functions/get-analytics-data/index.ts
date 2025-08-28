@@ -1,49 +1,13 @@
 import { serve } from 'https://deno.land/std@0.177.0/http/server.ts'
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
-// --- Mock Data ---
-// In a real application, this data would be generated from database queries.
-const mockAdvertiserData = {
-  summary: {
-    impressions: 125430,
-    clicks: 6847,
-    ctr: 5.46,
-    conversions: 512,
-    reach: 89250,
-  },
-  timeSeries: [
-    { date: '2024-08-01', impressions: 4500, clicks: 320, conversions: 28 },
-    { date: '2024-08-02', impressions: 5200, clicks: 380, conversions: 35 },
-    { date: '2024-08-03', impressions: 4800, clicks: 340, conversions: 31 },
-  ],
-};
-
-const mockBroadcasterData = {
-  summary: {
-    views: 280000,
-    impressions: 1500000,
-    engagementRate: 12.3,
-    topPerformingScreen: 'City Center Plaza',
-    peakHour: 18,
-  },
-  timeSeries: [
-    { date: '2024-08-01', views: 8000, engagementRate: 11.5 },
-    { date: '2024-08-02', views: 9500, engagementRate: 12.8 },
-    { date: '2024-08-03', views: 8700, engagementRate: 12.1 },
-  ],
-};
-
-const mockAdminData = {
-    summary: {
-        totalUsers: 1024,
-        activeScreens: 350,
-        totalBookings: 5432,
-        totalRevenue: 150234.56
-    },
-    timeSeries: [
-        { date: '2024-08-01', newUsers: 15, revenue: 4500 },
-        { date: '2024-08-02', newUsers: 22, revenue: 5200 },
-        { date: '2024-08-03', newUsers: 18, revenue: 4800 },
-    ]
+// Helper function to create an authenticated Supabase client
+const createAdminClient = (req: Request) => {
+  return createClient(
+    Deno.env.get('SUPABASE_URL') ?? '',
+    Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '', // Use service role for admin queries
+    { global: { headers: { Authorization: req.headers.get('Authorization')! } } }
+  )
 }
 
 serve(async (req) => {
@@ -58,20 +22,70 @@ serve(async (req) => {
 
   try {
     const { role, userId, campaignId } = await req.json();
-
+    const supabaseAdmin = createAdminClient(req);
     let responseData;
+
     switch (role) {
-      case 'advertiser':
-        // In a real app, you would use userId and campaignId to filter the query
-        responseData = mockAdvertiserData;
+      case 'admin': {
+        const { data, error } = await supabaseAdmin.rpc('get_platform_analytics');
+        if (error) throw error;
+        responseData = { summary: data, timeSeries: [] };
         break;
-      case 'broadcaster':
-        responseData = mockBroadcasterData;
+      }
+
+      case 'advertiser': {
+        let query_user_id = userId;
+        // In a real app, you might have more complex logic for campaign filtering
+        // For now, we just filter by user_id if no specific campaignId is passed
+        if (campaignId) {
+            const { data: booking, error } = await supabaseAdmin.from('bookings').select('user_id').eq('id', campaignId).single();
+            if(error) throw error;
+            query_user_id = booking.user_id;
+        }
+
+        const [
+          { count: impressions, error: impError },
+          { count: clicks, error: clickError },
+          { count: conversions, error: convError }
+        ] = await Promise.all([
+          supabaseAdmin.from('ad_impressions').select('*', { count: 'exact', head: true }).eq('user_id', query_user_id),
+          supabaseAdmin.from('ad_clicks').select('*', { count: 'exact', head: true }).eq('user_id', query_user_id),
+          supabaseAdmin.from('ad_conversions').select('*', { count: 'exact', head: true }).eq('user_id', query_user_id)
+        ]);
+
+        if (impError || clickError || convError) {
+            throw impError || clickError || convError;
+        }
+
+        const summary = {
+          impressions: impressions ?? 0,
+          clicks: clicks ?? 0,
+          conversions: conversions ?? 0,
+          ctr: (impressions && clicks) ? (clicks / impressions) * 100 : 0,
+        };
+        responseData = { summary, timeSeries: [] };
         break;
-      case 'admin':
-        // Here you might call the get_platform_analytics() postgres function
-        responseData = mockAdminData;
+      }
+
+      case 'broadcaster': {
+        // This is a simplified implementation. A real version would have complex aggregation.
+        const { count: totalCampaigns, error: bookingError } = await supabaseAdmin
+            .from('bookings')
+            .select('*', { count: 'exact', head: true })
+            .eq('user_id', userId);
+
+        if (bookingError) throw bookingError;
+
+        // Placeholder logic for other metrics until real data is available
+        const summary = {
+            views: (totalCampaigns ?? 0) * 2500,
+            engagementRate: 12.3,
+            totalCampaigns: totalCampaigns ?? 0,
+        };
+        responseData = { summary, timeSeries: [] };
         break;
+      }
+
       default:
         throw new Error('Invalid role specified');
     }
@@ -83,7 +97,8 @@ serve(async (req) => {
   } catch (e) {
     return new Response(JSON.stringify({ error: e.message }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      status: 400, // Bad Request, likely due to missing role
+      status: 500,
+
     })
   }
 })

@@ -218,7 +218,8 @@ const Subscription = () => {
                   <Check className="h-5 w-5" />
                   Active Subscription
                 </CardTitle>
-                <p className="text-sm text-emerald-800">
+                <CardDescription className="text-emerald-800">
+
                   You're currently subscribed to our {plans.find(p => p.id === currentSubscription.plan_id)?.name} plan
                 </p>
               </CardHeader>
@@ -262,7 +263,8 @@ const Subscription = () => {
                     {getPlanIcon(plan.name)}
                   </div>
                   <CardTitle className="text-2xl">{plan.name}</CardTitle>
-                  <p className="text-base text-foreground/80 min-h-12">
+                  <p className="text-base text-foreground/80 h-12">
+
                     {plan.description}
                   </p>
                   <div className="mt-4">

@@ -114,4 +114,43 @@ describe('SecurityComplianceCenter', () => {
     // Finally, check that the button has reverted to its original state
     expect(screen.getByRole('button', { name: /Run Security Scan/i })).toBeInTheDocument();
   });
+
+  it('should display an empty state message when no data is returned', async () => {
+    // Mock the API to return empty arrays
+    (supabase.functions.invoke as vi.Mock).mockResolvedValue({
+      data: { alerts: [], complianceChecks: [] },
+      error: null,
+    });
+
+    render(<SecurityComplianceCenter />);
+
+    // Wait for the loading to finish and check for the empty state message
+    await waitFor(() => {
+      expect(screen.getByText('No security alerts at this time')).toBeInTheDocument();
+    });
+
+    // Switch to the compliance tab and check for its empty state
+    await userEvent.click(screen.getByRole('tab', { name: /Compliance Checks/i }));
+    await waitFor(() => {
+        expect(screen.getByText('No compliance checks found.')).toBeInTheDocument();
+    });
+  });
+
+  it('should display an error toast if fetching data fails', async () => {
+    // Mock the API to return an error
+    (supabase.functions.invoke as vi.Mock).mockRejectedValue(new Error('Network Error'));
+
+    render(
+      <>
+        <SecurityComplianceCenter />
+        <Toaster />
+      </>
+    );
+
+    // Wait for the error toast to appear
+    await waitFor(() => {
+      expect(screen.getByText('Failed to load security data')).toBeInTheDocument();
+    });
+  });
+
 });
