@@ -135,9 +135,8 @@ export const ScreenOwnerDownloads = ({ screenCount }: ScreenOwnerDownloadsProps)
             file_path: build.artifact_url || '',
             created_at: build.created_at,
             file_extension: 'EXE', // Placeholder
-            version_code: 0,
-            file_size: 0,
-            download_count: 0
+            // If build.download_count exists, use it; otherwise, mark as unavailable
+            download_count: typeof build.download_count === 'number' ? build.download_count : null
           };
         }
       }
