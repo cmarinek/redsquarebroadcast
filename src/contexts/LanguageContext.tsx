@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -85,34 +85,7 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
   const [selectedCurrency, setSelectedCurrency] = useState<Currency | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Load initial data
-  useEffect(() => {
-    loadInitialData();
-  }, []);
-
-  // Load saved preferences
-  useEffect(() => {
-    const savedRegion = localStorage.getItem('selectedRegion');
-    const savedCountry = localStorage.getItem('selectedCountry');
-    const savedCurrency = localStorage.getItem('selectedCurrency');
-
-    if (savedRegion && regions.length > 0) {
-      const region = regions.find(r => r.code === savedRegion);
-      if (region) setSelectedRegion(region);
-    }
-
-    if (savedCountry && countries.length > 0) {
-      const country = countries.find(c => c.code === savedCountry);
-      if (country) setSelectedCountry(country);
-    }
-
-    if (savedCurrency && currencies.length > 0) {
-      const currency = currencies.find(c => c.code === savedCurrency);
-      if (currency) setSelectedCurrency(currency);
-    }
-  }, [regions, countries, currencies]);
-
-  const loadInitialData = async () => {
+  const loadInitialData = useCallback(async () => {
     try {
       setLoading(true);
       
@@ -145,7 +118,34 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
     } finally {
       setLoading(false);
     }
-  };
+  }, [selectedCurrency]);
+
+  // Load initial data
+  useEffect(() => {
+    loadInitialData();
+  }, [loadInitialData]);
+
+  // Load saved preferences
+  useEffect(() => {
+    const savedRegion = localStorage.getItem('selectedRegion');
+    const savedCountry = localStorage.getItem('selectedCountry');
+    const savedCurrency = localStorage.getItem('selectedCurrency');
+
+    if (savedRegion && regions.length > 0) {
+      const region = regions.find(r => r.code === savedRegion);
+      if (region) setSelectedRegion(region);
+    }
+
+    if (savedCountry && countries.length > 0) {
+      const country = countries.find(c => c.code === savedCountry);
+      if (country) setSelectedCountry(country);
+    }
+
+    if (savedCurrency && currencies.length > 0) {
+      const currency = currencies.find(c => c.code === savedCurrency);
+      if (currency) setSelectedCurrency(currency);
+    }
+  }, [regions, countries, currencies]);
 
   const changeLanguage = (langCode: string) => {
     i18n.changeLanguage(langCode);

@@ -149,6 +149,61 @@ interface BookingData {
   created_at: string;
 }
 
+// Types for Supabase RPC and table rows
+interface PlatformAnalytics extends AnalyticsData {
+    totalUsers: number;
+    activeScreens: number;
+    totalBookings: number;
+    totalRevenue: number;
+}
+
+interface SystemHealthRecord {
+    service_name: string;
+    status: 'healthy' | 'warning' | 'critical';
+    last_check: string;
+}
+
+interface SecurityAlertRecord {
+    id: string;
+    alert_type: 'failed_login' | 'suspicious_activity' | 'data_breach' | 'unauthorized_access';
+    severity: 'low' | 'medium' | 'high' | 'critical';
+    message: string;
+    created_at: string;
+    resolved: boolean;
+}
+
+interface ProfileRecord {
+    user_id: string;
+    display_name: string | null;
+    created_at: string;
+}
+
+interface ScreenRecord {
+    id: string;
+    owner_id: string;
+    screen_name: string | null;
+    city: string | null;
+    is_active: boolean;
+    price_per_hour: number | null;
+    created_at: string;
+}
+
+interface BookingRecord {
+    id: string;
+    user_id: string;
+    screen_id: string;
+    scheduled_date: string;
+    total_amount: number;
+    status: string;
+    payment_status: string;
+    created_at: string;
+}
+
+interface UserRoleRecord {
+    user_id: string;
+    role: UserRole;
+}
+
 const AdminDashboard = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -227,196 +282,150 @@ const AdminDashboard = () => {
 
   const fetchAdminData = async () => {
     try {
-      // Fetch real analytics using the database function
-      const { data: analyticsData, error: analyticsError } = await supabase
+      const { data: rpcData, error: analyticsError } = await supabase
         .rpc('get_platform_analytics');
 
       if (analyticsError) throw analyticsError;
+      const analyticsData = rpcData as unknown as PlatformAnalytics;
 
-      const analytics: AnalyticsData = {
-        dailyActiveUsers: (analyticsData as any).dailyActiveUsers || 0,
-        weeklyActiveUsers: (analyticsData as any).weeklyActiveUsers || 0,
-        monthlyActiveUsers: (analyticsData as any).monthlyActiveUsers || 0,
-        avgSessionDuration: (analyticsData as any).avgSessionDuration || 0,
-        bounceRate: (analyticsData as any).bounceRate || 0,
-        conversionRate: (analyticsData as any).conversionRate || 0,
-        revenueGrowth: (analyticsData as any).revenueGrowth || 0,
-        screenUtilization: (analyticsData as any).screenUtilization || 0
-      };
-
-      // Fetch real system health data
       const { data: healthData, error: healthError } = await supabase
         .from('admin_system_health')
         .select('*')
         .order('last_check', { ascending: false })
-        .limit(5);
+        .limit(5)
+        .returns<SystemHealthRecord[]>();
 
       if (healthError) throw healthError;
 
-      // Process health data into the format we need
       const healthStatus: SystemHealth = {
-        database: 'healthy',
-        storage: 'healthy',
-        cdn: 'healthy',
-        api: 'healthy',
-        payments: 'healthy',
+        database: 'healthy', storage: 'healthy', cdn: 'healthy', api: 'healthy', payments: 'healthy',
         lastUpdated: new Date().toISOString()
       };
 
       if (healthData && healthData.length > 0) {
         healthData.forEach(health => {
           if (health.service_name in healthStatus) {
-            healthStatus[health.service_name as keyof SystemHealth] = health.status as any;
+            (healthStatus[health.service_name as keyof SystemHealth] as any) = health.status;
           }
         });
         healthStatus.lastUpdated = healthData[0].last_check;
       }
 
-      // Fetch real security alerts
       const { data: alertsData, error: alertsError } = await supabase
         .from('admin_security_alerts')
         .select('*')
         .order('created_at', { ascending: false })
-        .limit(20);
+        .limit(20)
+        .returns<SecurityAlertRecord[]>();
 
       if (alertsError) throw alertsError;
 
       const alerts: SecurityAlert[] = (alertsData || []).map(alert => ({
-        id: alert.id,
-        type: alert.alert_type as any,
-        severity: alert.severity as any,
-        message: alert.message,
+        ...alert,
+        type: alert.alert_type,
         timestamp: alert.created_at,
-        resolved: alert.resolved
       }));
 
-      // Fetch users with profiles
       const { data: usersData, error: usersError } = await supabase
         .from('profiles')
         .select('user_id, display_name, created_at')
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false })
+        .returns<ProfileRecord[]>();
 
       if (usersError) throw usersError;
 
-      // Fetch all screens first
       const { data: allScreens, error: screensError } = await supabase
         .from('screens')
         .select('*')
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false })
+        .returns<ScreenRecord[]>();
 
       if (screensError) throw screensError;
 
-      // Get owner info and booking counts separately
-      let processedScreens: ScreenData[] = [];
-      if (allScreens) {
-        processedScreens = await Promise.all(
-          allScreens.map(async (screen) => {
-            const { data: ownerData } = await supabase
-              .from('profiles')
-              .select('display_name, user_id')
-              .eq('user_id', screen.owner_id)
-              .maybeSingle();
-            
-            const { data: bookingData } = await supabase
-              .from('bookings')
-              .select('id')
-              .eq('screen_id', screen.id);
-            
-            return {
-              id: screen.id,
-              screen_name: screen.screen_name || 'Unnamed Screen',
-              owner_email: ownerData?.display_name || 'Unknown Owner',
-              city: screen.city || 'Unknown City',
-              is_active: screen.is_active,
-              price_per_hour: screen.price_per_hour || 0,
-              created_at: screen.created_at,
-              bookings_count: bookingData?.length || 0
-            };
-          })
-        );
-      }
+      const ownerIds = [...new Set(allScreens.map(s => s.owner_id))];
+      const { data: ownerProfiles } = await supabase.from('profiles').select('user_id, display_name').in('user_id', ownerIds);
+      const ownerMap = new Map(ownerProfiles?.map(p => [p.user_id, p.display_name]));
 
-      // Fetch all bookings first
+      const screenIds = allScreens.map(s => s.id);
+      const { data: bookingCounts } = await supabase.rpc('get_booking_counts_for_screens', { screen_ids: screenIds });
+      const bookingCountMap = new Map(bookingCounts?.map((c: { screen_id: string, count: number }) => [c.screen_id, c.count]));
+
+      const processedScreens: ScreenData[] = allScreens.map(screen => ({
+        id: screen.id,
+        screen_name: screen.screen_name || 'Unnamed Screen',
+        owner_email: ownerMap.get(screen.owner_id) || 'Unknown Owner',
+        city: screen.city || 'Unknown City',
+        is_active: screen.is_active,
+        price_per_hour: screen.price_per_hour || 0,
+        created_at: screen.created_at,
+        bookings_count: bookingCountMap.get(screen.id) || 0,
+      }));
+
       const { data: allBookings, error: bookingsError } = await supabase
         .from('bookings')
         .select('*')
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false })
+        .limit(50)
+        .returns<BookingRecord[]>();
 
       if (bookingsError) throw bookingsError;
 
-      // Get related user and screen data separately
-      let processedBookings: BookingData[] = [];
-      if (allBookings) {
-        processedBookings = await Promise.all(
-          allBookings.map(async (booking) => {
-            const { data: userData } = await supabase
-              .from('profiles')
-              .select('display_name, user_id')
-              .eq('user_id', booking.user_id)
-              .maybeSingle();
-            
-            const { data: screenData } = await supabase
-              .from('screens')
-              .select('screen_name, id')
-              .eq('id', booking.screen_id)
-              .maybeSingle();
-            
-            return {
-              id: booking.id,
-              user_email: userData?.display_name || 'Unknown User',
-              screen_name: screenData?.screen_name || 'Unknown Screen',
-              scheduled_date: booking.scheduled_date,
-              total_amount: booking.total_amount,
-              status: booking.status,
-              payment_status: booking.payment_status,
-              created_at: booking.created_at
-            };
-          })
-        );
-      }
+      const bookingUserIds = [...new Set(allBookings.map(b => b.user_id))];
+      const bookingScreenIds = [...new Set(allBookings.map(b => b.screen_id))];
+      const { data: bookingUsers } = await supabase.from('profiles').select('user_id, display_name').in('user_id', bookingUserIds);
+      const { data: bookingScreens } = await supabase.from('screens').select('id, screen_name').in('id', bookingScreenIds);
+      const bookingUserMap = new Map(bookingUsers?.map(p => [p.user_id, p.display_name]));
+      const bookingScreenMap = new Map(bookingScreens?.map(s => [s.id, s.screen_name]));
 
-      // Process users data with multi-role support
+      const processedBookings: BookingData[] = allBookings.map(booking => ({
+        id: booking.id,
+        user_email: bookingUserMap.get(booking.user_id) || 'Unknown User',
+        screen_name: bookingScreenMap.get(booking.screen_id) || 'Unknown Screen',
+        scheduled_date: booking.scheduled_date,
+        total_amount: booking.total_amount,
+        status: booking.status,
+        payment_status: booking.payment_status,
+        created_at: booking.created_at,
+      }));
+
       const { data: rolesData, error: rolesError } = await supabase
         .from('user_roles')
-        .select('user_id, role');
+        .select('user_id, role')
+        .returns<UserRoleRecord[]>();
       if (rolesError) throw rolesError;
-      const rolesByUser = (rolesData || []).reduce((acc: Record<string, UserRole[]>, row: any) => {
-        const uid = row.user_id as string;
-        const role = row.role as UserRole;
-        if (!acc[uid]) acc[uid] = [];
-        acc[uid].push(role);
+
+      const rolesByUser = (rolesData || []).reduce((acc, row) => {
+        if (!acc[row.user_id]) acc[row.user_id] = [];
+        acc[row.user_id].push(row.role);
         return acc;
       }, {} as Record<string, UserRole[]>);
 
-      const processedUsers: UserData[] = (usersData || []).map((user: any) => ({
+      const processedUsers: UserData[] = (usersData || []).map(user => ({
         id: user.user_id,
-        email: user.user_id.slice(0, 8) + '...', // Shortened ID as email placeholder
+        email: user.user_id.slice(0, 8) + '...',
         display_name: user.display_name || 'Unknown User',
         roles: rolesByUser[user.user_id] ?? [],
         created_at: user.created_at,
-        last_sign_in_at: user.created_at // Placeholder
+        last_sign_in_at: user.created_at,
       }));
 
-      // Calculate stats using analytics data
       const thisMonth = new Date();
       thisMonth.setDate(1);
-      const thisMonthBookings = processedBookings.filter(booking => 
-        new Date(booking.created_at) >= thisMonth
-      );
-      const thisMonthRevenue = thisMonthBookings.reduce((sum, booking) => sum + booking.total_amount, 0);
+      const thisMonthBookings = processedBookings.filter(b => new Date(b.created_at) >= thisMonth);
+      const thisMonthRevenue = thisMonthBookings.reduce((sum, b) => sum + b.total_amount, 0);
 
       setStats({
-        totalUsers: (analyticsData as any).totalUsers || 0,
-        totalScreens: ((analyticsData as any).activeScreens || 0) + (processedScreens.filter(s => !s.is_active).length),
-        totalBookings: (analyticsData as any).totalBookings || 0,
-        totalRevenue: (analyticsData as any).totalRevenue || 0,
-        activeScreens: (analyticsData as any).activeScreens || 0,
+        totalUsers: analyticsData.totalUsers || 0,
+        totalScreens: analyticsData.activeScreens + processedScreens.filter(s => !s.is_active).length,
+        totalBookings: analyticsData.totalBookings || 0,
+        totalRevenue: analyticsData.totalRevenue || 0,
+        activeScreens: analyticsData.activeScreens || 0,
         pendingBookings: processedBookings.filter(b => b.status === 'pending').length,
         thisMonthRevenue,
-        thisMonthBookings: thisMonthBookings.length
+        thisMonthBookings: thisMonthBookings.length,
       });
 
-      setAnalytics(analytics);
+      setAnalytics(analyticsData);
       setSystemHealth(healthStatus);
       setSecurityAlerts(alerts);
       setUsers(processedUsers);

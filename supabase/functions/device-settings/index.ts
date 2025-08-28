@@ -88,19 +88,25 @@ serve(async (req) => {
         const { data: roles } = await service
           .from('user_roles')
           .select('role')
-          .eq('user_id', userData.user.id);
-        if ((roles || []).some((r: any) => r.role === 'admin')) isAuthorized = true;
+          .eq('user_id', userData.user.id)
+          .returns<{ role: string }[]>();
+        if ((roles || []).some((r) => r.role === 'admin')) isAuthorized = true;
       }
       if (!isAuthorized) {
         return new Response(JSON.stringify({ error: 'forbidden' }), { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
       }
 
-      const upsertRow = {
+      const upsertRow: {
+        screen_id: string | null;
+        device_id: string | null;
+        settings: Record<string, unknown>;
+        updated_at: string;
+      } = {
         screen_id: screen_id || null,
         device_id: device_id || null,
         settings: settings ?? {},
         updated_at: new Date().toISOString(),
-      } as any;
+      };
 
       const { error: upErr } = await service.from('device_settings').upsert(upsertRow, { onConflict: 'device_id,screen_id' });
       if (upErr) {

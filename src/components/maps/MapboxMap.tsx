@@ -44,14 +44,17 @@ const MapboxMap: React.FC<Props> = ({ coords, screens, onSelectScreen }) => {
         }
 
         let token: string | undefined;
-        let lastErr: any = null;
+        let lastErr: Error | null = null;
         for (let i = 0; i < 3; i++) {
-          const { data, error } = await supabase.functions.invoke("get-mapbox-token");
-          if (!error) {
-            token = (data as any)?.token as string | undefined;
-            if (token) break;
-          } else {
-            lastErr = error;
+          try {
+            const { data, error } = await supabase.functions.invoke<{ token: string }>("get-mapbox-token");
+            if (error) throw error;
+            if (data.token) {
+              token = data.token;
+              break;
+            }
+          } catch (e) {
+            lastErr = e as Error;
           }
           await new Promise((r) => setTimeout(r, 400 * Math.pow(2, i)));
         }
@@ -95,8 +98,8 @@ const MapboxMap: React.FC<Props> = ({ coords, screens, onSelectScreen }) => {
     map.addControl(geolocate, "top-right");
 
     // Wire up geolocate events so the button actually recenters and shows a marker
-    geolocate.on("geolocate", (e: any) => {
-      const { longitude, latitude } = e?.coords || {};
+    geolocate.on("geolocate", (e: GeolocationPosition) => {
+      const { longitude, latitude } = e.coords;
       if (longitude != null && latitude != null) {
         if (!userMarkerRef.current) {
           userMarkerRef.current = new mapboxgl.Marker({ color: "#22c55e" })
@@ -112,7 +115,7 @@ const MapboxMap: React.FC<Props> = ({ coords, screens, onSelectScreen }) => {
       }
     });
 
-    geolocate.on("error", (err: any) => {
+    geolocate.on("error", (err: GeolocationPositionError) => {
       console.warn("Geolocate error:", err);
       setError("Location blocked or unavailable. Check permissions.");
       // Fallback to browser geolocation
@@ -265,14 +268,17 @@ const MapboxMap: React.FC<Props> = ({ coords, screens, onSelectScreen }) => {
         const source = map.getSource("screens") as GeoJSONSource;
         source.getClusterExpansionZoom(clusterId, (err, zoom) => {
           if (err) return;
-          map.easeTo({ center: (features[0].geometry as any).coordinates, zoom });
+          const geometry = features[0].geometry;
+          if (geometry.type === 'Point') {
+            map.easeTo({ center: geometry.coordinates as [number, number], zoom });
+          }
         });
       });
 
       // Click single point -> navigate
       map.on("click", "unclustered-point", (e) => {
         const f = e.features?.[0];
-        const id = (f?.properties as any)?.id as string | undefined;
+        const id = f?.properties?.id as string | undefined;
         if (id && onSelectScreen) onSelectScreen(id);
       });
 
@@ -322,7 +328,7 @@ const MapboxMap: React.FC<Props> = ({ coords, screens, onSelectScreen }) => {
         properties: { id: s.id, title: s.screen_name || "Digital Screen", location: s.location || "" },
         geometry: { type: "Point", coordinates: [s.longitude as number, s.latitude as number] },
       }));
-    src.setData({ type: "FeatureCollection", features } as any);
+    src.setData({ type: "FeatureCollection", features });
   }, [screens]);
 
   // Update user marker and optionally recenter

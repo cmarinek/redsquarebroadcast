@@ -25,7 +25,7 @@ serve(async (req) => {
 
     if (!githubToken || !githubRepoOwner || !githubRepoName) {
         return new Response(JSON.stringify({
-            error: "Configuration Error: GitHub integration variables (GITHUB_REPO_OWNER, GITHUB_REPO_NAME, GITHUB_ACCESS_TOKEN) must be set in the Supabase project's environment variables."
+            error: "Configuration Error: The following environment variables must be set in your Supabase project's settings (Settings > Configuration > Environment Variables): GITHUB_REPO_OWNER, GITHUB_REPO_NAME, GITHUB_ACCESS_TOKEN."
         }), {
             status: 500,
             headers: { ...corsHeaders, "Content-Type": "application/json" }
