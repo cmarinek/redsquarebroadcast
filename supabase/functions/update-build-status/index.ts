@@ -56,7 +56,11 @@ serve(async (req) => {
     };
 
     // Remove undefined properties so they don't overwrite existing values
-    Object.keys(updatePayload).forEach(key => updatePayload[key] === undefined && delete updatePayload[key]);
+    Object.keys(updatePayload).forEach((key) => {
+      if (updatePayload[key as keyof typeof updatePayload] === undefined) {
+        delete updatePayload[key as keyof typeof updatePayload];
+      }
+    });
 
 
     const { data, error } = await supabaseAdminClient
