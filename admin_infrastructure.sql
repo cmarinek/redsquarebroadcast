@@ -63,12 +63,43 @@ CREATE TABLE public.admin_compliance_checks (
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
 );
 
+-- Create tables for detailed performance analytics
+CREATE TABLE public.ad_impressions (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    booking_id UUID NOT NULL REFERENCES public.bookings(id),
+    screen_id UUID NOT NULL REFERENCES public.screens(id),
+    user_id UUID NOT NULL REFERENCES auth.users(id),
+    "timestamp" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
+);
+
+CREATE TABLE public.ad_clicks (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    impression_id UUID NOT NULL REFERENCES public.ad_impressions(id),
+    booking_id UUID NOT NULL REFERENCES public.bookings(id),
+    screen_id UUID NOT NULL REFERENCES public.screens(id),
+    user_id UUID NOT NULL REFERENCES auth.users(id),
+    "timestamp" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
+);
+
+CREATE TABLE public.ad_conversions (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    click_id UUID NOT NULL REFERENCES public.ad_clicks(id),
+    booking_id UUID NOT NULL REFERENCES public.bookings(id),
+    screen_id UUID NOT NULL REFERENCES public.screens(id),
+    user_id UUID NOT NULL REFERENCES auth.users(id),
+    "timestamp" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+    conversion_value_cents INTEGER
+);
+
 -- Enable RLS on all admin tables
 ALTER TABLE public.admin_system_health ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.admin_security_alerts ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.admin_analytics ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.admin_audit_logs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.admin_compliance_checks ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.ad_impressions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.ad_clicks ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.ad_conversions ENABLE ROW LEVEL SECURITY;
 
 -- Create RLS policies for admin-only access
 CREATE POLICY "Only admins can access system health"
@@ -100,6 +131,45 @@ ON public.admin_compliance_checks
 FOR ALL
 TO authenticated
 USING (public.has_role(auth.uid(), 'admin'));
+
+-- Policies for analytics event tables
+-- Users can insert their own events. Admins can read everything.
+CREATE POLICY "Users can insert their own ad impressions"
+ON public.ad_impressions
+FOR INSERT
+TO authenticated
+WITH CHECK (user_id = auth.uid());
+
+CREATE POLICY "Admins can select all ad impressions"
+ON public.ad_impressions
+FOR SELECT
+TO authenticated
+USING (public.has_role(auth.uid(), 'admin'));
+
+CREATE POLICY "Users can insert their own ad clicks"
+ON public.ad_clicks
+FOR INSERT
+TO authenticated
+WITH CHECK (user_id = auth.uid());
+
+CREATE POLICY "Admins can select all ad clicks"
+ON public.ad_clicks
+FOR SELECT
+TO authenticated
+USING (public.has_role(auth.uid(), 'admin'));
+
+CREATE POLICY "Users can insert their own ad conversions"
+ON public.ad_conversions
+FOR INSERT
+TO authenticated
+WITH CHECK (user_id = auth.uid());
+
+CREATE POLICY "Admins can select all ad conversions"
+ON public.ad_conversions
+FOR SELECT
+TO authenticated
+USING (public.has_role(auth.uid(), 'admin'));
+
 
 -- Function to record system health checks
 CREATE OR REPLACE FUNCTION public.record_system_health(
@@ -350,3 +420,23 @@ INSERT INTO public.admin_system_health (service_name, status, response_time_ms) 
 INSERT INTO public.admin_security_alerts (alert_type, severity, title, message, ip_address, metadata) VALUES
 ('failed_login', 'medium', 'Multiple Failed Login Attempts', 'User attempted to login 5 times with incorrect credentials from IP 192.168.1.100', '192.168.1.100'::inet, '{"attempts": 5, "timeframe": "5 minutes"}'::jsonb),
 ('suspicious_activity', 'high', 'Unusual API Usage Pattern', 'Detected unusual API request pattern that may indicate automated scraping', '10.0.0.25'::inet, '{"requests_per_minute": 150, "normal_average": 12}'::jsonb);
+
+-- Note: Seeding data with hardcoded UUIDs for foreign keys.
+-- In a real migration, you would fetch these IDs or use variables.
+-- This is for demonstration and testing purposes.
+
+-- Seed data for ad_impressions, ad_clicks, and ad_conversions
+-- This assumes a booking, screen, and user with these specific IDs exist.
+-- In a real scenario, you would create these first.
+WITH impression AS (
+  INSERT INTO public.ad_impressions (booking_id, screen_id, user_id)
+  VALUES ('1a7a7b8e-5b3a-4b0e-8c1e-8e1b1e1b1e1b', '2b8b8c8e-5b3a-4b0e-8c1e-8e1b1e1b1e1b', '3c9c9d8e-5b3a-4b0e-8c1e-8e1b1e1b1e1b')
+  RETURNING id
+),
+click AS (
+  INSERT INTO public.ad_clicks (impression_id, booking_id, screen_id, user_id)
+  SELECT id, '1a7a7b8e-5b3a-4b0e-8c1e-8e1b1e1b1e1b', '2b8b8c8e-5b3a-4b0e-8c1e-8e1b1e1b1e1b', '3c9c9d8e-5b3a-4b0e-8c1e-8e1b1e1b1e1b' FROM impression
+  RETURNING id
+)
+INSERT INTO public.ad_conversions (click_id, booking_id, screen_id, user_id, conversion_value_cents)
+SELECT id, '1a7a7b8e-5b3a-4b0e-8c1e-8e1b1e1b1e1b', '2b8b8c8e-5b3a-4b0e-8c1e-8e1b1e1b1e1b', '3c9c9d8e-5b3a-4b0e-8c1e-8e1b1e1b1e1b', 5000 FROM click;

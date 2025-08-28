@@ -29,42 +29,58 @@ serve(async (req) => {
       case 'admin': {
         const { data, error } = await supabaseAdmin.rpc('get_platform_analytics');
         if (error) throw error;
-        // The RPC returns a single JSON object which we can use as the summary
-        responseData = { summary: data, timeSeries: [] }; // timeSeries can be built out later
+        responseData = { summary: data, timeSeries: [] };
         break;
       }
 
       case 'advertiser': {
-        // This is a simplified implementation. A real version would have complex aggregation.
-        const { data, error } = await supabaseAdmin
-          .from('bookings')
-          .select('id, total_amount, status')
-          .eq('user_id', userId);
-        if (error) throw error;
+        let query_user_id = userId;
+        // In a real app, you might have more complex logic for campaign filtering
+        // For now, we just filter by user_id if no specific campaignId is passed
+        if (campaignId) {
+            const { data: booking, error } = await supabaseAdmin.from('bookings').select('user_id').eq('id', campaignId).single();
+            if(error) throw error;
+            query_user_id = booking.user_id;
+        }
+
+        const [
+          { count: impressions, error: impError },
+          { count: clicks, error: clickError },
+          { count: conversions, error: convError }
+        ] = await Promise.all([
+          supabaseAdmin.from('ad_impressions').select('*', { count: 'exact', head: true }).eq('user_id', query_user_id),
+          supabaseAdmin.from('ad_clicks').select('*', { count: 'exact', head: true }).eq('user_id', query_user_id),
+          supabaseAdmin.from('ad_conversions').select('*', { count: 'exact', head: true }).eq('user_id', query_user_id)
+        ]);
+
+        if (impError || clickError || convError) {
+            throw impError || clickError || convError;
+        }
 
         const summary = {
-          impressions: data.length * 1000, // Placeholder logic
-          clicks: data.length * 50,      // Placeholder logic
-          ctr: 5.0,                       // Placeholder logic
-          conversions: data.length * 5,   // Placeholder logic
-          totalSpent: data.reduce((acc, b) => acc + b.total_amount, 0),
+          impressions: impressions ?? 0,
+          clicks: clicks ?? 0,
+          conversions: conversions ?? 0,
+          ctr: (impressions && clicks) ? (clicks / impressions) * 100 : 0,
         };
         responseData = { summary, timeSeries: [] };
         break;
       }
 
       case 'broadcaster': {
-        // This is a simplified implementation.
-        const { data, error } = await supabaseAdmin
+        // This is a simplified implementation. A real version would have complex aggregation.
+        const { count: totalCampaigns, error: bookingError } = await supabaseAdmin
             .from('bookings')
-            .select('id, screen_id')
+            .select('*', { count: 'exact', head: true })
             .eq('user_id', userId);
-        if (error) throw error;
 
+        if (bookingError) throw bookingError;
+
+        // Placeholder logic for other metrics until real data is available
         const summary = {
-            views: data.length * 2500, // Placeholder logic
-            engagementRate: 12.3,      // Placeholder logic
-            totalCampaigns: data.length,
+            views: (totalCampaigns ?? 0) * 2500,
+            engagementRate: 12.3,
+            totalCampaigns: totalCampaigns ?? 0,
         };
         responseData = { summary, timeSeries: [] };
         break;
