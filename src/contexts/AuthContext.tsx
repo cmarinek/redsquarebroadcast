@@ -151,11 +151,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       (event, newSession) => {
         setSession(newSession);
         setUser(newSession?.user ?? null);
-        if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') {
-          setLoading(false);
-        }
-        if (event === 'SIGNED_OUT') {
-          setSubscription(null);
+        if (['SIGNED_IN', 'TOKEN_REFRESHED', 'USER_UPDATED', 'SIGNED_OUT'].includes(event)) {
           setLoading(false);
         }
       }
