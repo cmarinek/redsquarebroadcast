@@ -19,7 +19,7 @@ interface AppRelease {
   version_name: string;
   version_code: number;
   platform: Platform;
-  file_extension: 'apk' | 'ipa' | 'zip';
+  file_extension: 'apk' | 'ipa' | 'zip' | 'exe' | 'dmg' | 'appimage';
   file_path: string;
   file_size: number;
   uploaded_by: string;

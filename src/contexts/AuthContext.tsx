@@ -119,7 +119,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     try {
       const { data, error } = await supabase.functions.invoke('check-subscription');
       if (error) throw error;
-      const subData = data as Partial<SubscriptionData> | null;
+      const subData = data as SubscriptionData;
       setSubscription({
         subscribed: !!subData?.subscribed,
         subscription_tier: subData?.subscription_tier ?? null,
