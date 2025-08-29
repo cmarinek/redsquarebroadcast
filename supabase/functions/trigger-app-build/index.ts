@@ -52,7 +52,7 @@ serve(async (req) => {
 
     const { app_type }: { app_type: AppType } = await req.json();
 
-    if (!app_type || !allowedAppTypes.includes(app_type)) {
+    if (!app_type || !allowedAppTypes.includes(app_type as any)) {
       return new Response(JSON.stringify({ error: `A valid app_type (${allowedAppTypes.join(', ')}) is required.` }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
