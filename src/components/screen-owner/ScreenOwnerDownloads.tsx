@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Download, Smartphone, Tv, Apple, Monitor, QrCode, ExternalLink, Wifi, Settings } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -134,7 +134,7 @@ export const ScreenOwnerDownloads = ({ screenCount }: ScreenOwnerDownloadsProps)
             version_name: build.version || 'N/A',
             file_path: build.artifact_url || '',
             created_at: build.created_at,
-            file_extension: 'EXE', // Placeholder
+            file_extension: 'exe', // Placeholder
             version_code: null,
             file_size: null,
             download_count: null
@@ -172,7 +172,7 @@ export const ScreenOwnerDownloads = ({ screenCount }: ScreenOwnerDownloadsProps)
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
-  const handleDownload = async (platform: 'android' | 'ios' | 'tv') => {
+  const handleDownload = async (platform: 'android' | 'ios' | 'tv' | 'desktop') => {
     const release = releases[platform];
     if (!release) return;
 

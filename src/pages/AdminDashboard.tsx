@@ -358,7 +358,7 @@ const AdminDashboard = () => {
         is_active: screen.is_active,
         price_per_hour: screen.price_per_hour || 0,
         created_at: screen.created_at,
-        bookings_count: bookingCountMap.get(screen.id) || 0,
+        bookings_count: (bookingCountMap.get(screen.id) as number) || 0,
       }));
 
       const { data: allBookings, error: bookingsError } = await supabase
