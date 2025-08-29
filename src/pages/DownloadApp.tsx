@@ -63,9 +63,9 @@ const PLATFORM_CONFIG: Record<'android' | 'ios' | 'tv', PlatformConfig> = {
     fileExtension: 'APK',
     instructions: [
       { title: 'Enable Unknown Sources', desc: 'Go to Settings → Security → Unknown Sources and enable it.' },
-      { title: 'Download', desc: 'Tap the download button above to get the APK file.' },
-      { title: 'Install', desc: 'Open the downloaded file and follow the installation prompts.' },
-      { title: 'Launch', desc: 'Find Red Square in your app drawer and start managing your campaigns!' }
+      { title: 'Download APK', desc: 'Tap the download button above to get the APK file.' },
+      { title: 'Install APK', desc: 'Open the downloaded APK file and follow the installation prompts.' },
+      { title: 'Launch Red Square', desc: 'Find Red Square in your app drawer and start managing campaigns!' }
     ],
     requirements: [
       'Android 7.0 (API level 24) or higher',
@@ -82,10 +82,10 @@ const PLATFORM_CONFIG: Record<'android' | 'ios' | 'tv', PlatformConfig> = {
     bucket: 'ios-files',
     fileExtension: 'IPA',
     instructions: [
-      { title: 'TestFlight or Enterprise', desc: 'This app requires TestFlight or enterprise distribution.' },
-      { title: 'Install TestFlight', desc: 'Download TestFlight from the App Store if not installed.' },
-      { title: 'Install Red Square', desc: 'Use the TestFlight link or enterprise certificate.' },
-      { title: 'Trust Developer', desc: 'Go to Settings → General → Profiles to trust the developer.' }
+      { title: 'TestFlight Required', desc: 'iOS apps require TestFlight or enterprise distribution.' },
+      { title: 'Install TestFlight', desc: 'Download TestFlight from the App Store if not already installed.' },
+      { title: 'Install via TestFlight', desc: 'Use the provided TestFlight link or enterprise certificate.' },
+      { title: 'Trust Developer', desc: 'Go to Settings → General → Profiles & Device Management to trust the developer.' }
     ],
     requirements: [
       'iOS 13.0 or higher',
