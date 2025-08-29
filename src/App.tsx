@@ -74,6 +74,7 @@ const App = () => (
             <Route path="/how-it-works" element={<HowItWorksDetailed />} />
             <Route path="/production-plan" element={<ProductionPlan />} />
             <Route path="/discover" element={<ScreenDiscovery />} />
+            <Route path="/explore" element={<ScreenDiscovery />} />
             <Route path="/screen/:screenId" element={<ScreenDetails />} />
             <Route path="/book/:screenId/upload" element={<ContentUpload />} />
             <Route path="/book/:screenId/schedule" element={<Scheduling />} />
