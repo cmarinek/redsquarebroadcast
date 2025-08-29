@@ -18,10 +18,29 @@ type AppBuild = {
   commit_hash: string | null;
 };
 
+import { useCallback } from 'react';
+import { CardDescription } from '@/components/ui/card';
+
 export function AutomatedBuilds() {
   const [builds, setBuilds] = useState<AppBuild[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [isTriggeringBuild, setIsTriggeringBuild] = useState(false);
+
+  const fetchBuilds = useCallback(async () => {
+    setIsLoading(true);
+    const { data, error } = await supabase
+      .from('app_builds')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(20);
+
+    if (error) {
+      toast.error('Failed to fetch build history.');
+      console.error(error);
+    } else {
+      setBuilds(data as AppBuild[]);
+    }
+    setIsLoading(false);
+  }, []);
 
   useEffect(() => {
     fetchBuilds();
@@ -35,36 +54,7 @@ export function AutomatedBuilds() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, []);
-
-  const fetchBuilds = async () => {
-    const { data, error } = await supabase
-      .from('app_builds')
-      .select('*')
-      .order('created_at', { ascending: false });
-
-    if (error) {
-      toast.error('Failed to fetch build history.');
-      console.error(error);
-    } else {
-      setBuilds(data as AppBuild[]);
-    }
-    setIsLoading(false);
-  };
-
-  const handleTriggerBuild = async (app_type: 'android_tv' | 'desktop_windows') => {
-    setIsTriggeringBuild(true);
-    toast.info(`Triggering new ${app_type.replace('_', ' ')} build...`);
-    const { error } = await supabase.functions.invoke('trigger-app-build', {
-      body: { app_type },
-    });
-    if (error) {
-      toast.error(`Failed to trigger build: ${error.message}`);
-    } else {
-      toast.success('New build successfully triggered!');
-    }
-    setIsTriggeringBuild(false);
-  };
+  }, [fetchBuilds]);
 
   const getStatusBadge = (status: AppBuild['status']) => {
     switch (status) {
@@ -84,16 +74,9 @@ export function AutomatedBuilds() {
 
   return (
     <Card className="mt-6">
-      <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle>Automated Application Builds</CardTitle>
-        <div className="flex gap-2">
-            <Button onClick={() => handleTriggerBuild('android_tv')} disabled={isTriggeringBuild}>
-              {isTriggeringBuild ? 'Starting...' : 'Start Android TV Build'}
-            </Button>
-            <Button onClick={() => handleTriggerBuild('desktop_windows')} disabled={isTriggeringBuild} variant="outline">
-              {isTriggeringBuild ? 'Starting...' : 'Start Desktop Build'}
-            </Button>
-        </div>
+      <CardHeader>
+        <CardTitle>Recent Automated Builds</CardTitle>
+        <CardDescription>History of the last 20 automated application builds.</CardDescription>
       </CardHeader>
       <CardContent>
         <Table>
