@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Layout } from "@/components/Layout";
+import { Link } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
@@ -25,6 +26,17 @@ interface AppRelease {
   created_at: string;
 }
 
+interface PlatformConfig {
+  icon: any;
+  name: string;
+  appType: 'platform' | 'broadcast';
+  bucket: string;
+  fileExtension: string;
+  supportedDevices?: string[];
+  instructions: Array<{ title: string; desc: string }>;
+  requirements: string[];
+}
+
 const APP_TYPES = {
   platform: {
     name: 'Red Square Platform',
@@ -42,7 +54,7 @@ const APP_TYPES = {
   }
 } as const;
 
-const PLATFORM_CONFIG = {
+const PLATFORM_CONFIG: Record<'android' | 'ios' | 'tv', PlatformConfig> = {
   android: {
     icon: Smartphone,
     name: 'Android',
@@ -85,22 +97,32 @@ const PLATFORM_CONFIG = {
   },
   tv: {
     icon: Tv,
-    name: 'Smart TV & Devices',
+    name: 'All Device Types',
     appType: 'broadcast' as const,
     bucket: 'tv-files',
-    fileExtension: 'ZIP',
+    fileExtension: 'Multiple',
+    supportedDevices: [
+      'Android TV & Smart TVs',
+      'iOS (iPad/iPhone as displays)',
+      'Android tablets & phones',
+      'Windows/Mac computers',
+      'Linux-based displays',
+      'Raspberry Pi devices',
+      'Web browsers (Chrome, Firefox, Safari)',
+      'Dedicated digital signage hardware'
+    ],
     instructions: [
-      { title: 'Download Package', desc: 'Download the Red Square Broadcast package from above.' },
-      { title: 'Extract Files', desc: 'Extract the ZIP file to a folder on your computer.' },
-      { title: 'Sideload to Device', desc: 'Use ADB, developer mode, or web browser to install on your screen device.' },
-      { title: 'Pair Device', desc: 'Use the pairing code to connect your screen to the Red Square network.' }
+      { title: 'Choose Your Device', desc: 'Select the appropriate Red Square Broadcast app for your device type from the available options.' },
+      { title: 'Download & Install', desc: 'Follow device-specific installation instructions (APK for Android, web app for browsers, etc.).' },
+      { title: 'Launch & Pair', desc: 'Open the app and use the pairing code or QR scan to connect to your Red Square screen network.' },
+      { title: 'Start Broadcasting', desc: 'Your device is now ready to receive and display advertiser content from the Red Square platform.' }
     ],
     requirements: [
-      'Android TV 9.0 or higher, Smart TV with web browser, or dedicated display device',
-      'At least 200 MB of available storage',
-      'Stable internet connection (WiFi recommended)',
-      'Remote control or compatible input device',
-      'HDMI display or built-in screen'
+      'Modern device with internet connectivity (WiFi recommended)',
+      'Screen/display capability (built-in or external via HDMI)',
+      'At least 200 MB available storage space',
+      'Compatible OS: Android 7+, iOS 13+, Windows 10+, macOS 10.14+, or modern web browser',
+      'Input device for initial setup (touch, mouse, or remote control)'
     ]
   }
 } as const;
@@ -326,12 +348,88 @@ const DownloadApp = () => {
             </CardContent>
           </Card>
         ) : (
-          <Alert>
-            <IconComponent className="h-4 w-4" />
-            <AlertDescription>
-              No {appTypeInfo.name} release is currently available for {config.name}. Please check back later or contact support.
-            </AlertDescription>
-          </Alert>
+          <div className="space-y-6">
+            <Alert className="border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950">
+              <IconComponent className="h-4 w-4 text-blue-600" />
+              <AlertDescription className="text-blue-800 dark:text-blue-200">
+                <strong>Coming Soon!</strong> {appTypeInfo.name} releases for {config.name} are currently being prepared. 
+                Check back soon or {' '}
+                <Button variant="link" className="p-0 h-auto text-blue-600 dark:text-blue-400" asChild>
+                  <Link to="/smart-tv">try the web version</Link>
+                </Button>
+                {' '} for immediate testing.
+              </AlertDescription>
+            </Alert>
+
+            {/* Supported Devices Preview */}
+            {config.supportedDevices && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Monitor className="h-5 w-5" />
+                    Supported Device Types
+                  </CardTitle>
+                  <CardDescription>
+                    Red Square Broadcast will be available for all these device types
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                    {config.supportedDevices.map((device, index) => (
+                      <div key={index} className="flex items-center gap-2 p-2 bg-secondary/30 rounded-lg">
+                        <div className="w-2 h-2 bg-primary rounded-full"></div>
+                        <span className="text-sm">{device}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="mt-4 p-3 bg-muted rounded-lg">
+                    <p className="text-sm text-muted-foreground">
+                      💡 <strong>Pro tip:</strong> You can use the web version at{' '}
+                      <Button variant="link" className="p-0 h-auto" asChild>
+                        <Link to="/smart-tv">/smart-tv</Link>
+                      </Button>
+                      {' '}to test Red Square Broadcast on any device with a web browser right now!
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Placeholder Download Cards */}
+            <div className="grid md:grid-cols-2 gap-4">
+              <Card className="border-dashed border-2 border-muted-foreground/30">
+                <CardHeader className="text-center">
+                  <div className="mx-auto w-12 h-12 bg-muted rounded-lg flex items-center justify-center mb-2">
+                    <Smartphone className="h-6 w-6 text-muted-foreground" />
+                  </div>
+                  <CardTitle className="text-lg">Mobile Apps</CardTitle>
+                  <CardDescription>iOS & Android broadcast apps</CardDescription>
+                </CardHeader>
+                <CardContent className="text-center">
+                  <Badge variant="outline" className="mb-2">Coming Soon</Badge>
+                  <p className="text-sm text-muted-foreground">
+                    Turn tablets and phones into broadcast displays
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card className="border-dashed border-2 border-muted-foreground/30">
+                <CardHeader className="text-center">
+                  <div className="mx-auto w-12 h-12 bg-muted rounded-lg flex items-center justify-center mb-2">
+                    <Monitor className="h-6 w-6 text-muted-foreground" />
+                  </div>
+                  <CardTitle className="text-lg">Desktop Apps</CardTitle>
+                  <CardDescription>Windows, Mac, & Linux apps</CardDescription>
+                </CardHeader>
+                <CardContent className="text-center">
+                  <Badge variant="outline" className="mb-2">Coming Soon</Badge>
+                  <p className="text-sm text-muted-foreground">
+                    Use computers as dedicated display screens
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
         )}
 
         {/* Installation Instructions */}
@@ -400,7 +498,7 @@ const DownloadApp = () => {
             </h1>
             <p className="text-xl text-muted-foreground max-w-3xl mx-auto mb-8">
               Two powerful apps for the complete Red Square ecosystem: manage your campaigns with the Platform app, 
-              or turn any screen into a broadcast display with the Broadcast app.
+              or turn any device into a broadcast display with the Broadcast app.
             </p>
             
             {/* App Type Cards */}
@@ -448,7 +546,7 @@ const DownloadApp = () => {
                 </TabsTrigger>
                 <TabsTrigger value="tv" className="flex items-center gap-2">
                   <Tv className="h-4 w-4" />
-                  Broadcast - TV/Device
+                  Broadcast - All Devices
                 </TabsTrigger>
               </TabsList>
 
