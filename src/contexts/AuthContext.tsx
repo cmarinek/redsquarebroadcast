@@ -119,7 +119,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     try {
       const { data, error } = await supabase.functions.invoke('check-subscription');
       if (error) throw error;
-      const subData = data as Partial<SubscriptionData>;
+      const subData = (data || {}) as Partial<SubscriptionData>;
       setSubscription({
         subscribed: subData?.subscribed ?? false,
         subscription_tier: subData?.subscription_tier ?? null,
@@ -132,36 +132,45 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }
   }, [session]);
 
+  // Initial session load
+  useEffect(() => {
+    setLoading(true);
+    supabase.auth.getSession().then(({ data: { session: initialSession } }) => {
+      setSession(initialSession);
+      setUser(initialSession?.user ?? null);
+      setLoading(false);
+    }).catch(err => {
+      console.error("Error getting initial session:", err);
+      setLoading(false);
+    });
+  }, []);
+
+  // Auth state change listener
   useEffect(() => {
     const { data: { subscription: authSub } } = supabase.auth.onAuthStateChange(
       (event, newSession) => {
         setSession(newSession);
         setUser(newSession?.user ?? null);
-        setLoading(false);
-
-        if (newSession?.user) {
-          ensureProfileRow(newSession.user);
-          refreshSubscription();
-        } else {
-          setSubscription(null);
+        if (['SIGNED_IN', 'TOKEN_REFRESHED', 'USER_UPDATED', 'SIGNED_OUT'].includes(event)) {
+          setLoading(false);
         }
       }
     );
 
-    supabase.auth.getSession().then(({ data: { session: initialSession } }) => {
-      if (initialSession) {
-        setSession(initialSession);
-        setUser(initialSession.user);
-        ensureProfileRow(initialSession.user);
-        refreshSubscription();
-      }
-      setLoading(false);
-    });
-
     return () => {
       authSub.unsubscribe();
     };
-  }, [ensureProfileRow, refreshSubscription]);
+  }, []);
+
+  // React to session changes
+  useEffect(() => {
+    if (session?.user) {
+      ensureProfileRow(session.user);
+      refreshSubscription();
+    } else {
+      setSubscription(null);
+    }
+  }, [session, ensureProfileRow, refreshSubscription]);
 
   const signOut = async () => {
     type SupabaseAuthWithScope = SupabaseClient['auth'] & {
