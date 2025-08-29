@@ -59,7 +59,7 @@ export class PlayerSDK {
       (this.dash as any).updateSettings({
         streaming: { /* keep defaults, allow ABR */ }
       });
-      this.dash.on(dashjs.MediaPlayer.events.ERROR, (e: any) => {
+      this.dash.on(dashjs.MediaPlayer.events.ERROR, (e: dashjs.ErrorEvent) => {
         this.sendMetrics({ error_code: e?.error?.toString?.() || 'dash_error' });
       });
       this.dash.on(dashjs.MediaPlayer.events.QUALITY_CHANGE_RENDERED, () => this.collectMetrics());
@@ -128,11 +128,15 @@ export class PlayerSDK {
       buffer_seconds = this.video.buffered.length ? this.video.buffered.end(0) - this.video.currentTime : 0;
     }
 
+    const quality = typeof this.video.getVideoPlaybackQuality === 'function'
+      ? this.video.getVideoPlaybackQuality()
+      : undefined;
+
     const m: PlayerMetrics = {
       bitrate_kbps,
       bandwidth_kbps,
       buffer_seconds,
-      dropped_frames: (this.video.getVideoPlaybackQuality as any)?.()?.droppedVideoFrames ?? undefined,
+      dropped_frames: quality?.droppedVideoFrames ?? undefined,
       rebuffer_count: this.rebufferCount,
       playback_state: this.video.paused ? 'paused' : 'playing'
     };
@@ -142,10 +146,15 @@ export class PlayerSDK {
   }
 
   private sendMetrics(m: PlayerMetrics) {
+    interface TelemetryEvent {
+      metric_name: string;
+      value: number;
+      id_value: string;
+    }
     try { this.opts?.onMetrics?.(m); } catch { /* noop */ }
     try {
       const path = typeof window !== 'undefined' ? (window.location.pathname + window.location.search) : null;
-      const events: any[] = [];
+      const events: TelemetryEvent[] = [];
       if (typeof m.rebuffer_count === 'number') events.push({ metric_name: 'REBUF_COUNT', value: m.rebuffer_count, id_value: 'player' });
       if (typeof m.buffer_seconds === 'number') events.push({ metric_name: 'BUFFER_S', value: m.buffer_seconds, id_value: 'player' });
       if (typeof m.bitrate_kbps === 'number') events.push({ metric_name: 'BITRATE_Kbps', value: m.bitrate_kbps, id_value: 'player' });

@@ -42,14 +42,16 @@ serve(async (req) => {
         return new Response(JSON.stringify({ error: "Authentication failed" }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    const { data: claims, error: claimsError } = await supabaseUserClient.rpc('get_my_claim', { claim: 'is_admin' }) as { data: { is_admin: boolean } | null, error: any };
+    const { data: claims, error: claimsError } = await supabaseUserClient.rpc('get_my_claim', { claim: 'is_admin' }) as { data: { is_admin: boolean } | null, error: Error | null };
     if (claimsError || !claims?.is_admin) {
       return new Response(JSON.stringify({ error: "Admin access required" }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    const { app_type } = await req.json();
-    if (!app_type) {
-      return new Response(JSON.stringify({ error: "app_type is required in the request body" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    type AppType = 'android_tv' | 'desktop_windows';
+    const { app_type }: { app_type: AppType } = await req.json();
+
+    if (!app_type || !['android_tv', 'desktop_windows'].includes(app_type)) {
+      return new Response(JSON.stringify({ error: "A valid app_type ('android_tv' or 'desktop_windows') is required." }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
     // 2. Create a new build record in the database

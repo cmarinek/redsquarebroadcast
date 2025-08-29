@@ -1,6 +1,6 @@
 
 import React, { createContext, useContext, useEffect, useState, ReactNode, useCallback } from 'react';
-import { User, Session } from '@supabase/supabase-js';
+import { User, Session, SupabaseClient } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { cleanupAuthState } from '@/utils/authCleanup';
 
@@ -43,26 +43,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   } | null>(null);
   const [checkingSubscription, setCheckingSubscription] = useState(false);
 
-  const refreshSubscription = async () => {
-    if (!session) return;
-    setCheckingSubscription(true);
-    try {
-      const { data, error } = await supabase.functions.invoke('check-subscription');
-      if (error) throw error;
-      const subData = data as { subscribed: boolean; subscription_tier: string | null; subscription_end: string | null; };
-      setSubscription({
-        subscribed: !!subData?.subscribed,
-        subscription_tier: subData?.subscription_tier ?? null,
-        subscription_end: subData?.subscription_end ?? null,
-      });
-    } catch (e) {
-      console.error('Error checking subscription:', e);
-    } finally {
-      setCheckingSubscription(false);
-    }
-  };
-
-  const ensureProfileRow = async (u: User | null) => {
+  const ensureProfileRow = useCallback(async (u: User | null) => {
     if (!u) return;
 
     type AllowedRole = 'broadcaster' | 'screen_owner' | 'admin';
@@ -132,9 +113,28 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     } catch (e) {
       console.warn('[ensureProfileRow] roles ensure failed:', e);
     }
-  };
+  }, []);
+
+  const refreshSubscription = useCallback(async () => {
+    if (!session) return;
+    setCheckingSubscription(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('check-subscription');
+      if (error) throw error;
+      const subData = data as { subscribed: boolean; subscription_tier: string | null; subscription_end: string | null; };
+      setSubscription({
+        subscribed: !!subData?.subscribed,
+        subscription_tier: subData?.subscription_tier ?? null,
+        subscription_end: subData?.subscription_end ?? null,
+      });
+    } catch (e) {
+      console.error('Error checking subscription:', e);
+    } finally {
+      setCheckingSubscription(false);
+    }
+  }, [session]);
+
   useEffect(() => {
-    // Set up auth state listener FIRST
     const { data: { subscription: authSub } } = supabase.auth.onAuthStateChange(
       (event, newSession) => {
         setSession(newSession);
@@ -142,37 +142,38 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         setLoading(false);
 
         if (newSession?.user) {
-          setTimeout(() => {
-            ensureProfileRow(newSession.user!);
-            refreshSubscription();
-          }, 0);
+          ensureProfileRow(newSession.user);
+          refreshSubscription();
         } else {
           setSubscription(null);
         }
       }
     );
 
-    // THEN check for existing session
     supabase.auth.getSession().then(({ data: { session: initialSession } }) => {
-      setSession(initialSession);
-      setUser(initialSession?.user ?? null);
-      setLoading(false);
-
-      if (initialSession?.user) {
+      if (initialSession) {
+        setSession(initialSession);
+        setUser(initialSession.user);
         ensureProfileRow(initialSession.user);
         refreshSubscription();
       }
+      setLoading(false);
     });
 
-    return () => authSub.unsubscribe();
-  }, []);
+    return () => {
+      authSub.unsubscribe();
+    };
+  }, [ensureProfileRow, refreshSubscription]);
 
   const signOut = async () => {
+    type SupabaseAuthWithScope = SupabaseClient['auth'] & {
+      signOut(options: { scope: 'global' | 'local' }): Promise<{ error: Error | null }>;
+    };
+
     try {
       cleanupAuthState();
       try {
-        // Attempt global sign out; ignore if unsupported
-        await (supabase.auth as any).signOut({ scope: 'global' });
+        await (supabase.auth as SupabaseAuthWithScope).signOut({ scope: 'global' });
       } catch {
         await supabase.auth.signOut();
       }

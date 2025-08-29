@@ -32,6 +32,8 @@ interface AppRelease {
   updated_at: string;
 }
 
+type Platform = 'android' | 'ios' | 'tv' | 'desktop';
+
 interface UploadState {
   isUploading: boolean;
   progress: number;
@@ -89,7 +91,7 @@ export const AppManager = () => {
   const { toast } = useToast();
   const [releases, setReleases] = useState<AppRelease[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activePlatform, setActivePlatform] = useState<'android' | 'ios' | 'tv' | 'desktop'>('tv');
+  const [activePlatform, setActivePlatform] = useState<Platform>('tv');
   const [isTriggeringBuild, setIsTriggeringBuild] = useState(false);
   const [uploadState, setUploadState] = useState<UploadState>({
     isUploading: false,
@@ -341,22 +343,32 @@ export const AppManager = () => {
       title: `Triggering new ${app_type.replace(/_/g, ' ')} build...`,
       description: "You can monitor the progress in the build history table below."
     });
-    const { error } = await supabase.functions.invoke('trigger-app-build', {
-      body: { app_type },
-    });
-    if (error) {
+    try {
+      const { error } = await supabase.functions.invoke('trigger-app-build', {
+        body: { app_type },
+      });
+      if (error) {
+        toast({
+          title: "Failed to trigger build",
+          description: error.message,
+          variant: "destructive"
+        });
+      } else {
+        toast({
+          title: "New build successfully triggered!",
+          description: "It will appear in the history table shortly."
+        });
+      }
+    } catch (e) {
+      console.error('Error triggering build:', e);
       toast({
-        title: "Failed to trigger build",
-        description: error.message,
+        title: "An unexpected error occurred",
+        description: e instanceof Error ? e.message : String(e),
         variant: "destructive"
       });
-    } else {
-      toast({
-        title: "New build successfully triggered!",
-        description: "It will appear in the history table shortly."
-      });
+    } finally {
+      setIsTriggeringBuild(false);
     }
-    setIsTriggeringBuild(false);
   };
 
   if (loading) {
@@ -455,31 +467,96 @@ export const AppManager = () => {
             <FileArchive className="h-4 w-4" />
             <AlertDescription className="space-y-2">
               <p><strong>To build the {currentConfig.name} app locally:</strong></p>
-              <ol className="list-decimal list-inside space-y-1 text-sm">{currentConfig.buildInstructions.map((step, index) => (<li key={index}>{step.includes('npm') || step.includes('npx') ? (<>{step.split(' ').slice(0, -2).join(' ')} <code className="bg-muted px-1 rounded">{step.split(' ').slice(-2).join(' ')}</code></>) : (step)}</li>))}</ol>
+                <ol className="list-decimal list-inside space-y-1 text-sm">
+                  {currentConfig.buildInstructions.map((step, index) => (
+                    <li key={index}>
+                      {step.includes('npm') || step.includes('npx') ? (
+                        <>
+                          {step.split(' ').slice(0, -2).join(' ')}{' '}
+                          <code className="bg-muted px-1 rounded">
+                            {step.split(' ').slice(-2).join(' ')}
+                          </code>
+                        </>
+                      ) : (
+                        step
+                      )}
+                    </li>
+                  ))}
+                </ol>
             </AlertDescription>
           </Alert>
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2"><Download className="h-5 w-5" />Available {currentConfig.name} Releases</CardTitle>
+              <CardTitle className="flex items-center gap-2">
+                <Download className="h-5 w-5" />
+                Available {currentConfig.name} Releases
+              </CardTitle>
               <CardDescription>Manage and download {currentConfig.name} app releases</CardDescription>
             </CardHeader>
             <CardContent>
-              {getPlatformReleases(activePlatform).length === 0 ? (<p className="text-center text-muted-foreground py-8">No {currentConfig.name} releases found. Upload your first release above.</p>) : (
+              {getPlatformReleases(activePlatform).length === 0 ? (
+                <p className="text-center text-muted-foreground py-8">
+                  No {currentConfig.name} releases found. Upload your first release above.
+                </p>
+              ) : (
                 <Table>
-                  <TableHeader><TableRow><TableHead>Version</TableHead><TableHead>Status</TableHead><TableHead>Size</TableHead><TableHead>Downloads</TableHead><TableHead>Created</TableHead><TableHead className="text-right">Actions</TableHead></TableRow></TableHeader>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Version</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Size</TableHead>
+                      <TableHead>Downloads</TableHead>
+                      <TableHead>Created</TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
                   <TableBody>
                     {getPlatformReleases(activePlatform).map((release) => (
                       <TableRow key={release.id}>
-                        <TableCell className="font-medium"><div className="flex items-center gap-2">{getPlatformIcon(release.platform)}<div><div className="font-semibold">v{release.version_name}</div><div className="text-sm text-muted-foreground">Build {release.version_code}{release.minimum_os_version && ` • Min OS: ${release.minimum_os_version}`}</div></div></div></TableCell>
-                        <TableCell><Badge variant={release.is_active ? "default" : "secondary"}>{release.is_active ? "Active" : "Inactive"}</Badge></TableCell>
+                        <TableCell className="font-medium">
+                          <div className="flex items-center gap-2">
+                            {getPlatformIcon(release.platform)}
+                            <div>
+                              <div className="font-semibold">v{release.version_name}</div>
+                              <div className="text-sm text-muted-foreground">
+                                Build {release.version_code}
+                                {release.minimum_os_version && ` • Min OS: ${release.minimum_os_version}`}
+                              </div>
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant={release.is_active ? "default" : "secondary"}>
+                            {release.is_active ? "Active" : "Inactive"}
+                          </Badge>
+                        </TableCell>
                         <TableCell>{formatFileSize(release.file_size)}</TableCell>
-                        <TableCell><div className="flex items-center gap-1"><Users className="h-4 w-4 text-muted-foreground" />{release.download_count}</div></TableCell>
-                        <TableCell><div className="flex items-center gap-1 text-sm text-muted-foreground"><Calendar className="h-4 w-4" />{format(new Date(release.created_at), 'MMM d, yyyy')}</div></TableCell>
-                        <TableCell className="text-right"><div className="flex justify-end gap-2">
-                            <Button size="sm" variant="outline" onClick={() => handleDownload(release)}><Download className="h-4 w-4 mr-1" />Download</Button>
-                            <Button size="sm" variant={release.is_active ? "secondary" : "default"} onClick={() => toggleReleaseStatus(release.id, release.is_active)}>{release.is_active ? "Deactivate" : "Activate"}</Button>
-                            <Button size="sm" variant="destructive" onClick={() => deleteRelease(release)}><Trash2 className="h-4 w-4" /></Button>
-                        </div></TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-1">
+                            <Users className="h-4 w-4 text-muted-foreground" />
+                            {release.download_count}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                            <Calendar className="h-4 w-4" />
+                            {format(new Date(release.created_at), 'MMM d, yyyy')}
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex justify-end gap-2">
+                            <Button size="sm" variant="outline" onClick={() => handleDownload(release)}>
+                              <Download className="h-4 w-4 mr-1" />
+                              Download
+                            </Button>
+                            <Button size="sm" variant={release.is_active ? "secondary" : "default"} onClick={() => toggleReleaseStatus(release.id, release.is_active)}>
+                              {release.is_active ? "Deactivate" : "Activate"}
+                            </Button>
+                            <Button size="sm" variant="destructive" onClick={() => deleteRelease(release)}>
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
@@ -493,7 +570,7 @@ export const AppManager = () => {
 
   return (
     <div className="space-y-6">
-      <Tabs value={activePlatform} onValueChange={(value) => setActivePlatform(value as any)}>
+      <Tabs value={activePlatform} onValueChange={(value) => setActivePlatform(value as Platform)}>
         <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="android" className="flex items-center gap-2">
             <Smartphone className="h-4 w-4" />
