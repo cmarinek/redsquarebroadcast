@@ -1426,18 +1426,8 @@ const AdminDashboard = () => {
               </TabsContent>
 
               <TabsContent value="mobile" className="mt-0 p-6">
-                <Tabs defaultValue="automated" className="w-full">
-                  <TabsList className="grid w-full grid-cols-2">
-                    <TabsTrigger value="automated">Automated Builds</TabsTrigger>
-                    <TabsTrigger value="manual">Manual Uploads</TabsTrigger>
-                  </TabsList>
-                  <TabsContent value="automated" className="mt-4">
-                    <AutomatedBuilds />
-                  </TabsContent>
-                  <TabsContent value="manual" className="mt-4">
-                    <AppManager />
-                  </TabsContent>
-                </Tabs>
+                <AppManager />
+                <AutomatedBuilds />
               </TabsContent>
 
             </Tabs>

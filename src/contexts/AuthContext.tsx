@@ -1,5 +1,5 @@
 
-import { createContext, useContext, useEffect, useState, ReactNode, useCallback } from 'react';
+import React, { createContext, useContext, useEffect, useState, ReactNode, useCallback } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { cleanupAuthState } from '@/utils/authCleanup';
@@ -43,7 +43,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   } | null>(null);
   const [checkingSubscription, setCheckingSubscription] = useState(false);
 
-  const refreshSubscription = useCallback(async () => {
+  const refreshSubscription = async () => {
     if (!session) return;
     setCheckingSubscription(true);
     try {
@@ -60,9 +60,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     } finally {
       setCheckingSubscription(false);
     }
-  }, [session]);
+  };
 
-  const ensureProfileRow = useCallback(async (u: User | null) => {
+  const ensureProfileRow = async (u: User | null) => {
     if (!u) return;
 
     type AllowedRole = 'broadcaster' | 'screen_owner' | 'admin';
@@ -132,19 +132,20 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     } catch (e) {
       console.warn('[ensureProfileRow] roles ensure failed:', e);
     }
-  }, []);
-
+  };
   useEffect(() => {
     // Set up auth state listener FIRST
     const { data: { subscription: authSub } } = supabase.auth.onAuthStateChange(
-      (_event, newSession) => {
+      (event, newSession) => {
         setSession(newSession);
         setUser(newSession?.user ?? null);
         setLoading(false);
 
         if (newSession?.user) {
-          ensureProfileRow(newSession.user);
-          refreshSubscription();
+          setTimeout(() => {
+            ensureProfileRow(newSession.user!);
+            refreshSubscription();
+          }, 0);
         } else {
           setSubscription(null);
         }
@@ -164,12 +165,17 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     });
 
     return () => authSub.unsubscribe();
-  }, [ensureProfileRow, refreshSubscription]);
+  }, []);
 
   const signOut = async () => {
     try {
       cleanupAuthState();
-      await supabase.auth.signOut();
+      try {
+        // Attempt global sign out; ignore if unsupported
+        await (supabase.auth as any).signOut({ scope: 'global' });
+      } catch {
+        await supabase.auth.signOut();
+      }
     } finally {
       window.location.href = '/auth';
     }

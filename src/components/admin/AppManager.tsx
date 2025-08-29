@@ -9,7 +9,6 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -47,13 +46,8 @@ const PLATFORM_CONFIG = {
     bucket: 'apk-files',
     acceptedFiles: '.apk',
     buildInstructions: [
-      'Export project to GitHub and clone locally',
-      'Run npm install',
-      'Run npx cap add android',
-      'Run npm run build',
-      'Run npx cap sync',
-      'Run npx cap open android',
-      'In Android Studio: Build → Generate Signed Bundle/APK'
+      'This is a manual process.',
+      'Follow standard Android build procedures.'
     ]
   },
   ios: {
@@ -63,28 +57,30 @@ const PLATFORM_CONFIG = {
     bucket: 'ios-files',
     acceptedFiles: '.ipa',
     buildInstructions: [
-      'Export project to GitHub and clone locally',
-      'Run npm install',
-      'Run npx cap add ios',
-      'Run npm run build',
-      'Run npx cap sync',
-      'Run npx cap open ios',
-      'In Xcode: Product → Archive → Distribute App'
+      'This is a manual process.',
+      'Follow standard iOS build procedures.'
     ]
   },
   tv: {
     icon: Tv,
     name: 'TV App',
-    fileExtension: 'zip',
-    bucket: 'tv-files',
-    acceptedFiles: '.zip',
+    fileExtension: 'apk', // Corrected from ZIP
+    bucket: 'app_artifacts',
+    acceptedFiles: '.apk',
     buildInstructions: [
-      'Export project to GitHub and clone locally',
-      'Run npm install',
-      'Run npm run build',
-      'Package the dist folder as a ZIP file',
-      'Test on supported TV platforms',
-      'Upload the ZIP package'
+      'For manual uploads, build the APK locally and upload here.',
+      'Alternatively, use the automated build button above.'
+    ]
+  },
+  desktop: {
+    icon: Monitor,
+    name: 'Desktop',
+    fileExtension: 'exe',
+    bucket: 'app_artifacts',
+    acceptedFiles: '.exe,.dmg,.appimage',
+    buildInstructions: [
+      'There is no manual upload process for the desktop app.',
+      'Please use the automated build system.'
     ]
   }
 } as const;
@@ -93,7 +89,8 @@ export const AppManager = () => {
   const { toast } = useToast();
   const [releases, setReleases] = useState<AppRelease[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activePlatform, setActivePlatform] = useState<'android' | 'ios' | 'tv'>('android');
+  const [activePlatform, setActivePlatform] = useState<'android' | 'ios' | 'tv' | 'desktop'>('tv');
+  const [isTriggeringBuild, setIsTriggeringBuild] = useState(false);
   const [uploadState, setUploadState] = useState<UploadState>({
     isUploading: false,
     progress: 0,
@@ -177,7 +174,6 @@ export const AppManager = () => {
       const fileName = `v${versionName}-${versionCode}.${config.fileExtension}`;
       const filePath = `releases/${fileName}`;
 
-      // Upload file to storage
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from(config.bucket)
         .upload(filePath, selectedFile, {
@@ -187,7 +183,8 @@ export const AppManager = () => {
 
       if (uploadError) throw uploadError;
 
-      // Create database record
+      const { data: { user } } = await supabase.auth.getUser();
+
       const { error: dbError } = await supabase
         .from('app_releases')
         .insert({
@@ -200,7 +197,7 @@ export const AppManager = () => {
           release_notes: releaseNotes || null,
           minimum_os_version: minimumOsVersion || null,
           bundle_id: bundleId || null,
-          uploaded_by: (await supabase.auth.getUser()).data.user?.id
+          uploaded_by: user?.id
         });
 
       if (dbError) throw dbError;
@@ -210,7 +207,6 @@ export const AppManager = () => {
         description: `Version ${versionName} is now available for download.`,
       });
 
-      // Reset form
       setVersionName("");
       setVersionCode("");
       setReleaseNotes("");
@@ -218,7 +214,6 @@ export const AppManager = () => {
       setBundleId("");
       setSelectedFile(null);
       
-      // Refresh releases
       fetchReleases();
     } catch (error) {
       console.error(`Error uploading ${config.name} app:`, error);
@@ -236,19 +231,16 @@ export const AppManager = () => {
     const config = PLATFORM_CONFIG[release.platform];
     
     try {
-      // Get signed URL for download
       const { data, error } = await supabase.storage
         .from(config.bucket)
-        .createSignedUrl(release.file_path, 3600); // 1 hour expiry
+        .createSignedUrl(release.file_path, 3600);
 
       if (error) throw error;
 
-      // Increment download count
       await supabase.rpc('increment_app_download_count', {
         release_id: release.id
       });
 
-      // Trigger download
       const link = document.createElement('a');
       link.href = data.signedUrl;
       link.download = `RedSquare-${release.platform}-v${release.version_name}.${release.file_extension}`;
@@ -256,7 +248,6 @@ export const AppManager = () => {
       link.click();
       document.body.removeChild(link);
 
-      // Refresh releases to show updated download count
       fetchReleases();
 
       toast({
@@ -306,14 +297,12 @@ export const AppManager = () => {
     }
 
     try {
-      // Delete from storage
       const { error: storageError } = await supabase.storage
         .from(config.bucket)
         .remove([release.file_path]);
 
       if (storageError) throw storageError;
 
-      // Delete from database
       const { error: dbError } = await supabase
         .from('app_releases')
         .delete()
@@ -342,21 +331,170 @@ export const AppManager = () => {
     return <IconComponent className="h-4 w-4" />;
   };
 
-  const getPlatformReleases = (platform: 'android' | 'ios' | 'tv') => {
+  const getPlatformReleases = (platform: 'android' | 'ios' | 'tv' | 'desktop') => {
     return releases.filter(release => release.platform === platform);
+  };
+
+  const handleTriggerBuild = async (app_type: 'android_tv' | 'desktop_windows') => {
+    setIsTriggeringBuild(true);
+    toast({
+      title: `Triggering new ${app_type.replace(/_/g, ' ')} build...`,
+      description: "You can monitor the progress in the build history table below."
+    });
+    const { error } = await supabase.functions.invoke('trigger-app-build', {
+      body: { app_type },
+    });
+    if (error) {
+      toast({
+        title: "Failed to trigger build",
+        description: error.message,
+        variant: "destructive"
+      });
+    } else {
+      toast({
+        title: "New build successfully triggered!",
+        description: "It will appear in the history table shortly."
+      });
+    }
+    setIsTriggeringBuild(false);
   };
 
   if (loading) {
     return <div className="flex items-center justify-center p-8">Loading app releases...</div>;
   }
 
-  const currentConfig = getCurrentPlatformConfig();
+  const currentConfig = PLATFORM_CONFIG[activePlatform];
   const IconComponent = currentConfig.icon;
+
+  const renderContent = () => {
+    if (activePlatform === 'desktop') {
+      return (
+        <Card>
+          <CardHeader>
+              <div className="flex justify-between items-start">
+                  <div>
+                      <CardTitle>Automated Desktop Build</CardTitle>
+                      <CardDescription>Use the automated system to build the latest version of the Desktop client for Windows.</CardDescription>
+                  </div>
+                  <Button onClick={() => handleTriggerBuild('desktop_windows')} disabled={isTriggeringBuild}>
+                      <Upload className="mr-2 h-4 w-4" />
+                      {isTriggeringBuild ? 'Starting...' : 'Start Automated Desktop Build'}
+                  </Button>
+              </div>
+          </CardHeader>
+        </Card>
+      );
+    }
+
+    // Common UI for Android, iOS, TV
+    return (
+      <>
+        {activePlatform === 'tv' && (
+          <Card>
+            <CardHeader>
+                <div className="flex justify-between items-start">
+                    <div>
+                        <CardTitle>Automated TV App Build</CardTitle>
+                        <CardDescription>Use the automated system to build the latest version of the TV app.</CardDescription>
+                    </div>
+                    <Button onClick={() => handleTriggerBuild('android_tv')} disabled={isTriggeringBuild}>
+                        <Upload className="mr-2 h-4 w-4" />
+                        {isTriggeringBuild ? 'Starting...' : 'Start Automated TV App Build'}
+                    </Button>
+                </div>
+            </CardHeader>
+          </Card>
+        )}
+        <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Upload className="h-5 w-5" />
+                Manually Upload New {currentConfig.name} App
+              </CardTitle>
+              <CardDescription>
+                Upload a new version of the Red Square {currentConfig.name} app
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="version-name">Version Name *</Label>
+                  <Input id="version-name" placeholder="e.g., 1.0.0" value={versionName} onChange={(e) => setVersionName(e.target.value)} disabled={uploadState.isUploading}/>
+                </div>
+                <div>
+                  <Label htmlFor="version-code">Version Code *</Label>
+                  <Input id="version-code" type="number" placeholder="e.g., 1" value={versionCode} onChange={(e) => setVersionCode(e.target.value)} disabled={uploadState.isUploading}/>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="minimum-os-version">Minimum OS Version</Label>
+                  <Input id="minimum-os-version" placeholder={activePlatform === 'android' ? 'e.g., 7.0' : activePlatform === 'ios' ? 'e.g., 13.0' : 'e.g., Android TV 9.0'} value={minimumOsVersion} onChange={(e) => setMinimumOsVersion(e.target.value)} disabled={uploadState.isUploading}/>
+                </div>
+                <div>
+                  <Label htmlFor="bundle-id">Bundle/Package ID</Label>
+                  <Input id="bundle-id" placeholder="e.g., com.redsquare.app" value={bundleId} onChange={(e) => setBundleId(e.target.value)} disabled={uploadState.isUploading}/>
+                </div>
+              </div>
+              <div>
+                <Label htmlFor="release-notes">Release Notes</Label>
+                <Textarea id="release-notes" placeholder="What's new in this version..." value={releaseNotes} onChange={(e) => setReleaseNotes(e.target.value)} disabled={uploadState.isUploading}/>
+              </div>
+              <div>
+                <Label htmlFor="app-file">{currentConfig.fileExtension.toUpperCase()} File *</Label>
+                <Input id="app-file" type="file" accept={currentConfig.acceptedFiles} onChange={handleFileSelect} disabled={uploadState.isUploading}/>
+                {selectedFile && (<p className="text-sm text-muted-foreground mt-1">Selected: {selectedFile.name} ({formatFileSize(selectedFile.size)})</p>)}
+              </div>
+              {uploadState.isUploading && (<div className="space-y-2"><Progress value={uploadState.progress} /><p className="text-sm text-muted-foreground">Uploading...</p></div>)}
+              <Button onClick={handleUpload} disabled={uploadState.isUploading || !selectedFile || !versionName || !versionCode} className="w-full">
+                {uploadState.isUploading ? 'Uploading...' : `Upload ${currentConfig.fileExtension.toUpperCase()}`}
+              </Button>
+            </CardContent>
+          </Card>
+          <Alert>
+            <FileArchive className="h-4 w-4" />
+            <AlertDescription className="space-y-2">
+              <p><strong>To build the {currentConfig.name} app locally:</strong></p>
+              <ol className="list-decimal list-inside space-y-1 text-sm">{currentConfig.buildInstructions.map((step, index) => (<li key={index}>{step.includes('npm') || step.includes('npx') ? (<>{step.split(' ').slice(0, -2).join(' ')} <code className="bg-muted px-1 rounded">{step.split(' ').slice(-2).join(' ')}</code></>) : (step)}</li>))}</ol>
+            </AlertDescription>
+          </Alert>
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2"><Download className="h-5 w-5" />Available {currentConfig.name} Releases</CardTitle>
+              <CardDescription>Manage and download {currentConfig.name} app releases</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {getPlatformReleases(activePlatform).length === 0 ? (<p className="text-center text-muted-foreground py-8">No {currentConfig.name} releases found. Upload your first release above.</p>) : (
+                <Table>
+                  <TableHeader><TableRow><TableHead>Version</TableHead><TableHead>Status</TableHead><TableHead>Size</TableHead><TableHead>Downloads</TableHead><TableHead>Created</TableHead><TableHead className="text-right">Actions</TableHead></TableRow></TableHeader>
+                  <TableBody>
+                    {getPlatformReleases(activePlatform).map((release) => (
+                      <TableRow key={release.id}>
+                        <TableCell className="font-medium"><div className="flex items-center gap-2">{getPlatformIcon(release.platform)}<div><div className="font-semibold">v{release.version_name}</div><div className="text-sm text-muted-foreground">Build {release.version_code}{release.minimum_os_version && ` • Min OS: ${release.minimum_os_version}`}</div></div></div></TableCell>
+                        <TableCell><Badge variant={release.is_active ? "default" : "secondary"}>{release.is_active ? "Active" : "Inactive"}</Badge></TableCell>
+                        <TableCell>{formatFileSize(release.file_size)}</TableCell>
+                        <TableCell><div className="flex items-center gap-1"><Users className="h-4 w-4 text-muted-foreground" />{release.download_count}</div></TableCell>
+                        <TableCell><div className="flex items-center gap-1 text-sm text-muted-foreground"><Calendar className="h-4 w-4" />{format(new Date(release.created_at), 'MMM d, yyyy')}</div></TableCell>
+                        <TableCell className="text-right"><div className="flex justify-end gap-2">
+                            <Button size="sm" variant="outline" onClick={() => handleDownload(release)}><Download className="h-4 w-4 mr-1" />Download</Button>
+                            <Button size="sm" variant={release.is_active ? "secondary" : "default"} onClick={() => toggleReleaseStatus(release.id, release.is_active)}>{release.is_active ? "Deactivate" : "Activate"}</Button>
+                            <Button size="sm" variant="destructive" onClick={() => deleteRelease(release)}><Trash2 className="h-4 w-4" /></Button>
+                        </div></TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              )}
+            </CardContent>
+          </Card>
+      </>
+    )
+  }
 
   return (
     <div className="space-y-6">
-      <Tabs value={activePlatform} onValueChange={(value) => setActivePlatform(value as 'android' | 'ios' | 'tv')}>
-        <TabsList className="grid w-full grid-cols-3">
+      <Tabs value={activePlatform} onValueChange={(value) => setActivePlatform(value as any)}>
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="android" className="flex items-center gap-2">
             <Smartphone className="h-4 w-4" />
             Android
@@ -369,227 +507,13 @@ export const AppManager = () => {
             <Tv className="h-4 w-4" />
             TV App
           </TabsTrigger>
+          <TabsTrigger value="desktop" className="flex items-center gap-2">
+            <Monitor className="h-4 w-4" />
+            Desktop
+          </TabsTrigger>
         </TabsList>
-
         <TabsContent value={activePlatform} className="space-y-6">
-          {/* Upload Form */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Upload className="h-5 w-5" />
-                Upload New {currentConfig.name} App
-              </CardTitle>
-              <CardDescription>
-                Upload a new version of the Red Square {currentConfig.name} app
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="version-name">Version Name *</Label>
-                  <Input
-                    id="version-name"
-                    placeholder="e.g., 1.0.0"
-                    value={versionName}
-                    onChange={(e) => setVersionName(e.target.value)}
-                    disabled={uploadState.isUploading}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="version-code">Version Code *</Label>
-                  <Input
-                    id="version-code"
-                    type="number"
-                    placeholder="e.g., 1"
-                    value={versionCode}
-                    onChange={(e) => setVersionCode(e.target.value)}
-                    disabled={uploadState.isUploading}
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="minimum-os-version">Minimum OS Version</Label>
-                  <Input
-                    id="minimum-os-version"
-                    placeholder={activePlatform === 'android' ? 'e.g., 7.0' : activePlatform === 'ios' ? 'e.g., 13.0' : 'e.g., Android TV 9.0'}
-                    value={minimumOsVersion}
-                    onChange={(e) => setMinimumOsVersion(e.target.value)}
-                    disabled={uploadState.isUploading}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="bundle-id">Bundle/Package ID</Label>
-                  <Input
-                    id="bundle-id"
-                    placeholder="e.g., com.redsquare.app"
-                    value={bundleId}
-                    onChange={(e) => setBundleId(e.target.value)}
-                    disabled={uploadState.isUploading}
-                  />
-                </div>
-              </div>
-
-              <div>
-                <Label htmlFor="release-notes">Release Notes</Label>
-                <Textarea
-                  id="release-notes"
-                  placeholder="What's new in this version..."
-                  value={releaseNotes}
-                  onChange={(e) => setReleaseNotes(e.target.value)}
-                  disabled={uploadState.isUploading}
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="app-file">{currentConfig.fileExtension.toUpperCase()} File *</Label>
-                <Input
-                  id="app-file"
-                  type="file"
-                  accept={currentConfig.acceptedFiles}
-                  onChange={handleFileSelect}
-                  disabled={uploadState.isUploading}
-                />
-                {selectedFile && (
-                  <p className="text-sm text-muted-foreground mt-1">
-                    Selected: {selectedFile.name} ({formatFileSize(selectedFile.size)})
-                  </p>
-                )}
-              </div>
-
-              {uploadState.isUploading && (
-                <div className="space-y-2">
-                  <Progress value={uploadState.progress} />
-                  <p className="text-sm text-muted-foreground">Uploading...</p>
-                </div>
-              )}
-
-              <Button 
-                onClick={handleUpload} 
-                disabled={uploadState.isUploading || !selectedFile || !versionName || !versionCode}
-                className="w-full"
-              >
-                {uploadState.isUploading ? 'Uploading...' : `Upload ${currentConfig.fileExtension.toUpperCase()}`}
-              </Button>
-            </CardContent>
-          </Card>
-
-          {/* Build Instructions */}
-          <Alert>
-            <FileArchive className="h-4 w-4" />
-            <AlertDescription className="space-y-2">
-              <p><strong>To build the {currentConfig.name} app locally:</strong></p>
-              <ol className="list-decimal list-inside space-y-1 text-sm">
-                {currentConfig.buildInstructions.map((step, index) => (
-                  <li key={index}>
-                    {step.includes('npm') || step.includes('npx') ? (
-                      <>
-                        {step.split(' ').slice(0, -2).join(' ')} <code className="bg-muted px-1 rounded">{step.split(' ').slice(-2).join(' ')}</code>
-                      </>
-                    ) : (
-                      step
-                    )}
-                  </li>
-                ))}
-              </ol>
-            </AlertDescription>
-          </Alert>
-
-          {/* Releases List */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Download className="h-5 w-5" />
-                Available {currentConfig.name} Releases
-              </CardTitle>
-              <CardDescription>
-                Manage and download {currentConfig.name} app releases
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {getPlatformReleases(activePlatform).length === 0 ? (
-                <p className="text-center text-muted-foreground py-8">
-                  No {currentConfig.name} releases found. Upload your first release above.
-                </p>
-              ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Version</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Size</TableHead>
-                      <TableHead>Downloads</TableHead>
-                      <TableHead>Created</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {getPlatformReleases(activePlatform).map((release) => (
-                      <TableRow key={release.id}>
-                        <TableCell className="font-medium">
-                          <div className="flex items-center gap-2">
-                            {getPlatformIcon(release.platform)}
-                            <div>
-                              <div className="font-semibold">v{release.version_name}</div>
-                              <div className="text-sm text-muted-foreground">
-                                Build {release.version_code}
-                                {release.minimum_os_version && ` • Min OS: ${release.minimum_os_version}`}
-                              </div>
-                            </div>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant={release.is_active ? "default" : "secondary"}>
-                            {release.is_active ? "Active" : "Inactive"}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>{formatFileSize(release.file_size)}</TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-1">
-                            <Users className="h-4 w-4 text-muted-foreground" />
-                            {release.download_count}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                            <Calendar className="h-4 w-4" />
-                            {format(new Date(release.created_at), 'MMM d, yyyy')}
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex justify-end gap-2">
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => handleDownload(release)}
-                            >
-                              <Download className="h-4 w-4 mr-1" />
-                              Download
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant={release.is_active ? "secondary" : "default"}
-                              onClick={() => toggleReleaseStatus(release.id, release.is_active)}
-                            >
-                              {release.is_active ? "Deactivate" : "Activate"}
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="destructive"
-                              onClick={() => deleteRelease(release)}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              )}
-            </CardContent>
-          </Card>
+          {renderContent()}
         </TabsContent>
       </Tabs>
     </div>
