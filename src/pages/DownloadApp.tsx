@@ -25,17 +25,35 @@ interface AppRelease {
   created_at: string;
 }
 
+const APP_TYPES = {
+  platform: {
+    name: 'Red Square Platform',
+    description: 'Main platform for advertisers and screen owners',
+    tagline: 'Manage campaigns, discover screens, and earn revenue',
+    platforms: ['android', 'ios'],
+    userTypes: ['Advertisers', 'Screen Owners', 'Content Creators']
+  },
+  broadcast: {
+    name: 'Red Square Broadcast',
+    description: 'Device app for screens to receive and play content',
+    tagline: 'Turn any screen into a broadcast-ready display',
+    platforms: ['tv'],
+    userTypes: ['Screen Owners', 'Device Managers']
+  }
+} as const;
+
 const PLATFORM_CONFIG = {
   android: {
     icon: Smartphone,
     name: 'Android',
+    appType: 'platform' as const,
     bucket: 'apk-files',
     fileExtension: 'APK',
     instructions: [
       { title: 'Enable Unknown Sources', desc: 'Go to Settings → Security → Unknown Sources and enable it.' },
       { title: 'Download', desc: 'Tap the download button above to get the APK file.' },
       { title: 'Install', desc: 'Open the downloaded file and follow the installation prompts.' },
-      { title: 'Launch', desc: 'Find Red Square in your app drawer and start broadcasting!' }
+      { title: 'Launch', desc: 'Find Red Square in your app drawer and start managing your campaigns!' }
     ],
     requirements: [
       'Android 7.0 (API level 24) or higher',
@@ -48,6 +66,7 @@ const PLATFORM_CONFIG = {
   ios: {
     icon: Apple,
     name: 'iOS',
+    appType: 'platform' as const,
     bucket: 'ios-files',
     fileExtension: 'IPA',
     instructions: [
@@ -66,21 +85,22 @@ const PLATFORM_CONFIG = {
   },
   tv: {
     icon: Tv,
-    name: 'TV App',
+    name: 'Smart TV & Devices',
+    appType: 'broadcast' as const,
     bucket: 'tv-files',
     fileExtension: 'ZIP',
     instructions: [
-      { title: 'Download Package', desc: 'Download the TV app package from above.' },
+      { title: 'Download Package', desc: 'Download the Red Square Broadcast package from above.' },
       { title: 'Extract Files', desc: 'Extract the ZIP file to a folder on your computer.' },
-      { title: 'Sideload to TV', desc: 'Use ADB or your TV\'s developer mode to install.' },
-      { title: 'Launch App', desc: 'Find Red Square in your TV\'s app list and start using it.' }
+      { title: 'Sideload to Device', desc: 'Use ADB, developer mode, or web browser to install on your screen device.' },
+      { title: 'Pair Device', desc: 'Use the pairing code to connect your screen to the Red Square network.' }
     ],
     requirements: [
-      'Android TV 9.0 or higher',
-      'Smart TV with web browser support',
+      'Android TV 9.0 or higher, Smart TV with web browser, or dedicated display device',
       'At least 200 MB of available storage',
-      'Internet connection (WiFi recommended)',
-      'Remote control or compatible input device'
+      'Stable internet connection (WiFi recommended)',
+      'Remote control or compatible input device',
+      'HDMI display or built-in screen'
     ]
   }
 } as const;
@@ -197,10 +217,25 @@ const DownloadApp = () => {
   const renderPlatformContent = (platform: 'android' | 'ios' | 'tv') => {
     const release = releases[platform];
     const config = PLATFORM_CONFIG[platform];
+    const appTypeInfo = APP_TYPES[config.appType];
     const IconComponent = config.icon;
 
     return (
       <div className="space-y-8">
+        {/* App Type Header */}
+        <div className="bg-secondary/30 rounded-xl p-6">
+          <div className="flex items-center gap-4 mb-4">
+            <div className="p-3 bg-primary/10 rounded-xl">
+              <IconComponent className="h-8 w-8 text-primary" />
+            </div>
+            <div>
+              <h2 className="text-2xl font-bold">{appTypeInfo.name}</h2>
+              <p className="text-muted-foreground">{appTypeInfo.tagline}</p>
+            </div>
+          </div>
+          <p className="text-muted-foreground">{appTypeInfo.description}</p>
+        </div>
+
         {loading ? (
           <Card>
             <CardContent className="p-8 text-center">
@@ -217,7 +252,7 @@ const DownloadApp = () => {
               </div>
               <CardTitle className="text-2xl flex items-center justify-center gap-2">
                 <IconComponent className="h-6 w-6" />
-                Red Square for {config.name}
+                {appTypeInfo.name} - {config.name}
               </CardTitle>
               <CardDescription className="text-lg">
                 Released {format(new Date(release.created_at), 'MMMM d, yyyy')}
@@ -294,7 +329,7 @@ const DownloadApp = () => {
           <Alert>
             <IconComponent className="h-4 w-4" />
             <AlertDescription>
-              No {config.name} release is currently available. Please check back later or contact support.
+              No {appTypeInfo.name} release is currently available for {config.name}. Please check back later or contact support.
             </AlertDescription>
           </Alert>
         )}
@@ -304,7 +339,7 @@ const DownloadApp = () => {
           <CardHeader>
             <CardTitle>Installation Instructions</CardTitle>
             <CardDescription>
-              Follow these steps to install Red Square on your {config.name} device
+              Follow these steps to install {appTypeInfo.name} on your {config.name} device
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -319,8 +354,9 @@ const DownloadApp = () => {
             <Alert>
               <Shield className="h-4 w-4" />
               <AlertDescription>
-                <strong>Security Note:</strong> Only download Red Square from this official page. 
+                <strong>Security Note:</strong> Only download {appTypeInfo.name} from this official page. 
                 {platform === 'android' && ' Disable "Unknown Sources" after installation for security.'}
+                {platform === 'tv' && ' The Broadcast app should only be installed on dedicated display devices.'}
               </AlertDescription>
             </Alert>
           </CardContent>
@@ -360,12 +396,43 @@ const DownloadApp = () => {
               </div>
             </div>
             <h1 className="text-4xl md:text-5xl font-bold mb-4">
-              Download Red Square
+              Red Square Apps
             </h1>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              Get the official Red Square apps for all your devices. Discover screens, upload content, 
-              and broadcast to digital displays anywhere.
+            <p className="text-xl text-muted-foreground max-w-3xl mx-auto mb-8">
+              Two powerful apps for the complete Red Square ecosystem: manage your campaigns with the Platform app, 
+              or turn any screen into a broadcast display with the Broadcast app.
             </p>
+            
+            {/* App Type Cards */}
+            <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto mb-8">
+              <div className="bg-card border border-border rounded-xl p-6 text-left">
+                <div className="flex items-center gap-3 mb-4">
+                  <Smartphone className="h-8 w-8 text-primary" />
+                  <div>
+                    <h3 className="text-lg font-semibold">{APP_TYPES.platform.name}</h3>
+                    <p className="text-sm text-muted-foreground">{APP_TYPES.platform.tagline}</p>
+                  </div>
+                </div>
+                <p className="text-muted-foreground mb-3">{APP_TYPES.platform.description}</p>
+                <div className="text-sm text-muted-foreground">
+                  For: {APP_TYPES.platform.userTypes.join(', ')}
+                </div>
+              </div>
+              
+              <div className="bg-card border border-border rounded-xl p-6 text-left">
+                <div className="flex items-center gap-3 mb-4">
+                  <Monitor className="h-8 w-8 text-primary" />
+                  <div>
+                    <h3 className="text-lg font-semibold">{APP_TYPES.broadcast.name}</h3>
+                    <p className="text-sm text-muted-foreground">{APP_TYPES.broadcast.tagline}</p>
+                  </div>
+                </div>
+                <p className="text-muted-foreground mb-3">{APP_TYPES.broadcast.description}</p>
+                <div className="text-sm text-muted-foreground">
+                  For: {APP_TYPES.broadcast.userTypes.join(', ')}
+                </div>
+              </div>
+            </div>
           </div>
 
           <div className="max-w-4xl mx-auto">
@@ -373,15 +440,15 @@ const DownloadApp = () => {
               <TabsList className="grid w-full grid-cols-3 mb-8">
                 <TabsTrigger value="android" className="flex items-center gap-2">
                   <Smartphone className="h-4 w-4" />
-                  Android
+                  Platform - Android
                 </TabsTrigger>
                 <TabsTrigger value="ios" className="flex items-center gap-2">
                   <Apple className="h-4 w-4" />
-                  iOS
+                  Platform - iOS
                 </TabsTrigger>
                 <TabsTrigger value="tv" className="flex items-center gap-2">
                   <Tv className="h-4 w-4" />
-                  TV App
+                  Broadcast - TV/Device
                 </TabsTrigger>
               </TabsList>
 

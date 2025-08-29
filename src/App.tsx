@@ -42,6 +42,7 @@ const AdminDocumentation = lazy(() => import("./pages/AdminDocumentation"));
 const DownloadApp = lazy(() => import("./pages/DownloadApp"));
 const ScreenOwnerMobile = lazy(() => import("./pages/ScreenOwnerMobile"));
 const RegionalSettings = lazy(() => import("./pages/RegionalSettings"));
+const SetupGuide = lazy(() => import("./pages/SetupGuide"));
 import AdminRoute from "@/components/routing/AdminRoute";
 
 const App = () => (
@@ -86,6 +87,7 @@ const App = () => (
             <Route path="/terms" element={<Terms />} />
             <Route path="/cookies" element={<Cookies />} />
             <Route path="/learn" element={<Learn />} />
+            <Route path="/setup-guide" element={<SetupGuide />} />
             <Route path="/download" element={<DownloadApp />} />
             <Route path="/screen-owner-mobile" element={<ScreenOwnerMobile />} />
             <Route path="/mobile-app" element={<ScreenOwnerMobile />} /> {/* Legacy redirect */}

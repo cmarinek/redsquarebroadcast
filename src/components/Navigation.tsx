@@ -206,6 +206,9 @@ export const Navigation = () => {
                   <Link to="/learn">{t('navigation.learn')}</Link>
                 </Button>
                 <Button variant="outline" asChild>
+                  <Link to="/setup-guide">Setup Guide</Link>
+                </Button>
+                <Button variant="outline" asChild>
                   <Link to="/download">
                     <Smartphone className="w-4 h-4 mr-2" />
                     {t('navigation.downloadApp')}
@@ -310,15 +313,18 @@ export const Navigation = () => {
                      <Button variant="outline" asChild className="w-full justify-start">
                        <Link to="/how-it-works">{t('navigation.howItWorks')}</Link>
                      </Button>
-                     <Button variant="outline" asChild className="w-full justify-start">
-                       <Link to="/learn">{t('navigation.learn')}</Link>
-                     </Button>
-                     <Button variant="outline" asChild className="w-full justify-start">
-                       <Link to="/download">
-                         <Smartphone className="w-4 h-4 mr-2" />
-                         {t('navigation.downloadApp')}
-                       </Link>
-                     </Button>
+                      <Button variant="outline" asChild className="w-full justify-start">
+                        <Link to="/learn">{t('navigation.learn')}</Link>
+                      </Button>
+                      <Button variant="outline" asChild className="w-full justify-start">
+                        <Link to="/setup-guide">Setup Guide</Link>
+                      </Button>
+                      <Button variant="outline" asChild className="w-full justify-start">
+                        <Link to="/download">
+                          <Smartphone className="w-4 h-4 mr-2" />
+                          {t('navigation.downloadApp')}
+                        </Link>
+                      </Button>
                      <Button variant="outline" asChild className="w-full justify-start">
                        <Link to="/discover">{t('navigation.findScreens')}</Link>
                      </Button>
