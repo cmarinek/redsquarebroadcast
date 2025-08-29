@@ -255,11 +255,11 @@ const AdminProjectOverview = () => {
             <CardContent>
               <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                 <article>
-                  <h3 className="text-lg font-semibold mb-2">Broadcasters <Badge className="ml-2">Core</Badge></h3>
+                  <h3 className="text-lg font-semibold mb-2">Advertisers <Badge className="ml-2">Core</Badge></h3>
                   <ul className="list-disc pl-5 space-y-1 text-sm">
                     <li><Link to="/discover" className="underline">Discovery</Link> (ScreenDiscovery, ScreenDetails)</li>
                     <li><Link to="/book/:screenId/upload" className="underline">Content Upload</Link> → Scheduling → Payment → <Link to="/confirmation/123" className="underline">Confirmation</Link></li>
-                    <li><Link to="/my-campaigns" className="underline">Broadcaster Dashboard</Link></li>
+                    <li><Link to="/my-campaigns" className="underline">Advertiser Dashboard</Link></li>
                     <li>Advanced: ABTestingTools, AudienceTargeting, ContentSchedulingAutomation</li>
                   </ul>
                 </article>
@@ -313,11 +313,11 @@ const AdminProjectOverview = () => {
             <CardContent>
               <article className="space-y-6 text-sm">
                 <section>
-                  <h4 className="font-semibold mb-1">Broadcaster flow</h4>
+                  <h4 className="font-semibold mb-1">Advertiser flow</h4>
                   <ul className="list-disc pl-5 space-y-1">
                     <li>Discover screens → compare price/availability → view ScreenDetails</li>
                     <li>Upload media → schedule slots → pay → receive Confirmation</li>
-                    <li>Manage campaigns in BroadcasterDashboard; analytics and A/B testing tools</li>
+                    <li>Manage campaigns in AdvertiserDashboard; analytics and A/B testing tools</li>
                   </ul>
                 </section>
 

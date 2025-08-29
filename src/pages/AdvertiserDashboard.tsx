@@ -14,10 +14,10 @@ import { useToast } from "@/hooks/use-toast";
 import { Navigation } from "@/components/Navigation";
 import AdvertiserSetupGuide from "@/components/advertiser/AdvertiserSetupGuide";
 import { AnalyticsDashboard } from "@/components/shared/AnalyticsDashboard";
-import { ContentSchedulingAutomation } from "@/components/broadcaster/ContentSchedulingAutomation";
-import AudienceTargeting from "@/components/broadcaster/AudienceTargeting";
+import { ContentSchedulingAutomation } from "@/components/advertiser/ContentSchedulingAutomation";
+import AudienceTargeting from "@/components/advertiser/AudienceTargeting";
 import { ABTestingTools } from "@/components/shared/ABTestingTools";
-import MobileAppIntegration from "@/components/broadcaster/MobileAppIntegration";
+import MobileAppIntegration from "@/components/advertiser/MobileAppIntegration";
 
 interface Booking {
   id: string;
