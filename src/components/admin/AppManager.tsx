@@ -18,7 +18,7 @@ interface AppRelease {
   id: string;
   version_name: string;
   version_code: number;
-  platform: 'android' | 'ios' | 'tv';
+  platform: Platform;
   file_extension: 'apk' | 'ipa' | 'zip';
   file_path: string;
   file_size: number;

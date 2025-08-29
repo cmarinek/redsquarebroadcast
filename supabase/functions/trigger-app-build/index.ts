@@ -47,11 +47,13 @@ serve(async (req) => {
       return new Response(JSON.stringify({ error: "Admin access required" }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    type AppType = 'android_tv' | 'desktop_windows';
+    const allowedAppTypes = ['android_tv', 'desktop_windows'] as const;
+    type AppType = typeof allowedAppTypes[number];
+
     const { app_type }: { app_type: AppType } = await req.json();
 
-    if (!app_type || !['android_tv', 'desktop_windows'].includes(app_type)) {
-      return new Response(JSON.stringify({ error: "A valid app_type ('android_tv' or 'desktop_windows') is required." }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    if (!app_type || !allowedAppTypes.includes(app_type)) {
+      return new Response(JSON.stringify({ error: `A valid app_type (${allowedAppTypes.join(', ')}) is required.` }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
     // 2. Create a new build record in the database

@@ -4,15 +4,17 @@ import { User, Session, SupabaseClient } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { cleanupAuthState } from '@/utils/authCleanup';
 
+interface SubscriptionData {
+  subscribed: boolean;
+  subscription_tier: string | null;
+  subscription_end: string | null;
+}
+
 interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
-  subscription: {
-    subscribed: boolean;
-    subscription_tier: string | null;
-    subscription_end: string | null;
-  } | null;
+  subscription: SubscriptionData | null;
   checkingSubscription: boolean;
   refreshSubscription: () => Promise<void>;
   signOut: () => Promise<void>;
@@ -36,11 +38,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
-  const [subscription, setSubscription] = useState<{
-    subscribed: boolean;
-    subscription_tier: string | null;
-    subscription_end: string | null;
-  } | null>(null);
+  const [subscription, setSubscription] = useState<SubscriptionData | null>(null);
   const [checkingSubscription, setCheckingSubscription] = useState(false);
 
   const ensureProfileRow = useCallback(async (u: User | null) => {
@@ -121,7 +119,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     try {
       const { data, error } = await supabase.functions.invoke('check-subscription');
       if (error) throw error;
-      const subData = data as { subscribed: boolean; subscription_tier: string | null; subscription_end: string | null; };
+      const subData = data as SubscriptionData;
       setSubscription({
         subscribed: !!subData?.subscribed,
         subscription_tier: subData?.subscription_tier ?? null,
