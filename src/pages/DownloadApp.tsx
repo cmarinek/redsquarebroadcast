@@ -327,6 +327,34 @@ const DownloadApp = () => {
             {userChoice === 'advertiser' ?
           // Platform App for Advertisers
           <div className="space-y-8">
+                {/* Get Started Now Option */}
+                <Card className="border-2 border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-950/20">
+                  <CardContent className="p-8 text-center">
+                    <div className="flex justify-center mb-4">
+                      <div className="p-3 bg-green-100 dark:bg-green-900 rounded-xl">
+                        <Zap className="h-8 w-8 text-green-600" />
+                      </div>
+                    </div>
+                    <h3 className="text-2xl font-bold mb-4">Start Right Now!</h3>
+                    <p className="text-muted-foreground text-lg mb-6">
+                      No need to download anything. Use Red Square directly in your web browser on any device.
+                    </p>
+                    <Button size="lg" className="bg-green-600 hover:bg-green-700 text-white" asChild>
+                      <Link to="/discover">
+                        <Eye className="h-5 w-5 mr-2" />
+                        Find Screens & Start Advertising
+                      </Link>
+                    </Button>
+                    <p className="text-sm text-muted-foreground mt-3">
+                      Works on desktop, tablet, and mobile browsers
+                    </p>
+                  </CardContent>
+                </Card>
+
+                <div className="text-center">
+                  <p className="text-muted-foreground mb-4">Or download the mobile app for the best experience:</p>
+                </div>
+
                 <Card className="border-2 border-primary/20">
                   <CardHeader className="text-center">
                     <div className="flex justify-center mb-4">
@@ -334,9 +362,9 @@ const DownloadApp = () => {
                         <Smartphone className="h-8 w-8 text-primary" />
                       </div>
                     </div>
-                    <CardTitle className="text-2xl">Red Square Platform App</CardTitle>
+                    <CardTitle className="text-2xl">Red Square Mobile App</CardTitle>
                     <CardDescription className="text-lg">
-                      Find screens, upload content, and manage your campaigns
+                      Find screens, upload content, and manage your campaigns on the go
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-6">
