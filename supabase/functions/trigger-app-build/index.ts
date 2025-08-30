@@ -47,7 +47,7 @@ serve(async (req) => {
       return new Response(JSON.stringify({ error: "Admin access required" }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    const allowedAppTypes = ['android_tv', 'desktop_windows', 'ios', 'android_mobile'] as const;
+    const allowedAppTypes = ['android_tv', 'desktop_windows', 'ios', 'android_mobile', 'advertiser_android', 'advertiser_ios', 'advertiser_desktop'] as const;
     type AppType = typeof allowedAppTypes[number];
 
     const { app_type }: { app_type: AppType } = await req.json();
@@ -81,7 +81,10 @@ serve(async (req) => {
       'android_tv': 'trigger-android_tv-build',
       'desktop_windows': 'trigger-desktop_windows-build', 
       'ios': 'trigger-ios-build',
-      'android_mobile': 'trigger-android_mobile-build'
+      'android_mobile': 'trigger-android_mobile-build',
+      'advertiser_android': 'trigger-advertiser_android-build',
+      'advertiser_ios': 'trigger-advertiser_ios-build',
+      'advertiser_desktop': 'trigger-advertiser_desktop-build'
     };
     
     const eventType = eventTypeMap[app_type];
