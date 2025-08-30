@@ -233,43 +233,119 @@ export const BuildSystemTest = () => {
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <PlayCircle className="h-5 w-5" />
-          Build System Verification
-        </CardTitle>
-        <CardDescription>
-          Run comprehensive tests to verify the automated build system is properly configured
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <Button 
-          onClick={runSystemTests} 
-          disabled={testing}
-          className="w-full"
-        >
-          {testing ? 'Running Tests...' : 'Run System Tests'}
-        </Button>
-        
-        {results.length > 0 && (
-          <div className="space-y-3">
-            <h4 className="font-medium">Test Results:</h4>
-            {results.map((result, index) => (
-              <div key={index} className="flex items-center justify-between p-3 border rounded">
-                <div className="flex items-center gap-3">
-                  {getStatusIcon(result.status)}
-                  <div>
-                    <p className="font-medium">{result.name}</p>
-                    <p className="text-sm text-muted-foreground">{result.message}</p>
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <PlayCircle className="h-5 w-5" />
+            Build System Verification
+          </CardTitle>
+          <CardDescription>
+            Run comprehensive tests to verify the automated build system is properly configured
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <Button 
+            onClick={runSystemTests} 
+            disabled={testing}
+            className="w-full"
+          >
+            {testing ? "Running Tests..." : "Run System Tests"}
+          </Button>
+          
+          {results.length > 0 && (
+            <div className="space-y-3">
+              <h4 className="font-medium">Test Results:</h4>
+              {results.map((result, index) => (
+                <div key={index} className="flex items-center justify-between p-3 border rounded">
+                  <div className="flex items-center gap-3">
+                    {getStatusIcon(result.status)}
+                    <div>
+                      <p className="font-medium">{result.name}</p>
+                      <p className="text-sm text-muted-foreground">{result.message}</p>
+                    </div>
                   </div>
+                  {getStatusBadge(result.status)}
                 </div>
-                {getStatusBadge(result.status)}
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <CheckCircle className="h-5 w-5" />
+            Manual Verification Guide
+          </CardTitle>
+          <CardDescription>
+            Complete verification steps to ensure GitHub Actions builds are working correctly
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-4">
+            <div>
+              <h4 className="font-medium mb-2">1. GitHub Actions Verification</h4>
+              <div className="text-sm text-muted-foreground space-y-1">
+                <p>• Go to your GitHub repository → Actions tab</p>
+                <p>• Check for workflows triggered by "repository_dispatch"</p>
+                <p>• Verify build status (in progress, completed, failed)</p>
+                <p>• Review build logs for each step completion</p>
               </div>
-            ))}
+            </div>
+
+            <div>
+              <h4 className="font-medium mb-2">2. Build Artifacts Verification</h4>
+              <div className="text-sm text-muted-foreground space-y-1">
+                <p>• Successful builds should show "Upload Artifact to Supabase Storage"</p>
+                <p>• Check Supabase Storage buckets (apk-files, ios-files, app_artifacts)</p>
+                <p>• Verify generated files are properly named with version numbers</p>
+              </div>
+            </div>
+
+            <div>
+              <h4 className="font-medium mb-2">3. App Build History Monitoring</h4>
+              <div className="text-sm text-muted-foreground space-y-1">
+                <p>• Watch build status progression: pending → in_progress → success</p>
+                <p>• Verify commit_hash shows actual commit (not "N/A")</p>
+                <p>• Successful builds should show download links</p>
+                <p>• Click "Logs" button to view GitHub Actions logs</p>
+              </div>
+            </div>
+
+            <div>
+              <h4 className="font-medium mb-2">4. End-to-End Verification Checklist</h4>
+              <div className="text-sm text-muted-foreground space-y-1">
+                <p>✅ All system tests pass</p>
+                <p>✅ Real Build Test triggers successfully</p>
+                <p>✅ GitHub Actions workflow appears in repository</p>
+                <p>✅ Build progresses through all stages</p>
+                <p>✅ Artifact uploaded to Supabase Storage</p>
+                <p>✅ Build status updates in database</p>
+                <p>✅ Download link appears in App Build History</p>
+              </div>
+            </div>
+
+            <div>
+              <h4 className="font-medium mb-2">5. Troubleshooting Failed Builds</h4>
+              <div className="text-sm text-muted-foreground space-y-1">
+                <p>• Check GitHub Actions logs via "Logs" button</p>
+                <p>• Verify all required secrets are configured</p>
+                <p>• Ensure workflow files exist in .github/workflows/</p>
+                <p>• Check repository permissions and GitHub token</p>
+              </div>
+            </div>
+
+            <div className="mt-4 p-3 bg-muted rounded">
+              <p className="text-sm font-medium">💡 Pro Tip:</p>
+              <p className="text-sm text-muted-foreground">
+                Run the "Real Build Test" above to trigger an actual build and verify the entire pipeline works end-to-end.
+              </p>
+            </div>
           </div>
-        )}
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+    </div>
   );
 };
