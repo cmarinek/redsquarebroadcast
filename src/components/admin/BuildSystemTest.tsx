@@ -91,18 +91,25 @@ export const BuildSystemTest = () => {
       
       try {
         // Test with invalid app_type to check function responds correctly
-        const { error } = await supabase.functions.invoke('trigger-app-build', {
+        const { data, error } = await supabase.functions.invoke('trigger-app-build', {
           body: { app_type: 'test_invalid' }
         });
+        
+        console.log('Edge function test result:', { data, error });
         
         if (error && error.message.includes('valid app_type')) {
           testResults[3] = { name: "Edge Function", status: 'pass', message: "trigger-app-build function is responsive and validates input" };
         } else if (error && error.message.includes('Admin access required')) {
           testResults[3] = { name: "Edge Function", status: 'warning', message: "Function accessible but admin check failed - check user roles" };
+        } else if (error) {
+          testResults[3] = { name: "Edge Function", status: 'warning', message: `Function responded with error: ${error.message}` };
+        } else if (data) {
+          testResults[3] = { name: "Edge Function", status: 'warning', message: `Function succeeded unexpectedly. Response: ${JSON.stringify(data)}` };
         } else {
-          testResults[3] = { name: "Edge Function", status: 'warning', message: "Function responded but with unexpected result" };
+          testResults[3] = { name: "Edge Function", status: 'warning', message: "Function responded but with no data or error" };
         }
       } catch (error) {
+        console.error('Edge function test error:', error);
         testResults[3] = { name: "Edge Function", status: 'fail', message: `Function test failed: ${error.message}` };
       }
       setResults([...testResults]);
