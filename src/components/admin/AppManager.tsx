@@ -128,6 +128,7 @@ export const AppManager = () => {
   const [loading, setLoading] = useState(true);
   const [activePlatform, setActivePlatform] = useState<Platform>('tv');
   const [isTriggeringBuild, setIsTriggeringBuild] = useState(false);
+  const [buildSuccessfullyStarted, setBuildSuccessfullyStarted] = useState<string | null>(null);
   const [uploadState, setUploadState] = useState<UploadState>({
     isUploading: false,
     progress: 0,
@@ -374,6 +375,7 @@ export const AppManager = () => {
 
   const handleTriggerBuild = async (app_type: 'android_tv' | 'desktop_windows' | 'ios' | 'android_mobile' | 'advertiser_android' | 'advertiser_ios' | 'advertiser_desktop') => {
     setIsTriggeringBuild(true);
+    setBuildSuccessfullyStarted(null); // Reset previous success state
     toast({
       title: `Triggering new ${app_type.replace(/_/g, ' ')} build...`,
       description: "You can monitor the progress in the build history table below."
@@ -389,10 +391,16 @@ export const AppManager = () => {
           variant: "destructive"
         });
       } else {
+        setBuildSuccessfullyStarted(app_type); // Mark this app type as successfully started
         toast({
           title: "New build successfully triggered!",
           description: "It will appear in the history table shortly."
         });
+        
+        // Auto-clear success state after 5 seconds
+        setTimeout(() => {
+          setBuildSuccessfullyStarted(null);
+        }, 5000);
       }
     } catch (e) {
       console.error('Error triggering build:', e);
@@ -427,9 +435,16 @@ export const AppManager = () => {
                       <CardTitle>Automated {activePlatform === 'advertiser_desktop' ? 'Advertiser ' : ''}Desktop Build</CardTitle>
                       <CardDescription>Use the automated system to build the latest version of the {activePlatform === 'advertiser_desktop' ? 'Red Square Advertiser ' : ''}Desktop client for Windows.</CardDescription>
                   </div>
-                  <Button onClick={() => handleTriggerBuild(activePlatform === 'advertiser_desktop' ? 'advertiser_desktop' : 'desktop_windows')} disabled={isTriggeringBuild}>
+                  <Button 
+                    onClick={() => handleTriggerBuild(activePlatform === 'advertiser_desktop' ? 'advertiser_desktop' : 'desktop_windows')} 
+                    disabled={isTriggeringBuild}
+                    variant={buildSuccessfullyStarted === (activePlatform === 'advertiser_desktop' ? 'advertiser_desktop' : 'desktop_windows') ? 'default' : 'outline'}
+                    className={buildSuccessfullyStarted === (activePlatform === 'advertiser_desktop' ? 'advertiser_desktop' : 'desktop_windows') ? 'bg-green-600 hover:bg-green-700 text-white' : ''}
+                  >
                       <Upload className="mr-2 h-4 w-4" />
-                      {isTriggeringBuild ? 'Starting...' : `Start Automated ${activePlatform === 'advertiser_desktop' ? 'Advertiser ' : ''}Desktop Build`}
+                      {isTriggeringBuild ? 'Starting...' : 
+                       buildSuccessfullyStarted === (activePlatform === 'advertiser_desktop' ? 'advertiser_desktop' : 'desktop_windows') ? '✓ Build Started Successfully!' : 
+                       `Start Automated ${activePlatform === 'advertiser_desktop' ? 'Advertiser ' : ''}Desktop Build`}
                   </Button>
               </div>
           </CardHeader>
@@ -448,9 +463,16 @@ export const AppManager = () => {
                         <CardTitle>Automated TV App Build</CardTitle>
                         <CardDescription>Use the automated system to build the latest version of the TV app.</CardDescription>
                     </div>
-                    <Button onClick={() => handleTriggerBuild('android_tv')} disabled={isTriggeringBuild}>
+                    <Button 
+                      onClick={() => handleTriggerBuild('android_tv')} 
+                      disabled={isTriggeringBuild}
+                      variant={buildSuccessfullyStarted === 'android_tv' ? 'default' : 'outline'}
+                      className={buildSuccessfullyStarted === 'android_tv' ? 'bg-green-600 hover:bg-green-700 text-white' : ''}
+                    >
                         <Upload className="mr-2 h-4 w-4" />
-                        {isTriggeringBuild ? 'Starting...' : 'Start Automated TV App Build'}
+                        {isTriggeringBuild ? 'Starting...' : 
+                         buildSuccessfullyStarted === 'android_tv' ? '✓ Build Started Successfully!' : 
+                         'Start Automated TV App Build'}
                     </Button>
                 </div>
             </CardHeader>
@@ -464,9 +486,16 @@ export const AppManager = () => {
                         <CardTitle>Automated Android Mobile Build</CardTitle>
                         <CardDescription>Use the automated system to build the latest version of the Android mobile app.</CardDescription>
                     </div>
-                    <Button onClick={() => handleTriggerBuild('android_mobile')} disabled={isTriggeringBuild}>
+                    <Button 
+                      onClick={() => handleTriggerBuild('android_mobile')} 
+                      disabled={isTriggeringBuild}
+                      variant={buildSuccessfullyStarted === 'android_mobile' ? 'default' : 'outline'}
+                      className={buildSuccessfullyStarted === 'android_mobile' ? 'bg-green-600 hover:bg-green-700 text-white' : ''}
+                    >
                         <Upload className="mr-2 h-4 w-4" />
-                        {isTriggeringBuild ? 'Starting...' : 'Start Automated Android Build'}
+                        {isTriggeringBuild ? 'Starting...' : 
+                         buildSuccessfullyStarted === 'android_mobile' ? '✓ Build Started Successfully!' : 
+                         'Start Automated Android Build'}
                     </Button>
                 </div>
             </CardHeader>
@@ -480,9 +509,16 @@ export const AppManager = () => {
                         <CardTitle>Automated iOS Build</CardTitle>
                         <CardDescription>Use the automated system to build the latest version of the iOS app.</CardDescription>
                     </div>
-                    <Button onClick={() => handleTriggerBuild('ios')} disabled={isTriggeringBuild}>
+                    <Button 
+                      onClick={() => handleTriggerBuild('ios')} 
+                      disabled={isTriggeringBuild}
+                      variant={buildSuccessfullyStarted === 'ios' ? 'default' : 'outline'}
+                      className={buildSuccessfullyStarted === 'ios' ? 'bg-green-600 hover:bg-green-700 text-white' : ''}
+                    >
                         <Upload className="mr-2 h-4 w-4" />
-                        {isTriggeringBuild ? 'Starting...' : 'Start Automated iOS Build'}
+                        {isTriggeringBuild ? 'Starting...' : 
+                         buildSuccessfullyStarted === 'ios' ? '✓ Build Started Successfully!' : 
+                         'Start Automated iOS Build'}
                     </Button>
                 </div>
             </CardHeader>
@@ -496,9 +532,16 @@ export const AppManager = () => {
                         <CardTitle>Automated Advertiser Android Build</CardTitle>
                         <CardDescription>Use the automated system to build the latest version of the Red Square Advertiser Android app.</CardDescription>
                     </div>
-                    <Button onClick={() => handleTriggerBuild('advertiser_android')} disabled={isTriggeringBuild}>
+                    <Button 
+                      onClick={() => handleTriggerBuild('advertiser_android')} 
+                      disabled={isTriggeringBuild}
+                      variant={buildSuccessfullyStarted === 'advertiser_android' ? 'default' : 'outline'}
+                      className={buildSuccessfullyStarted === 'advertiser_android' ? 'bg-green-600 hover:bg-green-700 text-white' : ''}
+                    >
                         <Upload className="mr-2 h-4 w-4" />
-                        {isTriggeringBuild ? 'Starting...' : 'Start Automated Advertiser Android Build'}
+                        {isTriggeringBuild ? 'Starting...' : 
+                         buildSuccessfullyStarted === 'advertiser_android' ? '✓ Build Started Successfully!' : 
+                         'Start Automated Advertiser Android Build'}
                     </Button>
                 </div>
             </CardHeader>
@@ -512,9 +555,16 @@ export const AppManager = () => {
                         <CardTitle>Automated Advertiser iOS Build</CardTitle>
                         <CardDescription>Use the automated system to build the latest version of the Red Square Advertiser iOS app.</CardDescription>
                     </div>
-                    <Button onClick={() => handleTriggerBuild('advertiser_ios')} disabled={isTriggeringBuild}>
+                    <Button 
+                      onClick={() => handleTriggerBuild('advertiser_ios')} 
+                      disabled={isTriggeringBuild}
+                      variant={buildSuccessfullyStarted === 'advertiser_ios' ? 'default' : 'outline'}
+                      className={buildSuccessfullyStarted === 'advertiser_ios' ? 'bg-green-600 hover:bg-green-700 text-white' : ''}
+                    >
                         <Upload className="mr-2 h-4 w-4" />
-                        {isTriggeringBuild ? 'Starting...' : 'Start Automated Advertiser iOS Build'}
+                        {isTriggeringBuild ? 'Starting...' : 
+                         buildSuccessfullyStarted === 'advertiser_ios' ? '✓ Build Started Successfully!' : 
+                         'Start Automated Advertiser iOS Build'}
                     </Button>
                 </div>
             </CardHeader>
