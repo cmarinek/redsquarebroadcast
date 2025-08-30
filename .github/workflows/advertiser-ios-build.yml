@@ -112,7 +112,7 @@ jobs:
           CODE_SIGNING_ALLOWED: NO
 
       - name: Upload IPA as Artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: advertiser-ios-app
           path: ios/App/AdvertiserExport/App.ipa
