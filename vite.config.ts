@@ -21,16 +21,20 @@ export default defineConfig(({ mode }) => ({
         manualChunks: {
           // Separate vendor libraries into their own chunks
           'react-vendor': ['react', 'react-dom', 'react-router-dom'],
-          'ui-vendor': ['@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu', '@radix-ui/react-select'],
+          'ui-vendor': ['@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu', '@radix-ui/react-select', '@radix-ui/react-accordion', '@radix-ui/react-tabs'],
           'map-vendor': ['mapbox-gl', 'leaflet', 'react-leaflet'],
           'form-vendor': ['react-hook-form', '@hookform/resolvers', 'zod'],
           'chart-vendor': ['recharts'],
           'supabase-vendor': ['@supabase/supabase-js'],
           'media-vendor': ['hls.js', 'dashjs'],
+          'i18n-vendor': ['i18next', 'react-i18next', 'i18next-browser-languagedetector'],
+          'query-vendor': ['@tanstack/react-query'],
+          'qr-vendor': ['@yudiel/react-qr-scanner', 'react-qr-code'],
+          'date-vendor': ['date-fns', 'react-day-picker'],
         },
       },
     },
-    chunkSizeWarningLimit: 1000, // Increase limit to 1MB
+    chunkSizeWarningLimit: 2000, // Increase limit to 2MB for mobile builds
   },
   test: {
     globals: true,
