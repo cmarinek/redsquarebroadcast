@@ -472,7 +472,7 @@ const DownloadApp = () => {
                         <Smartphone className="h-8 w-8 text-primary" />
                       </div>
                       <div>
-                        <CardTitle className="text-2xl">Step 1: Platform App (For Your Phone)</CardTitle>
+                        <CardTitle className="text-2xl">Step 1: RedSquare Platform App (For Your Phone)</CardTitle>
                         <CardDescription className="text-lg">
                           Manage your screen, set prices, and track earnings
                         </CardDescription>
