@@ -282,11 +282,34 @@ const AdminDashboard = () => {
 
   const fetchAdminData = async () => {
     try {
-      const { data: rpcData, error: analyticsError } = await supabase
-        .rpc('get_platform_analytics');
+      // Initialize default analytics data in case RPC fails
+      let analyticsData: PlatformAnalytics = {
+        totalUsers: 0,
+        activeScreens: 0,
+        totalBookings: 0,
+        totalRevenue: 0,
+        dailyActiveUsers: 0,
+        weeklyActiveUsers: 0,
+        monthlyActiveUsers: 0,
+        avgSessionDuration: 0,
+        bounceRate: 0,
+        conversionRate: 0,
+        revenueGrowth: 0,
+        screenUtilization: 0
+      };
 
-      if (analyticsError) throw analyticsError;
-      const analyticsData = rpcData as unknown as PlatformAnalytics;
+      try {
+        const { data: rpcData, error: analyticsError } = await supabase
+          .rpc('get_platform_analytics');
+
+        if (analyticsError) {
+          console.warn('Analytics RPC failed:', analyticsError);
+        } else {
+          analyticsData = { ...analyticsData, ...(rpcData as unknown as PlatformAnalytics) };
+        }
+      } catch (e) {
+        console.warn('Failed to fetch platform analytics:', e);
+      }
 
       const { data: healthData, error: healthError } = await supabase
         .from('admin_system_health')
@@ -415,17 +438,26 @@ const AdminDashboard = () => {
       const thisMonthRevenue = thisMonthBookings.reduce((sum, b) => sum + b.total_amount, 0);
 
       setStats({
-        totalUsers: analyticsData.totalUsers || 0,
-        totalScreens: analyticsData.activeScreens + processedScreens.filter(s => !s.is_active).length,
-        totalBookings: analyticsData.totalBookings || 0,
-        totalRevenue: analyticsData.totalRevenue || 0,
-        activeScreens: analyticsData.activeScreens || 0,
+        totalUsers: analyticsData?.totalUsers || 0,
+        totalScreens: (analyticsData?.activeScreens || 0) + processedScreens.filter(s => !s.is_active).length,
+        totalBookings: analyticsData?.totalBookings || 0,
+        totalRevenue: analyticsData?.totalRevenue || 0,
+        activeScreens: analyticsData?.activeScreens || 0,
         pendingBookings: processedBookings.filter(b => b.status === 'pending').length,
         thisMonthRevenue,
         thisMonthBookings: thisMonthBookings.length,
       });
 
-      setAnalytics(analyticsData);
+      setAnalytics({
+        dailyActiveUsers: analyticsData?.dailyActiveUsers || 0,
+        weeklyActiveUsers: analyticsData?.weeklyActiveUsers || 0,
+        monthlyActiveUsers: analyticsData?.monthlyActiveUsers || 0,
+        avgSessionDuration: analyticsData?.avgSessionDuration || 0,
+        bounceRate: analyticsData?.bounceRate || 0,
+        conversionRate: analyticsData?.conversionRate || 0,
+        revenueGrowth: analyticsData?.revenueGrowth || 0,
+        screenUtilization: analyticsData?.screenUtilization || 0
+      });
       setSystemHealth(healthStatus);
       setSecurityAlerts(alerts);
       setUsers(processedUsers);
@@ -943,7 +975,7 @@ const AdminDashboard = () => {
                         </div>
                         <div className="flex items-center justify-between">
                           <span className="text-sm">Conversion Rate</span>
-                          <span className="font-medium">{analytics.conversionRate}%</span>
+                          <span className="font-medium">{(analytics?.conversionRate || 0)}%</span>
                         </div>
                       </div>
                     </CardContent>

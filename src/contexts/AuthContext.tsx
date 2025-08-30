@@ -127,6 +127,12 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       });
     } catch (e) {
       console.error('Error checking subscription:', e);
+      // Set default subscription state when check fails
+      setSubscription({
+        subscribed: false,
+        subscription_tier: null,
+        subscription_end: null,
+      });
     } finally {
       setCheckingSubscription(false);
     }
