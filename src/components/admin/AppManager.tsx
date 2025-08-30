@@ -670,7 +670,7 @@ export const AppManager = () => {
   return (
     <div className="space-y-6">
       <Tabs value={activePlatform} onValueChange={(value) => setActivePlatform(value as Platform)}>
-        <TabsList className="grid w-full grid-cols-7">
+        <TabsList className="grid w-full grid-cols-8">
           <TabsTrigger value="android" className="flex items-center gap-2">
             <Smartphone className="h-4 w-4" />
             Android
@@ -699,13 +699,19 @@ export const AppManager = () => {
             <Monitor className="h-4 w-4" />
             Adv Desktop
           </TabsTrigger>
+          <TabsTrigger value="system_test" className="flex items-center gap-2">
+            <CheckCircle className="h-4 w-4" />
+            System Test
+          </TabsTrigger>
         </TabsList>
         <TabsContent value={activePlatform} className="space-y-6">
           {renderContent()}
         </TabsContent>
+        <TabsContent value="system_test" className="space-y-6">
+          <BuildSystemTest />
+        </TabsContent>
       </Tabs>
       
-      <BuildSystemTest />
       <AppBuildHistory />
     </div>
   );
