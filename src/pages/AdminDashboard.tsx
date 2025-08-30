@@ -931,15 +931,15 @@ const AdminDashboard = () => {
                       <div className="space-y-3">
                         <div className="flex items-center justify-between">
                           <span className="text-sm">Daily Active Users</span>
-                          <span className="font-medium">{analytics.dailyActiveUsers.toLocaleString()}</span>
+                          <span className="font-medium">{(analytics.dailyActiveUsers || 0).toLocaleString()}</span>
                         </div>
                         <div className="flex items-center justify-between">
                           <span className="text-sm">Weekly Active Users</span>
-                          <span className="font-medium">{analytics.weeklyActiveUsers.toLocaleString()}</span>
+                          <span className="font-medium">{(analytics.weeklyActiveUsers || 0).toLocaleString()}</span>
                         </div>
                         <div className="flex items-center justify-between">
                           <span className="text-sm">Monthly Active Users</span>
-                          <span className="font-medium">{analytics.monthlyActiveUsers.toLocaleString()}</span>
+                          <span className="font-medium">{(analytics.monthlyActiveUsers || 0).toLocaleString()}</span>
                         </div>
                         <div className="flex items-center justify-between">
                           <span className="text-sm">Conversion Rate</span>
@@ -1277,7 +1277,7 @@ const AdminDashboard = () => {
                                 </div>
                                 <p className="text-sm text-muted-foreground mt-1">{alert.message}</p>
                                 <p className="text-xs text-muted-foreground">
-                                  {new Date(alert.timestamp).toLocaleString()}
+                                  {alert.timestamp ? new Date(alert.timestamp).toLocaleString() : 'Unknown time'}
                                 </p>
                               </div>
                             </div>
