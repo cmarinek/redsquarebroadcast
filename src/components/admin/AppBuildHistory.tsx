@@ -45,11 +45,12 @@ export const AppBuildHistory = () => {
     fetchBuilds();
     // Set up real-time subscription for build updates
     const subscription = supabase
-      .channel('app_builds_changes')
+      .channel('app_builds_realtime')
       .on('postgres_changes', 
         { event: '*', schema: 'public', table: 'app_builds' },
-        () => {
-          fetchBuilds();
+        (payload) => {
+          console.log('Build update received:', payload);
+          fetchBuilds(); // Refresh the builds list
         }
       )
       .subscribe();

@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Upload, Download, Trash2, FileArchive, Users, Calendar, CheckCircle, Smartphone, Monitor, Tv } from "lucide-react";
 import { AppBuildHistory } from "./AppBuildHistory";
+import { BuildSystemTest } from "./BuildSystemTest";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -627,6 +628,7 @@ export const AppManager = () => {
         </TabsContent>
       </Tabs>
       
+      <BuildSystemTest />
       <AppBuildHistory />
     </div>
   );
