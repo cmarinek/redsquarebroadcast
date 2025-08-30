@@ -34,7 +34,7 @@ interface AppRelease {
   updated_at: string;
 }
 
-type Platform = 'android' | 'ios' | 'tv' | 'desktop' | 'advertiser_android' | 'advertiser_ios' | 'advertiser_desktop';
+type Platform = 'android' | 'ios' | 'tv' | 'desktop' | 'advertiser_android' | 'advertiser_ios' | 'advertiser_desktop' | 'system_test';
 
 interface UploadState {
   isUploading: boolean;
@@ -410,10 +410,14 @@ export const AppManager = () => {
     return <div className="flex items-center justify-center p-8">Loading app releases...</div>;
   }
 
-  const currentConfig = PLATFORM_CONFIG[activePlatform];
-  const IconComponent = currentConfig.icon;
+  const currentConfig = activePlatform !== 'system_test' ? PLATFORM_CONFIG[activePlatform] : null;
+  const IconComponent = currentConfig?.icon;
 
   const renderContent = () => {
+    if (activePlatform === 'system_test') {
+      return null; // Content is handled by TabsContent
+    }
+    
     if (activePlatform === 'desktop' || activePlatform === 'advertiser_desktop') {
       return (
         <Card>
