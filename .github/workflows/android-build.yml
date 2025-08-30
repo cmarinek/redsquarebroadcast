@@ -65,10 +65,12 @@ jobs:
 
       - name: Setup Capacitor Android Platform
         run: |
-          if [ ! -d "android" ]; then
+          if [ ! -f "android/gradlew" ]; then
+            echo "Android project incomplete, removing and re-adding platform"
+            rm -rf android
             npx cap add android
           else
-            echo "Android platform already exists, skipping add"
+            echo "Android platform properly configured, skipping add"
           fi
 
       - name: Sync Capacitor Project

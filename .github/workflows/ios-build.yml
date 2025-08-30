@@ -66,10 +66,12 @@ jobs:
 
       - name: Setup Capacitor iOS Platform
         run: |
-          if [ ! -d "ios" ]; then
+          if [ ! -f "ios/App/App.xcodeproj/project.pbxproj" ]; then
+            echo "iOS project incomplete, removing and re-adding platform"
+            rm -rf ios
             npx cap add ios
           else
-            echo "iOS platform already exists, skipping add"
+            echo "iOS platform properly configured, skipping add"
           fi
 
       - name: Sync Capacitor Project
