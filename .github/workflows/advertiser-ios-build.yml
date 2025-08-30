@@ -74,7 +74,7 @@ jobs:
           sed -i '' 's/appName: "redsquarebroadcast"/appName: "RedSquare Advertiser"/' capacitor.config.ts
 
       - name: Add Capacitor iOS Platform
-        run: npx cap add ios --confirm
+        run: npx cap add ios
 
       - name: Sync Capacitor Project
         run: npx cap sync ios

@@ -71,7 +71,7 @@ jobs:
         uses: android-actions/setup-android@v3
 
       - name: Add Capacitor Android Platform
-        run: npx cap add android --confirm
+        run: npx cap add android
 
       - name: Sync Capacitor Project
         run: npx cap sync android
