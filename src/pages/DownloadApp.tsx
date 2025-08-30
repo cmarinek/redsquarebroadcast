@@ -11,7 +11,6 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 import SEO from "@/components/SEO";
-
 interface AppRelease {
   id: string;
   version_name: string;
@@ -26,9 +25,10 @@ interface AppRelease {
   bundle_id?: string;
   created_at: string;
 }
-
 const DownloadApp = () => {
-  const { toast } = useToast();
+  const {
+    toast
+  } = useToast();
   const [releases, setReleases] = useState<Record<string, AppRelease | null>>({
     android: null,
     ios: null,
@@ -37,33 +37,28 @@ const DownloadApp = () => {
   const [loading, setLoading] = useState(true);
   const [downloading, setDownloading] = useState<string | null>(null);
   const [userChoice, setUserChoice] = useState<'advertiser' | 'owner' | null>(null);
-
   useEffect(() => {
     fetchLatestReleases();
   }, []);
-
   const fetchLatestReleases = async () => {
     try {
-      const { data, error } = await supabase
-        .from('app_releases')
-        .select('*')
-        .eq('is_active', true)
-        .order('created_at', { ascending: false });
-
+      const {
+        data,
+        error
+      } = await supabase.from('app_releases').select('*').eq('is_active', true).order('created_at', {
+        ascending: false
+      });
       if (error) throw error;
-
       const latestByPlatform: Record<string, AppRelease | null> = {
         android: null,
         ios: null,
         tv: null
       };
-
       (data || []).forEach((release: AppRelease) => {
         if (!latestByPlatform[release.platform]) {
           latestByPlatform[release.platform] = release;
         }
       });
-
       setReleases(latestByPlatform);
     } catch (error) {
       console.error("Error fetching latest releases:", error);
@@ -76,7 +71,6 @@ const DownloadApp = () => {
       setLoading(false);
     }
   };
-
   const formatFileSize = (bytes: number) => {
     if (bytes === 0) return '0 MB';
     const k = 1024;
@@ -84,40 +78,40 @@ const DownloadApp = () => {
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
   };
-
   const handleDownload = async (platform: 'android' | 'ios' | 'tv') => {
     const release = releases[platform];
     if (!release) return;
-
-    const buckets = { android: 'apk-files', ios: 'ios-files', tv: 'tv-files' };
+    const buckets = {
+      android: 'apk-files',
+      ios: 'ios-files',
+      tv: 'tv-files'
+    };
     setDownloading(platform);
-
     try {
-      const { data, error } = await supabase.storage
-        .from(buckets[platform])
-        .createSignedUrl(release.file_path, 3600);
-
+      const {
+        data,
+        error
+      } = await supabase.storage.from(buckets[platform]).createSignedUrl(release.file_path, 3600);
       if (error) throw error;
-
       await supabase.rpc('increment_app_download_count', {
         release_id: release.id
       });
-
       const link = document.createElement('a');
       link.href = data.signedUrl;
       link.download = `RedSquare-${platform}-v${release.version_name}.${release.file_extension.toLowerCase()}`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-
       setReleases(prev => ({
         ...prev,
-        [platform]: prev[platform] ? {...prev[platform], download_count: prev[platform]!.download_count + 1} : null
+        [platform]: prev[platform] ? {
+          ...prev[platform],
+          download_count: prev[platform]!.download_count + 1
+        } : null
       }));
-
       toast({
         title: "Download started!",
-        description: `Your Red Square app is now downloading to your device.`,
+        description: `Your Red Square app is now downloading to your device.`
       });
     } catch (error) {
       console.error(`Error downloading app:`, error);
@@ -130,15 +124,9 @@ const DownloadApp = () => {
       setDownloading(null);
     }
   };
-
   if (!userChoice) {
-    return (
-      <Layout>
-        <SEO 
-          title="Download Red Square Apps | Free Digital Advertising Platform" 
-          description="Download the Red Square mobile apps to start advertising on digital screens or earn money by renting your screen space. Easy setup, no subscription required." 
-          path="/download" 
-        />
+    return <Layout>
+        <SEO title="Download Red Square Apps | Free Digital Advertising Platform" description="Download the Red Square mobile apps to start advertising on digital screens or earn money by renting your screen space. Easy setup, no subscription required." path="/download" />
         
         <div className="min-h-screen bg-gradient-to-br from-background via-secondary/5 to-primary/5">
           <div className="container mx-auto px-4 py-16">
@@ -203,10 +191,7 @@ const DownloadApp = () => {
 
                 <div className="grid md:grid-cols-2 gap-6">
                   {/* Advertiser Choice */}
-                  <Card 
-                    className="cursor-pointer hover:shadow-lg transition-all border-2 hover:border-primary/50"
-                    onClick={() => setUserChoice('advertiser')}
-                  >
+                  <Card className="cursor-pointer hover:shadow-lg transition-all border-2 hover:border-primary/50" onClick={() => setUserChoice('advertiser')}>
                     <CardContent className="p-8 text-center">
                       <div className="flex justify-center mb-6">
                         <div className="p-4 bg-blue-50 dark:bg-blue-950 rounded-2xl">
@@ -243,10 +228,7 @@ const DownloadApp = () => {
                   </Card>
 
                   {/* Screen Owner Choice */}
-                  <Card 
-                    className="cursor-pointer hover:shadow-lg transition-all border-2 hover:border-primary/50"
-                    onClick={() => setUserChoice('owner')}
-                  >
+                  <Card className="cursor-pointer hover:shadow-lg transition-all border-2 hover:border-primary/50" onClick={() => setUserChoice('owner')}>
                     <CardContent className="p-8 text-center">
                       <div className="flex justify-center mb-6">
                         <div className="p-4 bg-green-50 dark:bg-green-950 rounded-2xl">
@@ -309,18 +291,12 @@ const DownloadApp = () => {
             </div>
           </div>
         </div>
-      </Layout>
-    );
+      </Layout>;
   }
 
   // Show platform-specific downloads based on user choice
-  return (
-    <Layout>
-      <SEO 
-        title="Download Red Square Apps | Free Digital Advertising Platform" 
-        description="Download the Red Square mobile apps to start advertising on digital screens or earn money by renting your screen space. Easy setup, no subscription required." 
-        path="/download" 
-      />
+  return <Layout>
+      <SEO title="Download Red Square Apps | Free Digital Advertising Platform" description="Download the Red Square mobile apps to start advertising on digital screens or earn money by renting your screen space. Easy setup, no subscription required." path="/download" />
       
       <div className="min-h-screen bg-gradient-to-br from-background via-secondary/5 to-primary/5">
         <div className="container mx-auto px-4 py-16">
@@ -328,11 +304,7 @@ const DownloadApp = () => {
             
             {/* Back Button and Header */}
             <div className="mb-8">
-              <Button 
-                variant="outline" 
-                onClick={() => setUserChoice(null)}
-                className="mb-6"
-              >
+              <Button variant="outline" onClick={() => setUserChoice(null)} className="mb-6">
                 <ArrowRight className="h-4 w-4 mr-2 rotate-180" />
                 Go Back to Choose
               </Button>
@@ -340,27 +312,21 @@ const DownloadApp = () => {
               <div className="text-center">
                 <div className="flex justify-center mb-6">
                   <div className="p-4 bg-primary/10 rounded-2xl">
-                    {userChoice === 'advertiser' ? 
-                      <Eye className="h-12 w-12 text-primary" /> : 
-                      <Monitor className="h-12 w-12 text-primary" />
-                    }
+                    {userChoice === 'advertiser' ? <Eye className="h-12 w-12 text-primary" /> : <Monitor className="h-12 w-12 text-primary" />}
                   </div>
                 </div>
                 <h1 className="text-4xl md:text-5xl font-bold mb-4">
                   Perfect! Let's Get You Started
                 </h1>
                 <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-8">
-                  {userChoice === 'advertiser' 
-                    ? "You'll need the Red Square Platform app to find screens and manage your advertising campaigns."
-                    : "You'll need both apps: the Platform app to manage your account, and the Broadcast app for your screen."
-                  }
+                  {userChoice === 'advertiser' ? "You'll need the Red Square Platform app to find screens and manage your advertising campaigns." : "You'll need both apps: the Platform app to manage your account, and the Broadcast app for your screen."}
                 </p>
               </div>
             </div>
 
-            {userChoice === 'advertiser' ? (
-              // Platform App for Advertisers
-              <div className="space-y-8">
+            {userChoice === 'advertiser' ?
+          // Platform App for Advertisers
+          <div className="space-y-8">
                 <Card className="border-2 border-primary/20">
                   <CardHeader className="text-center">
                     <div className="flex justify-center mb-4">
@@ -385,43 +351,30 @@ const DownloadApp = () => {
                             <p className="text-muted-foreground text-sm mb-4">
                               For Samsung, Google Pixel, OnePlus, and other Android devices
                             </p>
-                            {releases.android ? (
-                              <div className="space-y-4">
+                            {releases.android ? <div className="space-y-4">
                                 <div>
                                   <Badge variant="default" className="mb-2">Latest Version</Badge>
                                   <p className="text-sm text-muted-foreground">
                                     v{releases.android.version_name} • {formatFileSize(releases.android.file_size)}
                                   </p>
                                 </div>
-                                <Button 
-                                  size="lg" 
-                                  className="w-full"
-                                  onClick={() => handleDownload('android')}
-                                  disabled={downloading === 'android'}
-                                >
-                                  {downloading === 'android' ? (
-                                    <>
+                                <Button size="lg" className="w-full" onClick={() => handleDownload('android')} disabled={downloading === 'android'}>
+                                  {downloading === 'android' ? <>
                                       <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
                                       Downloading...
-                                    </>
-                                  ) : (
-                                    <>
+                                    </> : <>
                                       <Download className="h-5 w-5 mr-2" />
                                       Download for Android
-                                    </>
-                                  )}
+                                    </>}
                                 </Button>
                                 <p className="text-xs text-muted-foreground">
                                   {releases.android.download_count.toLocaleString()} people have downloaded this
                                 </p>
-                              </div>
-                            ) : (
-                              <Alert>
+                              </div> : <Alert>
                                 <AlertDescription>
                                   Android app coming soon! Check back in a few days.
                                 </AlertDescription>
-                              </Alert>
-                            )}
+                              </Alert>}
                           </CardContent>
                         </Card>
 
@@ -433,43 +386,30 @@ const DownloadApp = () => {
                             <p className="text-muted-foreground text-sm mb-4">
                               For iPhone and iPad devices
                             </p>
-                            {releases.ios ? (
-                              <div className="space-y-4">
+                            {releases.ios ? <div className="space-y-4">
                                 <div>
                                   <Badge variant="default" className="mb-2">Latest Version</Badge>
                                   <p className="text-sm text-muted-foreground">
                                     v{releases.ios.version_name} • {formatFileSize(releases.ios.file_size)}
                                   </p>
                                 </div>
-                                <Button 
-                                  size="lg" 
-                                  className="w-full"
-                                  onClick={() => handleDownload('ios')}
-                                  disabled={downloading === 'ios'}
-                                >
-                                  {downloading === 'ios' ? (
-                                    <>
+                                <Button size="lg" className="w-full" onClick={() => handleDownload('ios')} disabled={downloading === 'ios'}>
+                                  {downloading === 'ios' ? <>
                                       <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
                                       Downloading...
-                                    </>
-                                  ) : (
-                                    <>
+                                    </> : <>
                                       <Download className="h-5 w-5 mr-2" />
                                       Download for iPhone
-                                    </>
-                                  )}
+                                    </>}
                                 </Button>
                                 <p className="text-xs text-muted-foreground">
                                   {releases.ios.download_count.toLocaleString()} people have downloaded this
                                 </p>
-                              </div>
-                            ) : (
-                              <Alert>
+                              </div> : <Alert>
                                 <AlertDescription>
                                   iPhone app coming soon! Check back in a few days.
                                 </AlertDescription>
-                              </Alert>
-                            )}
+                              </Alert>}
                           </CardContent>
                         </Card>
                       </div>
@@ -521,10 +461,9 @@ const DownloadApp = () => {
                     </div>
                   </CardContent>
                 </Card>
-              </div>
-            ) : (
-              // Both Apps for Screen Owners
-              <div className="space-y-8">
+              </div> :
+          // Both Apps for Screen Owners
+          <div className="space-y-8">
                 {/* Platform App */}
                 <Card className="border-2 border-primary/20">
                   <CardHeader>
@@ -547,17 +486,9 @@ const DownloadApp = () => {
                         <CardContent className="p-4 text-center">
                           <Smartphone className="h-8 w-8 text-primary mx-auto mb-3" />
                           <h4 className="font-semibold mb-2">Android Phone</h4>
-                          {releases.android ? (
-                            <Button 
-                              onClick={() => handleDownload('android')}
-                              disabled={downloading === 'android'}
-                              className="w-full"
-                            >
+                          {releases.android ? <Button onClick={() => handleDownload('android')} disabled={downloading === 'android'} className="w-full">
                               {downloading === 'android' ? 'Downloading...' : 'Download'}
-                            </Button>
-                          ) : (
-                            <Button disabled className="w-full">Coming Soon</Button>
-                          )}
+                            </Button> : <Button disabled className="w-full">Coming Soon</Button>}
                         </CardContent>
                       </Card>
 
@@ -566,17 +497,9 @@ const DownloadApp = () => {
                         <CardContent className="p-4 text-center">
                           <Apple className="h-8 w-8 text-primary mx-auto mb-3" />
                           <h4 className="font-semibold mb-2">iPhone</h4>
-                          {releases.ios ? (
-                            <Button 
-                              onClick={() => handleDownload('ios')}
-                              disabled={downloading === 'ios'}
-                              className="w-full"
-                            >
+                          {releases.ios ? <Button onClick={() => handleDownload('ios')} disabled={downloading === 'ios'} className="w-full">
                               {downloading === 'ios' ? 'Downloading...' : 'Download'}
-                            </Button>
-                          ) : (
-                            <Button disabled className="w-full">Coming Soon</Button>
-                          )}
+                            </Button> : <Button disabled className="w-full">Coming Soon</Button>}
                         </CardContent>
                       </Card>
                     </div>
@@ -591,40 +514,26 @@ const DownloadApp = () => {
                         <Monitor className="h-8 w-8 text-green-600" />
                       </div>
                       <div>
-                        <CardTitle className="text-2xl">Step 2: Broadcast App (For Your Screen)</CardTitle>
-                        <CardDescription className="text-lg">
-                          This turns your TV, computer, or tablet into a display for ads
-                        </CardDescription>
+                        <CardTitle className="text-2xl">Step 2: RedSquareBroadcast App (For Your Screen)</CardTitle>
+                        <CardDescription className="text-lg">This turns any screen (your TV, computer, or tablet) into a display for ads</CardDescription>
                       </div>
                     </div>
                   </CardHeader>
                   <CardContent>
-                    {releases.tv ? (
-                      <div className="text-center space-y-4">
-                        <Button 
-                          size="lg"
-                          onClick={() => handleDownload('tv')}
-                          disabled={downloading === 'tv'}
-                          className="px-8"
-                        >
-                          {downloading === 'tv' ? (
-                            <>
+                    {releases.tv ? <div className="text-center space-y-4">
+                        <Button size="lg" onClick={() => handleDownload('tv')} disabled={downloading === 'tv'} className="px-8">
+                          {downloading === 'tv' ? <>
                               <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
                               Downloading...
-                            </>
-                          ) : (
-                            <>
+                            </> : <>
                               <Download className="h-5 w-5 mr-2" />
                               Download Broadcast App
-                            </>
-                          )}
+                            </>}
                         </Button>
                         <p className="text-sm text-muted-foreground">
                           Works on smart TVs, computers, tablets, and more
                         </p>
-                      </div>
-                    ) : (
-                      <Alert>
+                      </div> : <Alert>
                         <Monitor className="h-4 w-4" />
                         <AlertDescription>
                           <strong>Good news!</strong> You can use the web version right now at{' '}
@@ -633,8 +542,7 @@ const DownloadApp = () => {
                           </Button>
                           {' '}while we prepare the downloadable app.
                         </AlertDescription>
-                      </Alert>
-                    )}
+                      </Alert>}
                   </CardContent>
                 </Card>
 
@@ -682,8 +590,7 @@ const DownloadApp = () => {
                     </div>
                   </CardContent>
                 </Card>
-              </div>
-            )}
+              </div>}
 
             {/* Trust and Safety */}
             <Card className="mt-8">
@@ -736,8 +643,6 @@ const DownloadApp = () => {
           </div>
         </div>
       </div>
-    </Layout>
-  );
+    </Layout>;
 };
-
 export default DownloadApp;
