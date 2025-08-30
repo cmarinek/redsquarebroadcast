@@ -595,10 +595,11 @@ const AdminDashboard = () => {
 
   const getSeverityColor = (severity: 'low' | 'medium' | 'high' | 'critical') => {
     switch (severity) {
-      case 'low': return 'border';
-      case 'medium': return 'border';
-      case 'high': return 'border';
-      case 'critical': return 'border';
+      case 'low': return 'bg-blue-50 text-blue-700 border-blue-200';
+      case 'medium': return 'bg-yellow-50 text-yellow-700 border-yellow-200';
+      case 'high': return 'bg-orange-50 text-orange-700 border-orange-200';
+      case 'critical': return 'bg-red-50 text-red-700 border-red-200';
+      default: return 'bg-gray-50 text-gray-700 border-gray-200';
     }
   };
 
@@ -935,18 +936,35 @@ const AdminDashboard = () => {
           <CardContent className="p-0">
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
               <div className="border-b overflow-x-auto">
-                <TabsList className="inline-flex h-auto min-w-full w-max items-center justify-start bg-transparent p-0 md:w-full md:justify-center">
-                  <TabsTrigger value="overview" className="py-4 whitespace-nowrap">Overview</TabsTrigger>
-                  <TabsTrigger value="users" className="py-4 whitespace-nowrap">Users ({stats.totalUsers})</TabsTrigger>
-                  <TabsTrigger value="screens" className="py-4 whitespace-nowrap">Screens ({stats.totalScreens})</TabsTrigger>
-                  <TabsTrigger value="bookings" className="py-4 whitespace-nowrap">Bookings ({stats.totalBookings})</TabsTrigger>
-                  <TabsTrigger value="system" className="py-4 whitespace-nowrap">System Health</TabsTrigger>
-                  <TabsTrigger value="security" className="py-4 whitespace-nowrap">Security</TabsTrigger>
-                  <TabsTrigger value="mobile" className="py-4 whitespace-nowrap">
-                    <Smartphone className="h-4 w-4 mr-2" />
-                    Apps
-                  </TabsTrigger>
-                </TabsList>
+                 <TabsList className="inline-flex h-auto min-w-full w-max items-center justify-start bg-transparent p-0 md:w-full md:justify-center">
+                   <TabsTrigger value="overview" className="py-4 whitespace-nowrap data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-50 data-[state=active]:to-blue-100 data-[state=active]:text-blue-700">
+                     Overview
+                   </TabsTrigger>
+                   <TabsTrigger value="users" className="py-4 whitespace-nowrap data-[state=active]:bg-gradient-to-r data-[state=active]:from-emerald-50 data-[state=active]:to-emerald-100 data-[state=active]:text-emerald-700">
+                     <Users className="h-4 w-4 mr-2" />
+                     Users ({stats.totalUsers})
+                   </TabsTrigger>
+                   <TabsTrigger value="screens" className="py-4 whitespace-nowrap data-[state=active]:bg-gradient-to-r data-[state=active]:from-violet-50 data-[state=active]:to-violet-100 data-[state=active]:text-violet-700">
+                     <Monitor className="h-4 w-4 mr-2" />
+                     Screens ({stats.totalScreens})
+                   </TabsTrigger>
+                   <TabsTrigger value="bookings" className="py-4 whitespace-nowrap data-[state=active]:bg-gradient-to-r data-[state=active]:from-amber-50 data-[state=active]:to-amber-100 data-[state=active]:text-amber-700">
+                     <Calendar className="h-4 w-4 mr-2" />
+                     Bookings ({stats.totalBookings})
+                   </TabsTrigger>
+                   <TabsTrigger value="system" className="py-4 whitespace-nowrap data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-50 data-[state=active]:to-green-100 data-[state=active]:text-green-700">
+                     <Server className="h-4 w-4 mr-2" />
+                     System Health
+                   </TabsTrigger>
+                   <TabsTrigger value="security" className="py-4 whitespace-nowrap data-[state=active]:bg-gradient-to-r data-[state=active]:from-red-50 data-[state=active]:to-red-100 data-[state=active]:text-red-700">
+                     <Shield className="h-4 w-4 mr-2" />
+                     Security
+                   </TabsTrigger>
+                   <TabsTrigger value="mobile" className="py-4 whitespace-nowrap data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-50 data-[state=active]:to-purple-100 data-[state=active]:text-purple-700">
+                     <Smartphone className="h-4 w-4 mr-2" />
+                     Apps
+                   </TabsTrigger>
+                 </TabsList>
               </div>
 
               <TabsContent value="overview" className="mt-0 p-6">
@@ -1055,15 +1073,15 @@ const AdminDashboard = () => {
 
               <TabsContent value="users" className="mt-0">
                 <div className="p-6">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>User</TableHead>
-                        <TableHead>Roles</TableHead>
-                        <TableHead>Joined</TableHead>
-                        <TableHead>Actions</TableHead>
-                      </TableRow>
-                    </TableHeader>
+                   <Table>
+                     <TableHeader>
+                       <TableRow className="bg-gradient-to-r from-emerald-50 to-emerald-100/50 hover:from-emerald-100 hover:to-emerald-200/50">
+                         <TableHead className="text-emerald-700 font-semibold">User</TableHead>
+                         <TableHead className="text-emerald-700 font-semibold">Roles</TableHead>
+                         <TableHead className="text-emerald-700 font-semibold">Joined</TableHead>
+                         <TableHead className="text-emerald-700 font-semibold">Actions</TableHead>
+                       </TableRow>
+                     </TableHeader>
                     <TableBody>
                       {filteredUsers.slice(0, 10).map((user) => (
                         <TableRow key={user.id}>
@@ -1073,17 +1091,28 @@ const AdminDashboard = () => {
                               <div className="text-sm text-muted-foreground">{user.email}</div>
                             </div>
                           </TableCell>
-                          <TableCell>
-                            <div className="flex flex-wrap gap-1">
-                              {user.roles.length > 0 ? (
-                                user.roles.map((r) => (
-                                  <Badge key={r} variant="outline" className="capitalize">{r}</Badge>
-                                ))
-                              ) : (
-                                <Badge variant="secondary">No roles</Badge>
-                              )}
-                            </div>
-                          </TableCell>
+                           <TableCell>
+                             <div className="flex flex-wrap gap-1">
+                               {user.roles.length > 0 ? (
+                                 user.roles.map((r) => (
+                                   <Badge 
+                                     key={r} 
+                                     variant="outline" 
+                                     className={`capitalize ${
+                                       r === 'admin' ? 'bg-red-50 text-red-700 border-red-200' :
+                                       r === 'screen_owner' ? 'bg-blue-50 text-blue-700 border-blue-200' :
+                                       r === 'broadcaster' ? 'bg-green-50 text-green-700 border-green-200' :
+                                       'bg-gray-50 text-gray-700 border-gray-200'
+                                     }`}
+                                   >
+                                     {r}
+                                   </Badge>
+                                 ))
+                               ) : (
+                                 <Badge variant="secondary" className="bg-gray-100 text-gray-600">No roles</Badge>
+                               )}
+                             </div>
+                           </TableCell>
                           <TableCell>
                             {format(new Date(user.created_at), 'MMM dd, yyyy')}
                           </TableCell>
@@ -1116,17 +1145,17 @@ const AdminDashboard = () => {
 
               <TabsContent value="screens" className="mt-0">
                 <div className="p-6">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Screen</TableHead>
-                        <TableHead>Owner</TableHead>
-                        <TableHead>Location</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead>Bookings</TableHead>
-                        <TableHead>Actions</TableHead>
-                      </TableRow>
-                    </TableHeader>
+                   <Table>
+                     <TableHeader>
+                       <TableRow className="bg-gradient-to-r from-violet-50 to-violet-100/50 hover:from-violet-100 hover:to-violet-200/50">
+                         <TableHead className="text-violet-700 font-semibold">Screen</TableHead>
+                         <TableHead className="text-violet-700 font-semibold">Owner</TableHead>
+                         <TableHead className="text-violet-700 font-semibold">Location</TableHead>
+                         <TableHead className="text-violet-700 font-semibold">Status</TableHead>
+                         <TableHead className="text-violet-700 font-semibold">Bookings</TableHead>
+                         <TableHead className="text-violet-700 font-semibold">Actions</TableHead>
+                       </TableRow>
+                     </TableHeader>
                     <TableBody>
                       {filteredScreens.slice(0, 10).map((screen) => (
                         <TableRow key={screen.id}>
@@ -1143,11 +1172,17 @@ const AdminDashboard = () => {
                               {screen.city}
                             </div>
                           </TableCell>
-                          <TableCell>
-                            <Badge variant={screen.is_active ? "default" : "secondary"}>
-                              {screen.is_active ? "Active" : "Inactive"}
-                            </Badge>
-                          </TableCell>
+                           <TableCell>
+                             <Badge 
+                               variant={screen.is_active ? "default" : "secondary"}
+                               className={screen.is_active ? 
+                                 "bg-green-100 text-green-800 border-green-200" : 
+                                 "bg-gray-100 text-gray-600 border-gray-200"
+                               }
+                             >
+                               {screen.is_active ? "Active" : "Inactive"}
+                             </Badge>
+                           </TableCell>
                           <TableCell>{screen.bookings_count}</TableCell>
                           <TableCell>
                             <DropdownMenu>
@@ -1186,17 +1221,17 @@ const AdminDashboard = () => {
 
               <TabsContent value="bookings" className="mt-0">
                 <div className="p-6">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>User</TableHead>
-                        <TableHead>Screen</TableHead>
-                        <TableHead>Date</TableHead>
-                        <TableHead>Amount</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead>Actions</TableHead>
-                      </TableRow>
-                    </TableHeader>
+                   <Table>
+                     <TableHeader>
+                       <TableRow className="bg-gradient-to-r from-amber-50 to-amber-100/50 hover:from-amber-100 hover:to-amber-200/50">
+                         <TableHead className="text-amber-700 font-semibold">User</TableHead>
+                         <TableHead className="text-amber-700 font-semibold">Screen</TableHead>
+                         <TableHead className="text-amber-700 font-semibold">Date</TableHead>
+                         <TableHead className="text-amber-700 font-semibold">Amount</TableHead>
+                         <TableHead className="text-amber-700 font-semibold">Status</TableHead>
+                         <TableHead className="text-amber-700 font-semibold">Actions</TableHead>
+                       </TableRow>
+                     </TableHeader>
                     <TableBody>
                       {filteredBookings.slice(0, 10).map((booking) => (
                         <TableRow key={booking.id}>
@@ -1211,16 +1246,32 @@ const AdminDashboard = () => {
                           <TableCell className="font-medium">
                             ${(booking.total_amount / 100).toFixed(2)}
                           </TableCell>
-                          <TableCell>
-                            <div className="flex gap-2">
-                              <Badge variant="outline" className="capitalize">
-                                {booking.status}
-                              </Badge>
-                              <Badge variant="outline" className="capitalize">
-                                {booking.payment_status}
-                              </Badge>
-                            </div>
-                          </TableCell>
+                           <TableCell>
+                             <div className="flex gap-2">
+                               <Badge 
+                                 variant="outline" 
+                                 className={`capitalize ${
+                                   booking.status === 'confirmed' ? 'bg-green-50 text-green-700 border-green-200' :
+                                   booking.status === 'pending' ? 'bg-yellow-50 text-yellow-700 border-yellow-200' :
+                                   booking.status === 'cancelled' ? 'bg-red-50 text-red-700 border-red-200' :
+                                   'bg-gray-50 text-gray-700 border-gray-200'
+                                 }`}
+                               >
+                                 {booking.status}
+                               </Badge>
+                               <Badge 
+                                 variant="outline" 
+                                 className={`capitalize ${
+                                   booking.payment_status === 'paid' ? 'bg-green-50 text-green-700 border-green-200' :
+                                   booking.payment_status === 'pending' ? 'bg-yellow-50 text-yellow-700 border-yellow-200' :
+                                   booking.payment_status === 'failed' ? 'bg-red-50 text-red-700 border-red-200' :
+                                   'bg-gray-50 text-gray-700 border-gray-200'
+                                 }`}
+                               >
+                                 {booking.payment_status}
+                               </Badge>
+                             </div>
+                           </TableCell>
                           <TableCell>
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild>
@@ -1255,11 +1306,14 @@ const AdminDashboard = () => {
               </TabsContent>
 
               <TabsContent value="security" className="mt-0 p-6">
-                <div className="space-y-6">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="text-lg">RLS Policy Checks</CardTitle>
-                    </CardHeader>
+                 <div className="space-y-6">
+                   <Card className="border-l-4 border-l-red-500">
+                     <CardHeader>
+                       <CardTitle className="text-lg flex items-center gap-2">
+                         <Shield className="h-5 w-5 text-red-500" />
+                         RLS Policy Checks
+                       </CardTitle>
+                     </CardHeader>
                     <CardContent>
                       <div className="flex items-center gap-3 mb-3">
                         <Button onClick={runRlsChecks} disabled={rlsRunning} variant="outline" size="sm">
@@ -1280,12 +1334,21 @@ const AdminDashboard = () => {
                     </CardContent>
                   </Card>
 
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-lg font-semibold">Security Alerts & Monitoring</h3>
-                    <Badge variant={securityAlerts.filter(a => !a.resolved).length > 0 ? "destructive" : "default"}>
-                      {securityAlerts.filter(a => !a.resolved).length} Unresolved
-                    </Badge>
-                  </div>
+                   <div className="flex items-center justify-between">
+                     <h3 className="text-lg font-semibold flex items-center gap-2">
+                       <AlertTriangle className="h-5 w-5 text-amber-500" />
+                       Security Alerts & Monitoring
+                     </h3>
+                     <Badge 
+                       variant={securityAlerts.filter(a => !a.resolved).length > 0 ? "destructive" : "default"}
+                       className={securityAlerts.filter(a => !a.resolved).length > 0 ? 
+                         "bg-red-100 text-red-800 border-red-200" : 
+                         "bg-green-100 text-green-800 border-green-200"
+                       }
+                     >
+                       {securityAlerts.filter(a => !a.resolved).length} Unresolved
+                     </Badge>
+                   </div>
                   
                   <div className="space-y-4">
                     {securityAlerts.map((alert) => (
