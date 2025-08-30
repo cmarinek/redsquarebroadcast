@@ -387,18 +387,18 @@ const DownloadApp = () => {
                       <Card className="border border-border bg-primary/5">
                         <CardContent className="p-6 text-center">
                           <Monitor className="h-12 w-12 text-primary mx-auto mb-4" />
-                          <h4 className="text-xl font-bold mb-2">Web App</h4>
+                          <h4 className="text-xl font-bold mb-2">Red Square Web App</h4>
                           <p className="text-muted-foreground text-sm mb-4">
-                            Use directly in your browser - no download needed
+                            Full-featured streaming app in your browser. Complete desktop/mobile app functionality - perfect for demos and immediate use.
                           </p>
                           <Button className="w-full mb-2" asChild>
                             <Link to="/discover" target="_blank">
                               <Monitor className="h-4 w-4 mr-2" />
-                              Open Web App
+                              Launch Web App
                             </Link>
                           </Button>
                           <p className="text-xs text-muted-foreground">
-                            Works on any device
+                            No download required • Full app experience
                           </p>
                         </CardContent>
                       </Card>
