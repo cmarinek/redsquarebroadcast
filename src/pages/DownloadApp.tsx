@@ -327,47 +327,6 @@ const DownloadApp = () => {
             {userChoice === 'advertiser' ?
           // Platform App for Advertisers
           <div className="space-y-8">
-                {/* Get Started Now - Web/Desktop Version */}
-                <Card className="border-2 border-primary bg-gradient-to-br from-primary/5 to-primary/10">
-                  <CardContent className="p-8">
-                    <div className="flex items-center justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-4 mb-4">
-                          <div className="p-3 bg-primary/20 rounded-xl">
-                            <Monitor className="h-8 w-8 text-primary" />
-                          </div>
-                          <div>
-                            <h3 className="text-2xl font-bold">Web & Desktop App</h3>
-                            <p className="text-muted-foreground">Use Red Square on your computer or any web browser</p>
-                          </div>
-                        </div>
-                        <div className="flex gap-3">
-                          <Button size="lg" className="bg-primary hover:bg-primary/90" asChild>
-                            <Link to="/discover" target="_blank">
-                              <Monitor className="h-5 w-5 mr-2" />
-                              Open Web App
-                            </Link>
-                          </Button>
-                          <Button size="lg" variant="outline">
-                            <Download className="h-5 w-5 mr-2" />
-                            Download Desktop App
-                          </Button>
-                        </div>
-                        <p className="text-sm text-muted-foreground mt-3">
-                          Perfect for uploading content from your computer
-                        </p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <div className="text-center py-4">
-                  <div className="flex items-center justify-center gap-4 text-muted-foreground">
-                    <div className="h-px bg-border flex-1"></div>
-                    <span className="text-sm">Or get the mobile app</span>
-                    <div className="h-px bg-border flex-1"></div>
-                  </div>
-                </div>
 
                 <Card className="border-2 border-primary/20">
                   <CardHeader className="text-center">
