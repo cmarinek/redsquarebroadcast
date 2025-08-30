@@ -137,10 +137,12 @@ export const BuildSystemTest = () => {
           
           if (buildError) {
             testResults[4] = { name: "Real Build Test", status: 'fail', message: `Build trigger failed: ${buildError.message || JSON.stringify(buildError)}` };
-          } else if (buildData && buildData.build_id) {
-            testResults[4] = { name: "Real Build Test", status: 'pass', message: `Build triggered successfully! Build ID: ${buildData.build_id}. Check GitHub Actions and App Build History.` };
+          } else if (buildData && (buildData.build_id || (buildData.build && buildData.build.id))) {
+            const actualBuildId = buildData.build_id || buildData.build.id;
+            const buildVersion = buildData.build?.version || 'unknown';
+            testResults[4] = { name: "Real Build Test", status: 'pass', message: `✅ Build triggered successfully! Build ID: ${actualBuildId} (v${buildVersion}). Monitor progress in App Build History.` };
           } else {
-            testResults[4] = { name: "Real Build Test", status: 'warning', message: `Build triggered but no build ID returned: ${JSON.stringify(buildData)}` };
+            testResults[4] = { name: "Real Build Test", status: 'warning', message: `Build triggered but unexpected response: ${JSON.stringify(buildData)}` };
           }
         }
       } catch (error) {
