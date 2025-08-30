@@ -124,7 +124,175 @@ const DownloadApp = () => {
       setDownloading(null);
     }
   };
-  // Show download options directly
+  if (!userChoice) {
+    return <Layout>
+        <SEO title="Download Red Square Apps | Free Digital Advertising Platform" description="Download the Red Square mobile apps to start advertising on digital screens or earn money by renting your screen space. Easy setup, no subscription required." path="/download" />
+        
+        <div className="min-h-screen bg-gradient-to-br from-background via-secondary/5 to-primary/5">
+          <div className="container mx-auto px-4 py-16">
+            <div className="max-w-4xl mx-auto">
+              
+              {/* Welcome Header */}
+              <div className="text-center mb-12">
+                <div className="flex justify-center mb-6">
+                  <div className="p-4 bg-primary/10 rounded-2xl">
+                    <Smartphone className="h-12 w-12 text-primary" />
+                  </div>
+                </div>
+                <h1 className="text-4xl md:text-5xl font-bold mb-4">
+                  Get the Red Square App
+                </h1>
+                <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-8">
+                  Choose the app that's right for you. It's completely free to download and use!
+                </p>
+              </div>
+
+              {/* What is Red Square? */}
+              <Card className="mb-12">
+                <CardContent className="p-8 text-center">
+                  <div className="flex justify-center mb-4">
+                    <div className="p-3 bg-blue-50 dark:bg-blue-950 rounded-xl">
+                      <HelpCircle className="h-8 w-8 text-blue-600" />
+                    </div>
+                  </div>
+                  <h2 className="text-2xl font-bold mb-4">What is Red Square?</h2>
+                  <p className="text-muted-foreground text-lg mb-6 max-w-2xl mx-auto">
+                    Red Square makes digital advertising simple and accessible. 
+                    You can either advertise your content on digital screens around town, 
+                    or earn money by letting others advertise on your screen.
+                  </p>
+                  <div className="grid md:grid-cols-2 gap-6">
+                    <div className="text-center">
+                      <Eye className="h-8 w-8 text-primary mx-auto mb-3" />
+                      <h3 className="font-semibold text-lg mb-2">Want to Advertise?</h3>
+                      <p className="text-muted-foreground text-sm">
+                        Show your photos, videos, or business ads on screens around your city
+                      </p>
+                    </div>
+                    <div className="text-center">
+                      <Monitor className="h-8 w-8 text-primary mx-auto mb-3" />
+                      <h3 className="font-semibold text-lg mb-2">Have a Screen?</h3>
+                      <p className="text-muted-foreground text-sm">
+                        Earn money by letting others display their content on your TV or monitor
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* User Choice Selection */}
+              <div className="space-y-6">
+                <div className="text-center">
+                  <h2 className="text-3xl font-bold mb-4">Which describes you?</h2>
+                  <p className="text-muted-foreground text-lg mb-8">
+                    This helps us show you the right app and instructions
+                  </p>
+                </div>
+
+                <div className="grid md:grid-cols-2 gap-6">
+                  {/* Advertiser Choice */}
+                  <Card className="cursor-pointer hover:shadow-lg transition-all border-2 hover:border-primary/50" onClick={() => setUserChoice('advertiser')}>
+                    <CardContent className="p-8 text-center">
+                      <div className="flex justify-center mb-6">
+                        <div className="p-4 bg-blue-50 dark:bg-blue-950 rounded-2xl">
+                          <Eye className="h-12 w-12 text-blue-600" />
+                        </div>
+                      </div>
+                      <h3 className="text-2xl font-bold mb-4">I Want to Advertise</h3>
+                      <p className="text-muted-foreground text-lg mb-6">
+                        I have photos, videos, or ads that I want to display on digital screens around town
+                      </p>
+                      <div className="space-y-3 text-left">
+                        <div className="flex items-center gap-3">
+                          <CheckCircle className="h-5 w-5 text-green-500" />
+                          <span className="text-sm">Find screens near you</span>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <CheckCircle className="h-5 w-5 text-green-500" />
+                          <span className="text-sm">Upload your content easily</span>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <CheckCircle className="h-5 w-5 text-green-500" />
+                          <span className="text-sm">Schedule when it displays</span>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <CheckCircle className="h-5 w-5 text-green-500" />
+                          <span className="text-sm">Pay only for what you use</span>
+                        </div>
+                      </div>
+                      <Button size="lg" className="w-full mt-6">
+                        <ArrowRight className="h-5 w-5 ml-2" />
+                        Choose This Option
+                      </Button>
+                    </CardContent>
+                  </Card>
+
+                  {/* Screen Owner Choice */}
+                  <Card className="cursor-pointer hover:shadow-lg transition-all border-2 hover:border-primary/50" onClick={() => setUserChoice('owner')}>
+                    <CardContent className="p-8 text-center">
+                      <div className="flex justify-center mb-6">
+                        <div className="p-4 bg-green-50 dark:bg-green-950 rounded-2xl">
+                          <Monitor className="h-12 w-12 text-green-600" />
+                        </div>
+                      </div>
+                      <h3 className="text-2xl font-bold mb-4">I Have a Screen</h3>
+                      <p className="text-muted-foreground text-lg mb-6">
+                        I have a TV, monitor, or digital display that I want to earn money from
+                      </p>
+                      <div className="space-y-3 text-left">
+                        <div className="flex items-center gap-3">
+                          <CheckCircle className="h-5 w-5 text-green-500" />
+                          <span className="text-sm">Turn any screen into income</span>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <CheckCircle className="h-5 w-5 text-green-500" />
+                          <span className="text-sm">Set your own pricing</span>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <CheckCircle className="h-5 w-5 text-green-500" />
+                          <span className="text-sm">Control what gets displayed</span>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <CheckCircle className="h-5 w-5 text-green-500" />
+                          <span className="text-sm">Get paid automatically</span>
+                        </div>
+                      </div>
+                      <Button size="lg" className="w-full mt-6">
+                        <ArrowRight className="h-5 w-5 ml-2" />
+                        Choose This Option
+                      </Button>
+                    </CardContent>
+                  </Card>
+                </div>
+              </div>
+
+              {/* Help Section */}
+              <Card className="mt-12 border-dashed">
+                <CardContent className="p-8 text-center">
+                  <HelpCircle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                  <h3 className="text-xl font-semibold mb-2">Not sure which one you need?</h3>
+                  <p className="text-muted-foreground mb-4">
+                    No worries! You can always download both apps or learn more about how Red Square works.
+                  </p>
+                  <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                    <Button variant="outline" asChild>
+                      <Link to="/how-it-works">
+                        <PlayCircle className="h-4 w-4 mr-2" />
+                        Watch How It Works
+                      </Link>
+                    </Button>
+                    <Button variant="outline" asChild>
+                      <Link to="/demo">Try the Demo</Link>
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+
+            </div>
+          </div>
+        </div>
+      </Layout>;
+  }
 
   // Show platform-specific downloads based on user choice
   return <Layout>
@@ -134,23 +302,31 @@ const DownloadApp = () => {
         <div className="container mx-auto px-4 py-16">
           <div className="max-w-4xl mx-auto">
             
-            {/* Header */}
-            <div className="text-center mb-12">
-              <div className="flex justify-center mb-6">
-                <div className="p-4 bg-primary/10 rounded-2xl">
-                  <Download className="h-12 w-12 text-primary" />
+            {/* Back Button and Header */}
+            <div className="mb-8">
+              <Button variant="outline" onClick={() => setUserChoice(null)} className="mb-6">
+                <ArrowRight className="h-4 w-4 mr-2 rotate-180" />
+                Go Back to Choose
+              </Button>
+              
+              <div className="text-center">
+                <div className="flex justify-center mb-6">
+                  <div className="p-4 bg-primary/10 rounded-2xl">
+                    {userChoice === 'advertiser' ? <Eye className="h-12 w-12 text-primary" /> : <Monitor className="h-12 w-12 text-primary" />}
+                  </div>
                 </div>
+                <h1 className="text-4xl md:text-5xl font-bold mb-4">
+                  Perfect! Let's Get You Started
+                </h1>
+                <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-8">
+                  {userChoice === 'advertiser' ? "You'll need the Red Square Platform app to find screens and manage your advertising campaigns." : "You'll need both apps: the Platform app to manage your account, and the Broadcast app for your screen."}
+                </p>
               </div>
-              <h1 className="text-4xl md:text-5xl font-bold mb-4">
-                Download Red Square Apps
-              </h1>
-              <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-8">
-                Get the apps you need to start advertising or earn money with your screen
-              </p>
             </div>
-            
-            {/* Platform App for Advertisers */}
-            <div className="space-y-8">
+
+            {userChoice === 'advertiser' ?
+          // Platform App for Advertisers
+          <div className="space-y-8">
                 {/* Get Started Now - Web/Desktop Version */}
                 <Card className="border-2 border-primary bg-gradient-to-br from-primary/5 to-primary/10">
                   <CardContent className="p-8">
@@ -386,52 +562,88 @@ const DownloadApp = () => {
                     </div>
                   </CardContent>
                 </Card>
+              </div> :
+          // Both Apps for Screen Owners
+          <div className="space-y-8">
+                {/* Platform App */}
+                <Card className="border-2 border-primary/20">
+                  <CardHeader>
+                    <div className="flex items-center gap-4">
+                      <div className="p-3 bg-primary/10 rounded-xl">
+                        <Smartphone className="h-8 w-8 text-primary" />
+                      </div>
+                      <div>
+                        <CardTitle className="text-2xl">Step 1: RedSquare Platform App (For Your Phone)</CardTitle>
+                        <CardDescription className="text-lg">
+                          Manage your screen, set prices, and track earnings
+                        </CardDescription>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid md:grid-cols-2 gap-4">
+                      {/* Android */}
+                      <Card className="border border-border">
+                        <CardContent className="p-4 text-center">
+                          <Smartphone className="h-8 w-8 text-primary mx-auto mb-3" />
+                          <h4 className="font-semibold mb-2">Android Phone</h4>
+                          {releases.android ? <Button onClick={() => handleDownload('android')} disabled={downloading === 'android'} className="w-full">
+                              {downloading === 'android' ? 'Downloading...' : 'Download'}
+                            </Button> : <Button disabled className="w-full">Coming Soon</Button>}
+                        </CardContent>
+                      </Card>
 
-                {/* Both Apps for Screen Owners */}
-                <Card className="border-2 border-green-200 dark:border-green-800 mt-8">
+                      {/* iOS */}
+                      <Card className="border border-border">
+                        <CardContent className="p-4 text-center">
+                          <Apple className="h-8 w-8 text-primary mx-auto mb-3" />
+                          <h4 className="font-semibold mb-2">iPhone</h4>
+                          {releases.ios ? <Button onClick={() => handleDownload('ios')} disabled={downloading === 'ios'} className="w-full">
+                              {downloading === 'ios' ? 'Downloading...' : 'Download'}
+                            </Button> : <Button disabled className="w-full">Coming Soon</Button>}
+                        </CardContent>
+                      </Card>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Broadcast App */}
+                <Card className="border-2 border-green-200 dark:border-green-800">
                   <CardHeader>
                     <div className="flex items-center gap-4">
                       <div className="p-3 bg-green-100 dark:bg-green-900 rounded-xl">
                         <Monitor className="h-8 w-8 text-green-600" />
                       </div>
                       <div>
-                        <CardTitle className="text-2xl">RedSquareBroadcast App (For Screen Owners)</CardTitle>
+                        <CardTitle className="text-2xl">Step 2: RedSquareBroadcast App (For Your Screen)</CardTitle>
                         <CardDescription className="text-lg">This turns any screen (your TV, computer, or tablet) into a display for ads</CardDescription>
                       </div>
                     </div>
                   </CardHeader>
                   <CardContent>
-                    {releases.tv ? (
-                      <div className="text-center space-y-4">
+                    {releases.tv ? <div className="text-center space-y-4">
                         <Button size="lg" onClick={() => handleDownload('tv')} disabled={downloading === 'tv'} className="px-8">
-                          {downloading === 'tv' ? (
-                            <>
+                          {downloading === 'tv' ? <>
                               <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
                               Downloading...
-                            </>
-                          ) : (
-                            <>
+                            </> : <>
                               <Download className="h-5 w-5 mr-2" />
                               Download Broadcast App
-                            </>
-                          )}
+                            </>}
                         </Button>
                         <p className="text-sm text-muted-foreground">
                           Works on smart TVs, computers, tablets, and more
                         </p>
-                      </div>
-                    ) : (
-                      <Alert>
+                      </div> : <Alert>
                         <Monitor className="h-4 w-4" />
                         <AlertDescription>
                           <strong>Good news!</strong> You can use the web version right now at{' '}
                           <Button variant="link" className="p-0 h-auto" asChild>
-                            <Link to="/broadcast-app">our web player</Link>
+                            <Link to="/smart-tv">our web player</Link>
                           </Button>
                           {' '}while we prepare the downloadable app.
                         </AlertDescription>
-                      </Alert>
-                    )}
+                      </Alert>}
                   </CardContent>
                 </Card>
 
@@ -479,8 +691,7 @@ const DownloadApp = () => {
                     </div>
                   </CardContent>
                 </Card>
-            
-            </div>
+              </div>}
 
             {/* Trust and Safety */}
             <Card className="mt-8">
