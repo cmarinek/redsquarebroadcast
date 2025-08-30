@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Upload, Download, Trash2, FileArchive, Users, Calendar, CheckCircle, Smartphone, Monitor, Tv } from "lucide-react";
+import { AppBuildHistory } from "./AppBuildHistory";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -337,7 +338,7 @@ export const AppManager = () => {
     return releases.filter(release => release.platform === platform);
   };
 
-  const handleTriggerBuild = async (app_type: 'android_tv' | 'desktop_windows') => {
+  const handleTriggerBuild = async (app_type: 'android_tv' | 'desktop_windows' | 'ios' | 'android_mobile') => {
     setIsTriggeringBuild(true);
     toast({
       title: `Triggering new ${app_type.replace(/_/g, ' ')} build...`,
@@ -412,6 +413,38 @@ export const AppManager = () => {
                     <Button onClick={() => handleTriggerBuild('android_tv')} disabled={isTriggeringBuild}>
                         <Upload className="mr-2 h-4 w-4" />
                         {isTriggeringBuild ? 'Starting...' : 'Start Automated TV App Build'}
+                    </Button>
+                </div>
+            </CardHeader>
+          </Card>
+        )}
+        {activePlatform === 'android' && (
+          <Card>
+            <CardHeader>
+                <div className="flex justify-between items-start">
+                    <div>
+                        <CardTitle>Automated Android Mobile Build</CardTitle>
+                        <CardDescription>Use the automated system to build the latest version of the Android mobile app.</CardDescription>
+                    </div>
+                    <Button onClick={() => handleTriggerBuild('android_mobile')} disabled={isTriggeringBuild}>
+                        <Upload className="mr-2 h-4 w-4" />
+                        {isTriggeringBuild ? 'Starting...' : 'Start Automated Android Build'}
+                    </Button>
+                </div>
+            </CardHeader>
+          </Card>
+        )}
+        {activePlatform === 'ios' && (
+          <Card>
+            <CardHeader>
+                <div className="flex justify-between items-start">
+                    <div>
+                        <CardTitle>Automated iOS Build</CardTitle>
+                        <CardDescription>Use the automated system to build the latest version of the iOS app.</CardDescription>
+                    </div>
+                    <Button onClick={() => handleTriggerBuild('ios')} disabled={isTriggeringBuild}>
+                        <Upload className="mr-2 h-4 w-4" />
+                        {isTriggeringBuild ? 'Starting...' : 'Start Automated iOS Build'}
                     </Button>
                 </div>
             </CardHeader>
@@ -593,6 +626,8 @@ export const AppManager = () => {
           {renderContent()}
         </TabsContent>
       </Tabs>
+      
+      <AppBuildHistory />
     </div>
   );
 };

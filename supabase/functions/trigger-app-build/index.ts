@@ -47,7 +47,7 @@ serve(async (req) => {
       return new Response(JSON.stringify({ error: "Admin access required" }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    const allowedAppTypes = ['android_tv', 'desktop_windows'] as const;
+    const allowedAppTypes = ['android_tv', 'desktop_windows', 'ios', 'android_mobile'] as const;
     type AppType = typeof allowedAppTypes[number];
 
     const { app_type }: { app_type: AppType } = await req.json();

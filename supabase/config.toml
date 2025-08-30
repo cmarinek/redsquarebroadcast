@@ -1,5 +1,11 @@
 project_id = "hqeyyutbuxhyildsasqq"
 
+[functions.trigger-app-build]
+verify_jwt = true
+
+[functions.update-build-status]
+verify_jwt = false
+
 [functions.public-maintenance-status]
 verify_jwt = false
 
