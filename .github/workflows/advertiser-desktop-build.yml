@@ -32,6 +32,12 @@ jobs:
 
       - name: Update Build Status to 'In Progress'
         run: |
+          $supabaseUrl = "${{ secrets.SUPABASE_URL }}"
+          if ([string]::IsNullOrEmpty($supabaseUrl)) {
+            Write-Error "SUPABASE_URL secret not set"
+            exit 1
+          }
+          
           $body = @{
             build_id = "${{ steps.build_info.outputs.build_id }}";
             status = "in_progress";
@@ -39,7 +45,7 @@ jobs:
             commit_hash = "${{ github.sha }}";
           } | ConvertTo-Json -Compress
 
-          Invoke-RestMethod -Uri "${{ secrets.SUPABASE_URL }}/functions/v1/update-build-status" `
+          Invoke-RestMethod -Uri "${supabaseUrl}/functions/v1/update-build-status" `
             -Method POST `
             -Headers @{
               "Authorization" = "Bearer ${{ secrets.GH_ACTION_SECRET }}";
