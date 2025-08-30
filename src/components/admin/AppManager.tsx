@@ -34,7 +34,7 @@ interface AppRelease {
   updated_at: string;
 }
 
-type Platform = 'android' | 'ios' | 'tv' | 'desktop';
+type Platform = 'android' | 'ios' | 'tv' | 'desktop' | 'advertiser_android' | 'advertiser_ios' | 'advertiser_desktop';
 
 interface UploadState {
   isUploading: boolean;
@@ -68,7 +68,7 @@ const PLATFORM_CONFIG = {
   tv: {
     icon: Tv,
     name: 'TV App',
-    fileExtension: 'apk', // Corrected from ZIP
+    fileExtension: 'apk',
     bucket: 'app_artifacts',
     acceptedFiles: '.apk',
     buildInstructions: [
@@ -84,6 +84,39 @@ const PLATFORM_CONFIG = {
     acceptedFiles: '.exe,.dmg,.appimage',
     buildInstructions: [
       'There is no manual upload process for the desktop app.',
+      'Please use the automated build system.'
+    ]
+  },
+  advertiser_android: {
+    icon: Smartphone,
+    name: 'Advertiser Android',
+    fileExtension: 'apk',
+    bucket: 'apk-files',
+    acceptedFiles: '.apk',
+    buildInstructions: [
+      'For manual uploads, build the APK locally and upload here.',
+      'Alternatively, use the automated build button above.'
+    ]
+  },
+  advertiser_ios: {
+    icon: Smartphone,
+    name: 'Advertiser iOS',
+    fileExtension: 'ipa',
+    bucket: 'ios-files',
+    acceptedFiles: '.ipa',
+    buildInstructions: [
+      'For manual uploads, build the IPA locally and upload here.',
+      'Alternatively, use the automated build button above.'
+    ]
+  },
+  advertiser_desktop: {
+    icon: Monitor,
+    name: 'Advertiser Desktop',
+    fileExtension: 'exe',
+    bucket: 'app_artifacts',
+    acceptedFiles: '.exe,.dmg,.appimage',
+    buildInstructions: [
+      'There is no manual upload process for the advertiser desktop app.',
       'Please use the automated build system.'
     ]
   }
@@ -335,11 +368,11 @@ export const AppManager = () => {
     return <IconComponent className="h-4 w-4" />;
   };
 
-  const getPlatformReleases = (platform: 'android' | 'ios' | 'tv' | 'desktop') => {
+  const getPlatformReleases = (platform: Platform) => {
     return releases.filter(release => release.platform === platform);
   };
 
-  const handleTriggerBuild = async (app_type: 'android_tv' | 'desktop_windows' | 'ios' | 'android_mobile') => {
+  const handleTriggerBuild = async (app_type: 'android_tv' | 'desktop_windows' | 'ios' | 'android_mobile' | 'advertiser_android' | 'advertiser_ios' | 'advertiser_desktop') => {
     setIsTriggeringBuild(true);
     toast({
       title: `Triggering new ${app_type.replace(/_/g, ' ')} build...`,
@@ -381,18 +414,18 @@ export const AppManager = () => {
   const IconComponent = currentConfig.icon;
 
   const renderContent = () => {
-    if (activePlatform === 'desktop') {
+    if (activePlatform === 'desktop' || activePlatform === 'advertiser_desktop') {
       return (
         <Card>
           <CardHeader>
               <div className="flex justify-between items-start">
                   <div>
-                      <CardTitle>Automated Desktop Build</CardTitle>
-                      <CardDescription>Use the automated system to build the latest version of the Desktop client for Windows.</CardDescription>
+                      <CardTitle>Automated {activePlatform === 'advertiser_desktop' ? 'Advertiser ' : ''}Desktop Build</CardTitle>
+                      <CardDescription>Use the automated system to build the latest version of the {activePlatform === 'advertiser_desktop' ? 'Red Square Advertiser ' : ''}Desktop client for Windows.</CardDescription>
                   </div>
-                  <Button onClick={() => handleTriggerBuild('desktop_windows')} disabled={isTriggeringBuild}>
+                  <Button onClick={() => handleTriggerBuild(activePlatform === 'advertiser_desktop' ? 'advertiser_desktop' : 'desktop_windows')} disabled={isTriggeringBuild}>
                       <Upload className="mr-2 h-4 w-4" />
-                      {isTriggeringBuild ? 'Starting...' : 'Start Automated Desktop Build'}
+                      {isTriggeringBuild ? 'Starting...' : `Start Automated ${activePlatform === 'advertiser_desktop' ? 'Advertiser ' : ''}Desktop Build`}
                   </Button>
               </div>
           </CardHeader>
@@ -446,6 +479,38 @@ export const AppManager = () => {
                     <Button onClick={() => handleTriggerBuild('ios')} disabled={isTriggeringBuild}>
                         <Upload className="mr-2 h-4 w-4" />
                         {isTriggeringBuild ? 'Starting...' : 'Start Automated iOS Build'}
+                    </Button>
+                </div>
+            </CardHeader>
+          </Card>
+        )}
+        {activePlatform === 'advertiser_android' && (
+          <Card>
+            <CardHeader>
+                <div className="flex justify-between items-start">
+                    <div>
+                        <CardTitle>Automated Advertiser Android Build</CardTitle>
+                        <CardDescription>Use the automated system to build the latest version of the Red Square Advertiser Android app.</CardDescription>
+                    </div>
+                    <Button onClick={() => handleTriggerBuild('advertiser_android')} disabled={isTriggeringBuild}>
+                        <Upload className="mr-2 h-4 w-4" />
+                        {isTriggeringBuild ? 'Starting...' : 'Start Automated Advertiser Android Build'}
+                    </Button>
+                </div>
+            </CardHeader>
+          </Card>
+        )}
+        {activePlatform === 'advertiser_ios' && (
+          <Card>
+            <CardHeader>
+                <div className="flex justify-between items-start">
+                    <div>
+                        <CardTitle>Automated Advertiser iOS Build</CardTitle>
+                        <CardDescription>Use the automated system to build the latest version of the Red Square Advertiser iOS app.</CardDescription>
+                    </div>
+                    <Button onClick={() => handleTriggerBuild('advertiser_ios')} disabled={isTriggeringBuild}>
+                        <Upload className="mr-2 h-4 w-4" />
+                        {isTriggeringBuild ? 'Starting...' : 'Start Automated Advertiser iOS Build'}
                     </Button>
                 </div>
             </CardHeader>
@@ -605,7 +670,7 @@ export const AppManager = () => {
   return (
     <div className="space-y-6">
       <Tabs value={activePlatform} onValueChange={(value) => setActivePlatform(value as Platform)}>
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-7">
           <TabsTrigger value="android" className="flex items-center gap-2">
             <Smartphone className="h-4 w-4" />
             Android
@@ -621,6 +686,18 @@ export const AppManager = () => {
           <TabsTrigger value="desktop" className="flex items-center gap-2">
             <Monitor className="h-4 w-4" />
             Desktop
+          </TabsTrigger>
+          <TabsTrigger value="advertiser_android" className="flex items-center gap-2">
+            <Smartphone className="h-4 w-4" />
+            Adv Android
+          </TabsTrigger>
+          <TabsTrigger value="advertiser_ios" className="flex items-center gap-2">
+            <Smartphone className="h-4 w-4" />
+            Adv iOS
+          </TabsTrigger>
+          <TabsTrigger value="advertiser_desktop" className="flex items-center gap-2">
+            <Monitor className="h-4 w-4" />
+            Adv Desktop
           </TabsTrigger>
         </TabsList>
         <TabsContent value={activePlatform} className="space-y-6">

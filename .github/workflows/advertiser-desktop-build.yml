@@ -1,0 +1,135 @@
+name: Build Advertiser Desktop App
+
+on:
+  repository_dispatch:
+    types: [trigger-advertiser_desktop-build]
+  workflow_dispatch:
+    inputs:
+      build_id:
+        description: 'ID of the build record in the database'
+        required: true
+      version:
+        description: 'Version for this build'
+        required: true
+        default: '1.0.0-advertiser-desktop'
+
+jobs:
+  build-advertiser-desktop:
+    runs-on: windows-latest
+    steps:
+      - name: Get Build Info from Dispatch
+        id: build_info
+        run: |
+          if ($env:GITHUB_EVENT_NAME -eq "repository_dispatch") {
+            $payload = Get-Content $env:GITHUB_EVENT_PATH | ConvertFrom-Json
+            echo "build_id=$($payload.client_payload.build_id)" >> $env:GITHUB_OUTPUT
+            echo "version=$($payload.client_payload.version)" >> $env:GITHUB_OUTPUT
+          } else {
+            echo "build_id=${{ github.event.inputs.build_id }}" >> $env:GITHUB_OUTPUT
+            echo "version=${{ github.event.inputs.version }}" >> $env:GITHUB_OUTPUT
+          }
+        shell: pwsh
+
+      - name: Update Build Status to 'In Progress'
+        run: |
+          $body = @{
+            build_id = "${{ steps.build_info.outputs.build_id }}";
+            status = "in_progress";
+            logs_url = "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}";
+            commit_hash = "${{ github.sha }}";
+          } | ConvertTo-Json -Compress
+
+          Invoke-RestMethod -Uri "${{ secrets.SUPABASE_URL }}/functions/v1/update-build-status" `
+            -Method POST `
+            -Headers @{
+              "Authorization" = "Bearer ${{ secrets.GH_ACTION_SECRET }}";
+              "Content-Type" = "application/json";
+            } `
+            -Body $body
+        shell: pwsh
+
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Configure for Advertiser Desktop App
+        run: |
+          # Update package.json for advertiser app
+          (Get-Content package.json) -replace '"name": ".*"', '"name": "redsquare-advertiser"' | Set-Content package.json
+          (Get-Content package.json) -replace '"productName": ".*"', '"productName": "RedSquare Advertiser"' | Set-Content package.json
+        shell: pwsh
+
+      - name: Build Advertiser Desktop App
+        run: npm run electron:build -- --win --x64
+        env:
+          VITE_APP_TYPE: advertiser
+          VITE_PLATFORM: desktop
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload Artifact to Supabase Storage
+        id: upload_artifact
+        run: |
+          $file = Get-ChildItem -Path release -Filter "*.exe" | Select-Object -First 1
+          $fileName = $file.Name
+          $filePath = $file.FullName
+          $bucket = "app_artifacts"
+          $artifactName = "RedSquare-Advertiser-Desktop-v${{ steps.build_info.outputs.version }}.exe"
+          $artifactUrl = "${{ secrets.SUPABASE_URL }}/storage/v1/object/public/$bucket/$artifactName"
+
+          echo "artifact_url=$artifactUrl" >> $env:GITHUB_OUTPUT
+
+          Invoke-RestMethod -Uri "${{ secrets.SUPABASE_URL }}/storage/v1/object/$bucket/$artifactName" `
+            -Method POST `
+            -Headers @{
+              "Authorization" = "Bearer ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}";
+              "Content-Type" = "application/vnd.microsoft.portable-executable";
+            } `
+            -InFile $filePath
+        shell: pwsh
+
+      - name: Update Build Status to 'Success'
+        if: success()
+        run: |
+          $body = @{
+            build_id = "${{ steps.build_info.outputs.build_id }}";
+            status = "success";
+            artifact_url = "${{ steps.upload_artifact.outputs.artifact_url }}";
+          } | ConvertTo-Json -Compress
+
+          Invoke-RestMethod -Uri "${{ secrets.SUPABASE_URL }}/functions/v1/update-build-status" `
+            -Method POST `
+            -Headers @{
+              "Authorization" = "Bearer ${{ secrets.GH_ACTION_SECRET }}";
+              "Content-Type" = "application/json";
+            } `
+            -Body $body
+        shell: pwsh
+
+      - name: Update Build Status to 'Failed'
+        if: failure() || cancelled()
+        run: |
+          $status = "failed"
+          if ("${{ job.status }}" -eq "cancelled") {
+            $status = "cancelled"
+          }
+          $body = @{
+            build_id = "${{ steps.build_info.outputs.build_id }}";
+            status = $status;
+          } | ConvertTo-Json -Compress
+
+          Invoke-RestMethod -Uri "${{ secrets.SUPABASE_URL }}/functions/v1/update-build-status" `
+            -Method POST `
+            -Headers @{
+              "Authorization" = "Bearer ${{ secrets.GH_ACTION_SECRET }}";
+              "Content-Type" = "application/json";
+            } `
+            -Body $body
+        shell: pwsh

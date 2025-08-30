@@ -10,7 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 
 interface AppBuild {
   id: string;
-  app_type: 'android_tv' | 'desktop_windows' | 'ios' | 'android_mobile';
+  app_type: 'android_tv' | 'desktop_windows' | 'ios' | 'android_mobile' | 'advertiser_android' | 'advertiser_ios' | 'advertiser_desktop';
   version: string;
   status: 'pending' | 'in_progress' | 'success' | 'failed' | 'cancelled';
   triggered_by: string;
@@ -25,7 +25,10 @@ const APP_TYPE_LABELS = {
   android_tv: 'Android TV',
   desktop_windows: 'Desktop Windows',
   ios: 'iOS',
-  android_mobile: 'Android Mobile'
+  android_mobile: 'Android Mobile',
+  advertiser_android: 'Advertiser Android',
+  advertiser_ios: 'Advertiser iOS',
+  advertiser_desktop: 'Advertiser Desktop'
 };
 
 const STATUS_COLORS = {

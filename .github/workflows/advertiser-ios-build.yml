@@ -1,0 +1,161 @@
+name: Build Advertiser iOS App
+
+on:
+  repository_dispatch:
+    types: [trigger-advertiser_ios-build]
+  workflow_dispatch:
+    inputs:
+      build_id:
+        description: 'ID of the build record in the database'
+        required: true
+      version:
+        description: 'Version for this build'
+        required: true
+        default: '1.0.0-advertiser-ios'
+
+jobs:
+  build-advertiser-ios:
+    runs-on: macos-latest
+    steps:
+      - name: Get Build Info from Dispatch
+        id: build_info
+        run: |
+          if [ -n "${{ github.event.client_payload.build_id }}" ]; then
+            echo "build_id=${{ github.event.client_payload.build_id }}" >> $GITHUB_OUTPUT
+            echo "version=${{ github.event.client_payload.version }}" >> $GITHUB_OUTPUT
+          else
+            echo "build_id=${{ github.event.inputs.build_id }}" >> $GITHUB_OUTPUT
+            echo "version=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Update Build Status to 'In Progress'
+        run: |
+          curl -X POST "${{ secrets.SUPABASE_URL }}/functions/v1/update-build-status" \
+            -H "Authorization: Bearer ${{ secrets.GH_ACTION_SECRET }}" \
+            -H "Content-Type: application/json" \
+            --data '{
+              "build_id": "${{ steps.build_info.outputs.build_id }}",
+              "status": "in_progress",
+              "logs_url": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}",
+              "commit_hash": "${{ github.sha }}"
+            }'
+
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Build Advertiser Web App
+        run: npm run build
+        env:
+          VITE_APP_TYPE: advertiser
+          VITE_PLATFORM: ios
+
+      - name: Set up Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+
+      - name: Configure Capacitor for Advertiser App
+        run: |
+          # Update capacitor.config.ts for advertiser app
+          sed -i '' 's/appId: "app.lovable.5108753008cd41c59bc4bc6e5c990b78"/appId: "app.redsquare.advertiser"/' capacitor.config.ts
+          sed -i '' 's/appName: "redsquarebroadcast"/appName: "RedSquare Advertiser"/' capacitor.config.ts
+
+      - name: Sync Capacitor Project
+        run: npx cap sync ios
+
+      - name: Configure iOS Project for Advertiser
+        run: |
+          cd ios/App
+          # Update display name
+          sed -i '' 's/<string>redsquarebroadcast<\/string>/<string>RedSquare Advertiser<\/string>/' App/Info.plist
+          # Update bundle identifier
+          sed -i '' 's/app.lovable.5108753008cd41c59bc4bc6e5c990b78/app.redsquare.advertiser/' App.xcodeproj/project.pbxproj
+
+      - name: Install CocoaPods
+        run: |
+          cd ios/App
+          pod install
+
+      - name: Build Advertiser iOS App
+        run: |
+          cd ios/App
+          xcodebuild -workspace App.xcworkspace \
+            -scheme App \
+            -configuration Release \
+            -destination generic/platform=iOS \
+            -archivePath AdvertiserApp.xcarchive \
+            archive
+        env:
+          CODE_SIGN_IDENTITY: ""
+          CODE_SIGNING_REQUIRED: NO
+          CODE_SIGNING_ALLOWED: NO
+
+      - name: Export Advertiser IPA
+        run: |
+          cd ios/App
+          xcodebuild -exportArchive \
+            -archivePath AdvertiserApp.xcarchive \
+            -exportPath AdvertiserExport \
+            -exportOptionsPlist ../../build-scripts/ExportOptions.plist
+        env:
+          CODE_SIGN_IDENTITY: ""
+          CODE_SIGNING_REQUIRED: NO
+          CODE_SIGNING_ALLOWED: NO
+
+      - name: Upload IPA as Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: advertiser-ios-app
+          path: ios/App/AdvertiserExport/App.ipa
+
+      - name: Upload IPA to Supabase Storage
+        id: upload_ipa
+        run: |
+          FILE_PATH="ios/App/AdvertiserExport/App.ipa"
+          FILE_NAME="redsquare-advertiser-ios-v${{ steps.build_info.outputs.version }}.ipa"
+          SUPABASE_BUCKET="ios-files"
+
+          BUCKET_URL="${{ secrets.SUPABASE_URL }}/storage/v1/object/public/${SUPABASE_BUCKET}/${FILE_NAME}"
+          echo "artifact_url=$BUCKET_URL" >> $GITHUB_OUTPUT
+
+          curl -X POST \
+            "${{ secrets.SUPABASE_URL }}/storage/v1/object/${SUPABASE_BUCKET}/${FILE_NAME}" \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" \
+            -H "Content-Type: application/octet-stream" \
+            --data-binary @"$FILE_PATH"
+
+      - name: Update Build Status to 'Success'
+        if: success()
+        run: |
+          curl -X POST "${{ secrets.SUPABASE_URL }}/functions/v1/update-build-status" \
+            -H "Authorization: Bearer ${{ secrets.GH_ACTION_SECRET }}" \
+            -H "Content-Type: application/json" \
+            --data '{
+              "build_id": "${{ steps.build_info.outputs.build_id }}",
+              "status": "success",
+              "artifact_url": "${{ steps.upload_ipa.outputs.artifact_url }}"
+            }'
+
+      - name: Update Build Status to 'Failed'
+        if: failure() || cancelled()
+        run: |
+          STATUS="failed"
+          if [ "${{ job.status }}" == "cancelled" ]; then
+            STATUS="cancelled"
+          fi
+          curl -X POST "${{ secrets.SUPABASE_URL }}/functions/v1/update-build-status" \
+            -H "Authorization: Bearer ${{ secrets.GH_ACTION_SECRET }}" \
+            -H "Content-Type: application/json" \
+            --data-binary '{
+              "build_id": "${{ steps.build_info.outputs.build_id }}",
+              "status": "'$STATUS'"
+            }'
