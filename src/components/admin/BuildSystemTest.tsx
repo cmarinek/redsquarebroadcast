@@ -95,28 +95,46 @@ export const BuildSystemTest = () => {
           body: { app_type: 'test_invalid' }
         });
         
-        console.log('Edge function test result:', { data, error });
+        console.log('Full edge function response:', { data, error });
+        console.log('Error details:', JSON.stringify(error, null, 2));
         
-        // When a function returns non-2xx status, the error contains the response
         if (error) {
-          // Check if it's the expected validation error
-          const errorMessage = error.message || (typeof error === 'string' ? error : JSON.stringify(error));
+          // Parse the error response more thoroughly
+          let errorContent = '';
           
-          if (errorMessage.includes('valid app_type') || (error.error && error.error.includes('valid app_type'))) {
-            testResults[3] = { name: "Edge Function", status: 'pass', message: "trigger-app-build function is responsive and validates input correctly" };
-          } else if (errorMessage.includes('Admin access required')) {
+          // Check various possible error structures
+          if (error.message) {
+            errorContent = error.message;
+          }
+          if (error.error) {
+            errorContent = error.error;
+          }
+          if (error.context && error.context.error) {
+            errorContent = error.context.error;
+          }
+          
+          console.log('Parsed error content:', errorContent);
+          
+          // Check if it's the expected validation error
+          const isValidationError = errorContent.includes('valid app_type') || 
+                                   errorContent.includes('android_tv, desktop_windows, ios, android_mobile') ||
+                                   JSON.stringify(error).includes('valid app_type');
+          
+          if (isValidationError) {
+            testResults[3] = { name: "Edge Function", status: 'pass', message: "trigger-app-build function validates input correctly" };
+          } else if (errorContent.includes('Admin access required')) {
             testResults[3] = { name: "Edge Function", status: 'warning', message: "Function accessible but admin check failed - check user roles" };
           } else {
-            testResults[3] = { name: "Edge Function", status: 'warning', message: `Function responded with error: ${errorMessage}` };
+            testResults[3] = { name: "Edge Function", status: 'fail', message: `Unexpected error format: ${JSON.stringify(error)}` };
           }
         } else if (data) {
-          testResults[3] = { name: "Edge Function", status: 'warning', message: `Function succeeded unexpectedly. Response: ${JSON.stringify(data)}` };
+          testResults[3] = { name: "Edge Function", status: 'warning', message: `Function succeeded unexpectedly: ${JSON.stringify(data)}` };
         } else {
-          testResults[3] = { name: "Edge Function", status: 'warning', message: "Function responded but with no data or error" };
+          testResults[3] = { name: "Edge Function", status: 'fail', message: "No response from function" };
         }
       } catch (error) {
         console.error('Edge function test error:', error);
-        testResults[3] = { name: "Edge Function", status: 'fail', message: `Function test failed: ${error.message}` };
+        testResults[3] = { name: "Edge Function", status: 'fail', message: `Function call failed: ${error.message}` };
       }
       setResults([...testResults]);
 
