@@ -373,17 +373,76 @@ const DownloadApp = () => {
                   <CardHeader className="text-center">
                     <div className="flex justify-center mb-4">
                       <div className="p-3 bg-primary/10 rounded-xl">
-                        <Smartphone className="h-8 w-8 text-primary" />
+                        <Download className="h-8 w-8 text-primary" />
                       </div>
                     </div>
-                    <CardTitle className="text-2xl">Red Square Mobile App</CardTitle>
+                    <CardTitle className="text-2xl">Choose Your Platform</CardTitle>
                     <CardDescription className="text-lg">
-                      Find screens, upload content, and manage your campaigns on the go
+                      Find screens, upload content, and manage your campaigns
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-6">
-                    <div className="text-center">
-                      <h3 className="text-lg font-semibold mb-4">Choose Your Phone Type:</h3>
+                    <div className="grid md:grid-cols-3 gap-4">
+                      {/* Web App Option */}
+                      <Card className="border border-border bg-primary/5">
+                        <CardContent className="p-6 text-center">
+                          <Monitor className="h-12 w-12 text-primary mx-auto mb-4" />
+                          <h4 className="text-xl font-bold mb-2">Web App</h4>
+                          <p className="text-muted-foreground text-sm mb-4">
+                            Use directly in your browser - no download needed
+                          </p>
+                          <Button className="w-full mb-2" asChild>
+                            <Link to="/discover" target="_blank">
+                              <Monitor className="h-4 w-4 mr-2" />
+                              Open Web App
+                            </Link>
+                          </Button>
+                          <p className="text-xs text-muted-foreground">
+                            Works on any device
+                          </p>
+                        </CardContent>
+                      </Card>
+
+                      {/* Desktop App Option */}
+                      <Card className="border border-border">
+                        <CardContent className="p-6 text-center">
+                          <Monitor className="h-12 w-12 text-primary mx-auto mb-4" />
+                          <h4 className="text-xl font-bold mb-2">Desktop App</h4>
+                          <p className="text-muted-foreground text-sm mb-4">
+                            Native app for Windows, Mac & Linux
+                          </p>
+                          <Button variant="outline" className="w-full mb-2">
+                            <Download className="h-4 w-4 mr-2" />
+                            Download Desktop
+                          </Button>
+                          <p className="text-xs text-muted-foreground">
+                            Best for content uploads
+                          </p>
+                        </CardContent>
+                      </Card>
+
+                      {/* Mobile App Option */}
+                      <Card className="border border-border">
+                        <CardContent className="p-6 text-center">
+                          <Smartphone className="h-12 w-12 text-primary mx-auto mb-4" />
+                          <h4 className="text-xl font-bold mb-2">Mobile App</h4>
+                          <p className="text-muted-foreground text-sm mb-4">
+                            On-the-go campaign management
+                          </p>
+                          <Button variant="outline" className="w-full mb-2">
+                            <Smartphone className="h-4 w-4 mr-2" />
+                            Get Mobile App
+                          </Button>
+                          <p className="text-xs text-muted-foreground">
+                            Android & iOS
+                          </p>
+                        </CardContent>
+                      </Card>
+                    </div>
+
+                    {/* Mobile Download Details */}
+                    <div className="mt-8">
+                      <h3 className="text-lg font-semibold text-center mb-4">Mobile App Downloads:</h3>
                       <div className="grid md:grid-cols-2 gap-4">
                         {/* Android Option */}
                         <Card className="border border-border">
