@@ -119,7 +119,37 @@ export const BuildSystemTest = () => {
       }
       setResults([...testResults]);
 
-      // Test 5: Real-time subscription
+      // Test 5: Real build trigger test (optional)
+      testResults.push({ name: "Real Build Test", status: 'pending', message: "Testing actual build trigger..." });
+      setResults([...testResults]);
+      
+      try {
+        // Only run if all other tests pass
+        const previousTestsPassed = testResults.slice(0, 4).every(test => test.status === 'pass');
+        
+        if (!previousTestsPassed) {
+          testResults[4] = { name: "Real Build Test", status: 'warning', message: "Skipped - fix previous test failures first" };
+        } else {
+          // Trigger a real build
+          const { data: buildData, error: buildError } = await supabase.functions.invoke('trigger-app-build', {
+            body: { app_type: 'android_tv' }
+          });
+          
+          if (buildError) {
+            testResults[4] = { name: "Real Build Test", status: 'fail', message: `Build trigger failed: ${buildError.message || JSON.stringify(buildError)}` };
+          } else if (buildData && buildData.build_id) {
+            testResults[4] = { name: "Real Build Test", status: 'pass', message: `Build triggered successfully! Build ID: ${buildData.build_id}. Check GitHub Actions and App Build History.` };
+          } else {
+            testResults[4] = { name: "Real Build Test", status: 'warning', message: `Build triggered but no build ID returned: ${JSON.stringify(buildData)}` };
+          }
+        }
+      } catch (error) {
+        console.error('Real build test error:', error);
+        testResults[4] = { name: "Real Build Test", status: 'fail', message: `Real build test failed: ${error.message}` };
+      }
+      setResults([...testResults]);
+
+      // Test 6: Real-time subscription
       testResults.push({ name: "Real-time Updates", status: 'pending', message: "Testing real-time connectivity..." });
       setResults([...testResults]);
       
@@ -141,9 +171,9 @@ export const BuildSystemTest = () => {
         });
         
         await channel.unsubscribe();
-        testResults[4] = { name: "Real-time Updates", status: 'pass', message: "Real-time subscription working" };
+        testResults[5] = { name: "Real-time Updates", status: 'pass', message: "Real-time subscription working" };
       } catch (error) {
-        testResults[4] = { name: "Real-time Updates", status: 'fail', message: `Real-time test failed: ${error.message}` };
+        testResults[5] = { name: "Real-time Updates", status: 'fail', message: `Real-time test failed: ${error.message}` };
       }
       setResults([...testResults]);
 
