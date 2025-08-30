@@ -319,7 +319,7 @@ const DownloadApp = () => {
                   Perfect! Let's Get You Started
                 </h1>
                 <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-8">
-                  {userChoice === 'advertiser' ? "You'll need the Red Square Platform app to find screens and manage your advertising campaigns." : "You'll need both apps: the Platform app to manage your account, and the Broadcast app for your screen."}
+                  {userChoice === 'advertiser' ? "You only need the Red Square Platform App to find screens, upload content, and manage your advertising campaigns." : "You need TWO apps: Platform App (to manage your account & earnings) + Broadcast App (runs on your screens to display content)."}
                 </p>
               </div>
             </div>
@@ -341,41 +341,30 @@ const DownloadApp = () => {
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-6">
-                    <div className="grid md:grid-cols-3 gap-4">
-                      {/* Broadcast App Option */}
-                      <Card className="border border-border bg-primary/5">
+                    <Alert className="mb-6 border-blue-200 bg-blue-50 dark:bg-blue-950">
+                      <Eye className="h-4 w-4" />
+                      <AlertDescription className="text-blue-800 dark:text-blue-200">
+                        <strong>For Advertisers:</strong> You only need the <strong>Red Square Platform App</strong>. This lets you find screens, upload content, schedule ads, and pay for time slots.
+                      </AlertDescription>
+                    </Alert>
+
+                    <div className="grid md:grid-cols-2 gap-4">
+                      {/* Web App Option */}
+                      <Card className="border-2 border-primary/20 bg-primary/5">
                         <CardContent className="p-6 text-center">
                           <Monitor className="h-12 w-12 text-primary mx-auto mb-4" />
-                          <h4 className="text-xl font-bold mb-2">Red Square Broadcast App</h4>
+                          <h4 className="text-xl font-bold mb-2">Web App (Start Now!)</h4>
                           <p className="text-muted-foreground text-sm mb-4">
-                            Screen display app for digital signage. Connect your screen to receive and display broadcast content from users.
+                            Use Red Square in your browser - no download needed
                           </p>
-                          <Button className="w-full mb-2" asChild>
-                            <Link to="/broadcast-app" target="_blank">
-                              <Cast className="h-4 w-4 mr-2" />
-                              Launch Broadcast App
+                          <Button size="lg" className="w-full mb-2" asChild>
+                            <Link to="/discover" target="_blank">
+                              <Monitor className="h-4 w-4 mr-2" />
+                              Open Web App
                             </Link>
                           </Button>
                           <p className="text-xs text-muted-foreground">
-                            Perfect for screen owners • Live content streaming
-                          </p>
-                        </CardContent>
-                      </Card>
-
-                      {/* Desktop App Option */}
-                      <Card className="border border-border">
-                        <CardContent className="p-6 text-center">
-                          <Monitor className="h-12 w-12 text-primary mx-auto mb-4" />
-                          <h4 className="text-xl font-bold mb-2">Desktop App</h4>
-                          <p className="text-muted-foreground text-sm mb-4">
-                            Native app for Windows, Mac & Linux
-                          </p>
-                          <Button variant="outline" className="w-full mb-2">
-                            <Download className="h-4 w-4 mr-2" />
-                            Download Desktop
-                          </Button>
-                          <p className="text-xs text-muted-foreground">
-                            Best for content uploads
+                            Works on any computer or phone browser
                           </p>
                         </CardContent>
                       </Card>
@@ -386,14 +375,14 @@ const DownloadApp = () => {
                           <Smartphone className="h-12 w-12 text-primary mx-auto mb-4" />
                           <h4 className="text-xl font-bold mb-2">Mobile App</h4>
                           <p className="text-muted-foreground text-sm mb-4">
-                            On-the-go campaign management
+                            Native mobile app for on-the-go advertising
                           </p>
                           <Button variant="outline" className="w-full mb-2">
                             <Smartphone className="h-4 w-4 mr-2" />
-                            Get Mobile App
+                            Download Mobile App
                           </Button>
                           <p className="text-xs text-muted-foreground">
-                            Android & iOS
+                            Available below for Android & iOS
                           </p>
                         </CardContent>
                       </Card>
@@ -524,6 +513,14 @@ const DownloadApp = () => {
               </div> :
           // Both Apps for Screen Owners
           <div className="space-y-8">
+                {/* Alert explaining the two apps needed */}
+                <Alert className="border-green-200 bg-green-50 dark:bg-green-950">
+                  <Monitor className="h-4 w-4" />
+                  <AlertDescription className="text-green-800 dark:text-green-200">
+                    <strong>For Screen Owners:</strong> You need TWO apps: <strong>1) Red Square Platform App</strong> (on your phone to manage & get paid) + <strong>2) RedSquare Broadcast App</strong> (runs on your actual screen to display ads).
+                  </AlertDescription>
+                </Alert>
+
                 {/* Platform App */}
                 <Card className="border-2 border-primary/20">
                   <CardHeader>
@@ -532,9 +529,9 @@ const DownloadApp = () => {
                         <Smartphone className="h-8 w-8 text-primary" />
                       </div>
                       <div>
-                        <CardTitle className="text-2xl">Step 1: RedSquare Platform App (For Your Phone)</CardTitle>
+                        <CardTitle className="text-2xl">App #1: Red Square Platform App</CardTitle>
                         <CardDescription className="text-lg">
-                          Manage your screen, set prices, and track earnings
+                          Install this on your PHONE to manage your screen business, set prices, and track earnings
                         </CardDescription>
                       </div>
                     </div>
@@ -547,7 +544,7 @@ const DownloadApp = () => {
                           <Smartphone className="h-8 w-8 text-primary mx-auto mb-3" />
                           <h4 className="font-semibold mb-2">Android Phone</h4>
                           {releases.android ? <Button onClick={() => handleDownload('android')} disabled={downloading === 'android'} className="w-full">
-                              {downloading === 'android' ? 'Downloading...' : 'Download'}
+                              {downloading === 'android' ? 'Downloading...' : 'Download Platform App'}
                             </Button> : <Button disabled className="w-full">Coming Soon</Button>}
                         </CardContent>
                       </Card>
@@ -558,7 +555,7 @@ const DownloadApp = () => {
                           <Apple className="h-8 w-8 text-primary mx-auto mb-3" />
                           <h4 className="font-semibold mb-2">iPhone</h4>
                           {releases.ios ? <Button onClick={() => handleDownload('ios')} disabled={downloading === 'ios'} className="w-full">
-                              {downloading === 'ios' ? 'Downloading...' : 'Download'}
+                              {downloading === 'ios' ? 'Downloading...' : 'Download Platform App'}
                             </Button> : <Button disabled className="w-full">Coming Soon</Button>}
                         </CardContent>
                       </Card>
@@ -571,11 +568,11 @@ const DownloadApp = () => {
                   <CardHeader>
                     <div className="flex items-center gap-4">
                       <div className="p-3 bg-green-100 dark:bg-green-900 rounded-xl">
-                        <Monitor className="h-8 w-8 text-green-600" />
+                        <Tv className="h-8 w-8 text-green-600" />
                       </div>
                       <div>
-                        <CardTitle className="text-2xl">Step 2: RedSquareBroadcast App (For Your Screen)</CardTitle>
-                        <CardDescription className="text-lg">This turns any screen (your TV, computer, or tablet) into a display for ads</CardDescription>
+                        <CardTitle className="text-2xl">App #2: RedSquare Broadcast App</CardTitle>
+                        <CardDescription className="text-lg">Install this on your TV, computer, or tablet - this is what actually DISPLAYS the ads on your screen</CardDescription>
                       </div>
                     </div>
                   </CardHeader>
@@ -587,20 +584,20 @@ const DownloadApp = () => {
                               Downloading...
                             </> : <>
                               <Download className="h-5 w-5 mr-2" />
-                              Download Broadcast App
+                              Download RedSquare Broadcast App
                             </>}
                         </Button>
                         <p className="text-sm text-muted-foreground">
-                          Works on smart TVs, computers, tablets, and more
+                          For smart TVs, computers, tablets - anything that can run apps and connect to the internet
                         </p>
                       </div> : <Alert>
-                        <Monitor className="h-4 w-4" />
+                        <Tv className="h-4 w-4" />
                         <AlertDescription>
-                          <strong>Good news!</strong> You can use the web version right now at{' '}
+                          <strong>Use the web version now:</strong> While we prepare the downloadable app, you can use{' '}
                           <Button variant="link" className="p-0 h-auto" asChild>
-                            <Link to="/smart-tv">our web player</Link>
+                            <Link to="/broadcast-app" target="_blank">RedSquare Broadcast Web App</Link>
                           </Button>
-                          {' '}while we prepare the downloadable app.
+                          {' '}on any device with a browser.
                         </AlertDescription>
                       </Alert>}
                   </CardContent>
