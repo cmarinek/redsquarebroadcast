@@ -326,6 +326,45 @@ export type Database = {
         }
         Relationships: []
       }
+      app_builds: {
+        Row: {
+          app_type: string
+          artifact_url: string | null
+          commit_hash: string | null
+          created_at: string
+          id: string
+          logs_url: string | null
+          status: string
+          triggered_by: string
+          updated_at: string
+          version: string
+        }
+        Insert: {
+          app_type: string
+          artifact_url?: string | null
+          commit_hash?: string | null
+          created_at?: string
+          id?: string
+          logs_url?: string | null
+          status?: string
+          triggered_by: string
+          updated_at?: string
+          version: string
+        }
+        Update: {
+          app_type?: string
+          artifact_url?: string | null
+          commit_hash?: string | null
+          created_at?: string
+          id?: string
+          logs_url?: string | null
+          status?: string
+          triggered_by?: string
+          updated_at?: string
+          version?: string
+        }
+        Relationships: []
+      }
       app_releases: {
         Row: {
           bundle_id: string | null
