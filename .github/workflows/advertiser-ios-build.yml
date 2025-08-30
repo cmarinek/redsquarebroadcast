@@ -69,9 +69,9 @@ jobs:
 
       - name: Configure Capacitor for Advertiser App
         run: |
-          # Update capacitor.config.ts for advertiser app
-          sed -i '' 's/appId: "app.lovable.5108753008cd41c59bc4bc6e5c990b78"/appId: "app.redsquare.advertiser"/' capacitor.config.ts
-          sed -i '' 's/appName: "redsquarebroadcast"/appName: "RedSquare Advertiser"/' capacitor.config.ts
+          # Update capacitor.config.ts for advertiser app  
+          sed -i.bak 's/com\.redsquare\.broadcast/app.redsquare.advertiser/' capacitor.config.ts
+          sed -i.bak 's/redsquarebroadcast/RedSquare Advertiser/' capacitor.config.ts
 
       - name: Add Capacitor iOS Platform
         run: npx cap add ios
@@ -83,14 +83,15 @@ jobs:
         run: |
           cd ios/App
           # Update display name
-          sed -i '' 's/<string>redsquarebroadcast<\/string>/<string>RedSquare Advertiser<\/string>/' App/Info.plist
-          # Update bundle identifier
-          sed -i '' 's/app.lovable.5108753008cd41c59bc4bc6e5c990b78/app.redsquare.advertiser/' App.xcodeproj/project.pbxproj
+          sed -i.bak 's/redsquarebroadcast/RedSquare Advertiser/' App/Info.plist
+          # Update bundle identifier  
+          sed -i.bak 's/com\.redsquare\.broadcast/app.redsquare.advertiser/' App.xcodeproj/project.pbxproj
 
       - name: Install CocoaPods
         run: |
+          sudo gem install cocoapods
           cd ios/App
-          pod install
+          pod install --repo-update
 
       - name: Build Advertiser iOS App
         run: |

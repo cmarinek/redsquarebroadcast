@@ -82,6 +82,7 @@ jobs:
       - name: Build Android Release APK
         run: |
           cd android
+          chmod +x ./gradlew
           ./gradlew assembleRelease
         env:
           SIGNING_KEY_ALIAS: ${{ secrets.ANDROID_SIGNING_KEY_ALIAS }}
