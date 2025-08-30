@@ -701,7 +701,7 @@ export const AppManager = () => {
           </TabsTrigger>
           <TabsTrigger value="system_test" className="flex items-center gap-2">
             <CheckCircle className="h-4 w-4" />
-            System Test
+            Build System Verification
           </TabsTrigger>
         </TabsList>
         <TabsContent value={activePlatform} className="space-y-6">
@@ -709,10 +709,9 @@ export const AppManager = () => {
         </TabsContent>
         <TabsContent value="system_test" className="space-y-6">
           <BuildSystemTest />
+          <AppBuildHistory />
         </TabsContent>
       </Tabs>
-      
-      <AppBuildHistory />
     </div>
   );
 };
