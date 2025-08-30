@@ -64,6 +64,9 @@ jobs:
         with:
           xcode-version: '15.4'
 
+      - name: Add Capacitor iOS Platform
+        run: npx cap add ios --confirm
+
       - name: Sync Capacitor Project
         run: npx cap sync ios
 
