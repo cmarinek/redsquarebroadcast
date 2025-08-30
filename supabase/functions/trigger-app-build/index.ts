@@ -75,9 +75,19 @@ serve(async (req) => {
 
     // 3. Dispatch GitHub Action workflow
     const dispatchUrl = `https://api.github.com/repos/${githubRepoOwner}/${githubRepoName}/dispatches`;
-    // Sanitize app_type to be safe for an event name
-    const sanitizedAppType = app_type.replace(/[^a-zA-Z0-9_-]/g, '');
-    const eventType = `trigger-${sanitizedAppType}-build`;
+    
+    // Map app types to correct workflow event types
+    const eventTypeMap = {
+      'android_tv': 'trigger-android_tv-build',
+      'desktop_windows': 'trigger-desktop_windows-build', 
+      'ios': 'trigger-ios-build',
+      'android_mobile': 'trigger-android_mobile-build'
+    };
+    
+    const eventType = eventTypeMap[app_type];
+    if (!eventType) {
+      throw new Error(`No workflow configured for app type: ${app_type}`);
+    }
 
     const dispatchPayload = {
       event_type: eventType,

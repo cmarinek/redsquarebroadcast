@@ -1935,6 +1935,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: string
       }
+      get_my_claim: {
+        Args: { claim: string }
+        Returns: Json
+      }
       get_platform_analytics: {
         Args: Record<PropertyKey, never>
         Returns: Json
