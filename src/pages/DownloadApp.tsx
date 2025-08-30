@@ -392,7 +392,7 @@ const DownloadApp = () => {
                             Full-featured streaming app in your browser. Complete desktop/mobile app functionality - perfect for demos and immediate use.
                           </p>
                           <Button className="w-full mb-2" asChild>
-                            <Link to="/discover" target="_blank">
+                            <Link to="/web-app" target="_blank">
                               <Monitor className="h-4 w-4 mr-2" />
                               Launch Web App
                             </Link>
