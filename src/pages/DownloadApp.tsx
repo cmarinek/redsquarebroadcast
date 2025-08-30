@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Download, Smartphone, Star, Shield, Zap, Monitor, Tv, Apple, Users, Eye, ArrowRight, CheckCircle, HelpCircle, PlayCircle } from "lucide-react";
+import { Download, Smartphone, Star, Shield, Zap, Monitor, Tv, Apple, Users, Eye, ArrowRight, CheckCircle, HelpCircle, PlayCircle, Cast } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -383,22 +383,22 @@ const DownloadApp = () => {
                   </CardHeader>
                   <CardContent className="space-y-6">
                     <div className="grid md:grid-cols-3 gap-4">
-                      {/* Web App Option */}
+                      {/* Broadcast App Option */}
                       <Card className="border border-border bg-primary/5">
                         <CardContent className="p-6 text-center">
                           <Monitor className="h-12 w-12 text-primary mx-auto mb-4" />
-                          <h4 className="text-xl font-bold mb-2">Red Square Web App</h4>
+                          <h4 className="text-xl font-bold mb-2">Red Square Broadcast App</h4>
                           <p className="text-muted-foreground text-sm mb-4">
-                            Full-featured streaming app in your browser. Complete desktop/mobile app functionality - perfect for demos and immediate use.
+                            Screen display app for digital signage. Connect your screen to receive and display broadcast content from users.
                           </p>
                           <Button className="w-full mb-2" asChild>
-                            <Link to="/web-app" target="_blank">
-                              <Monitor className="h-4 w-4 mr-2" />
-                              Launch Web App
+                            <Link to="/broadcast-app" target="_blank">
+                              <Cast className="h-4 w-4 mr-2" />
+                              Launch Broadcast App
                             </Link>
                           </Button>
                           <p className="text-xs text-muted-foreground">
-                            No download required • Full app experience
+                            Perfect for screen owners • Live content streaming
                           </p>
                         </CardContent>
                       </Card>

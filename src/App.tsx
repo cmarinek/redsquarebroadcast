@@ -44,6 +44,7 @@ const ScreenOwnerMobile = lazy(() => import("./pages/ScreenOwnerMobile"));
 const RegionalSettings = lazy(() => import("./pages/RegionalSettings"));
 const SetupGuide = lazy(() => import("./pages/SetupGuide"));
 const WebApp = lazy(() => import("./pages/WebApp"));
+const BroadcastApp = lazy(() => import("./pages/BroadcastApp"));
 import AdminRoute from "@/components/routing/AdminRoute";
 
 const App = () => (
@@ -93,7 +94,8 @@ const App = () => (
             <Route path="/screen-owner-mobile" element={<ScreenOwnerMobile />} />
             <Route path="/mobile-app" element={<ScreenOwnerMobile />} /> {/* Legacy redirect */}
             <Route path="/regional-settings" element={<RegionalSettings />} />
-            <Route path="/web-app" element={<WebApp />} />
+        <Route path="/web-app" element={<WebApp />} />
+        <Route path="/broadcast-app" element={<BroadcastApp />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
