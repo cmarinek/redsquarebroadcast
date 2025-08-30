@@ -39,6 +39,7 @@ export const Footer = () => {
             <ul className="space-y-2 text-muted-foreground">
               <li><Link to="/how-it-works" className="hover:text-foreground transition-colors">{t('footer.helpCenter')}</Link></li>
               <li><Link to="/how-it-works" className="hover:text-foreground transition-colors">{t('footer.gettingStarted')}</Link></li>
+              <li><Link to="/download" className="hover:text-foreground transition-colors">Download Apps</Link></li>
               <li><Link to="/production-plan" className="hover:text-foreground transition-colors">{t('footer.productionPlan')}</Link></li>
               <li><a href="mailto:support@redsquare.app" className="hover:text-foreground transition-colors">{t('footer.technicalSupport')}</a></li>
               <li><a href="mailto:support@redsquare.app" className="hover:text-foreground transition-colors">{t('footer.contactSales')}</a></li>
