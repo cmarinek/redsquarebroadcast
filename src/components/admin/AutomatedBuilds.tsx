@@ -72,55 +72,5 @@ export function AutomatedBuilds() {
     }
   };
 
-  return (
-    <Card className="mt-6">
-      <CardHeader>
-        <CardTitle>Recent Automated Builds</CardTitle>
-        <CardDescription>History of the last 20 automated application builds.</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Date</TableHead>
-              <TableHead>App Type</TableHead>
-              <TableHead>Version</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Commit</TableHead>
-              <TableHead>Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {isLoading ? (
-              <TableRow><TableCell colSpan={6} className="text-center">Loading builds...</TableCell></TableRow>
-            ) : builds.length === 0 ? (
-              <TableRow><TableCell colSpan={6} className="text-center">No builds have been run yet.</TableCell></TableRow>
-            ) : (
-              builds.map((build) => (
-                <TableRow key={build.id}>
-                  <TableCell>{format(new Date(build.created_at), 'yyyy-MM-dd HH:mm')}</TableCell>
-                  <TableCell>{build.app_type}</TableCell>
-                  <TableCell>{build.version || 'N/A'}</TableCell>
-                  <TableCell>{getStatusBadge(build.status)}</TableCell>
-                  <TableCell><code className="text-xs">{build.commit_hash?.slice(0, 7) || 'N/A'}</code></TableCell>
-                  <TableCell className="space-x-2">
-                    {build.artifact_url && build.status === 'success' && (
-                      <Button asChild variant="outline" size="sm">
-                        <a href={build.artifact_url} target="_blank" rel="noopener noreferrer">Download</a>
-                      </Button>
-                    )}
-                    {build.logs_url && (
-                       <Button asChild variant="ghost" size="sm">
-                        <a href={build.logs_url} target="_blank" rel="noopener noreferrer">Logs</a>
-                      </Button>
-                    )}
-                  </TableCell>
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </CardContent>
-    </Card>
-  );
+  return null; // This component has been removed as its functionality is available in the Build System Verification tab
 }
