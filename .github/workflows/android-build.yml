@@ -63,8 +63,13 @@ jobs:
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
 
-      - name: Add Capacitor Android Platform
-        run: npx cap add android
+      - name: Setup Capacitor Android Platform
+        run: |
+          if [ ! -d "android" ]; then
+            npx cap add android
+          else
+            echo "Android platform already exists, skipping add"
+          fi
 
       - name: Sync Capacitor Project
         run: npx cap sync android
