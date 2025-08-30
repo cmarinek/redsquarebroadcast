@@ -30,10 +30,15 @@ jobs:
 
       - name: Update Build Status to 'In Progress'
         run: |
-          curl -X POST "${{ secrets.SUPABASE_URL }}/functions/v1/update-build-status" \
+          SUPABASE_URL="${{ secrets.SUPABASE_URL }}"
+          if [ -z "$SUPABASE_URL" ]; then
+            echo "Error: SUPABASE_URL secret not set"
+            exit 1
+          fi
+          curl -X POST "${SUPABASE_URL}/functions/v1/update-build-status" \
             -H "Authorization: Bearer ${{ secrets.GH_ACTION_SECRET }}" \
             -H "Content-Type: application/json" \
-            --data '{
+            -d '{
               "build_id": "${{ steps.build_info.outputs.build_id }}",
               "status": "in_progress",
               "logs_url": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}",
@@ -127,7 +132,7 @@ jobs:
           curl -X POST "${{ secrets.SUPABASE_URL }}/functions/v1/update-build-status" \
             -H "Authorization: Bearer ${{ secrets.GH_ACTION_SECRET }}" \
             -H "Content-Type: application/json" \
-            --data '{
+            -d '{
               "build_id": "${{ steps.build_info.outputs.build_id }}",
               "status": "success",
               "artifact_url": "${{ steps.upload_apk.outputs.artifact_url }}"
@@ -143,7 +148,7 @@ jobs:
           curl -X POST "${{ secrets.SUPABASE_URL }}/functions/v1/update-build-status" \
             -H "Authorization: Bearer ${{ secrets.GH_ACTION_SECRET }}" \
             -H "Content-Type: application/json" \
-            --data-binary '{
+            -d '{
               "build_id": "${{ steps.build_info.outputs.build_id }}",
               "status": "'$STATUS'"
             }'
