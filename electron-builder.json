@@ -1,6 +1,7 @@
 {
-  "appId": "com.redsquare.screens",
+  "appId": "com.redsquare.screens", 
   "productName": "RedSquare Screens",
+  "main": "dist-electron/main.js",
   "compression": "maximum",
   "removePackageScripts": true,
   "extraMetadata": {
@@ -60,8 +61,7 @@
     "allowElevation": false,
     "createDesktopShortcut": true,
     "createStartMenuShortcut": true,
-    "shortcutName": "RedSquare Screens",
-    "include": "build/installer.nsh"
+    "shortcutName": "RedSquare Screens"
   },
   "dmg": {
     "title": "RedSquare Screens ${version}",
