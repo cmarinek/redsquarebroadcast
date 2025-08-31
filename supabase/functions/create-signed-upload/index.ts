@@ -29,9 +29,10 @@ function rateLimit(key: string) {
 
 const ALLOWED_TYPES = new Set([
   'image/jpeg', 'image/png', 'image/gif', 'image/webp',
-  'video/mp4'
+  'video/mp4',
+  'application/zip', 'application/vnd.microsoft.portable-executable', 'application/octet-stream'
 ]);
-const MAX_SIZE_BYTES = 50 * 1024 * 1024; // 50MB
+const MAX_SIZE_BYTES = 500 * 1024 * 1024; // 500MB
 
 async function insertLog(details: Record<string, unknown>) {
   try {
@@ -66,7 +67,7 @@ Deno.serve(async (req: Request) => {
       });
     }
 
-    if (!['content', 'avatars'].includes(bucket)) {
+    if (!['content', 'avatars', 'app_artifacts'].includes(bucket)) {
       return new Response(JSON.stringify({ error: 'Invalid bucket' }), {
         status: 400,
         headers: { 'Content-Type': 'application/json', ...corsHeaders },
