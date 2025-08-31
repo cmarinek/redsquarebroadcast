@@ -23,7 +23,7 @@ import { getApplicationMode, isElectronApp, isTVApp } from '@/utils/environment'
 import { TVRemoteHandler } from '@/components/tv/TVRemoteHandler';
 import { useContentCache } from '@/hooks/useContentCache';
 
-interface BroadcastContent {
+interface ScreenContent {
   id: string;
   type: 'image' | 'video' | 'gif';
   url: string;
@@ -31,7 +31,7 @@ interface BroadcastContent {
   title?: string;
 }
 
-export default function BroadcastApp() {
+export default function RedSquareScreens() {
   const { user } = useAuth();
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [isPaired, setIsPaired] = useState(false);
@@ -70,7 +70,7 @@ export default function BroadcastApp() {
     generateScreenIdentifiers();
 
     // Log environment for debugging
-    console.log('RedSquare Broadcast App started:', {
+    console.log('RedSquare Screens started:', {
       mode: applicationMode,
       isElectron,
       isTV,
@@ -119,7 +119,7 @@ export default function BroadcastApp() {
             <Monitor className="h-16 w-16 text-white" />
           </div>
           <div className="space-y-2">
-            <h2 className="text-3xl font-bold">Red Square Broadcast</h2>
+            <h2 className="text-3xl font-bold">RedSquare Screens</h2>
             <p className="text-muted-foreground">Waiting for content...</p>
             <Badge variant="secondary" className="text-lg px-4 py-2">
               Screen ID: {screenId}
@@ -148,7 +148,7 @@ export default function BroadcastApp() {
         <img 
           className="w-full h-full object-cover"
           src={contentUrl}
-          alt="Broadcast content"
+          alt="Screen content"
           onError={(e) => console.error('Image display error:', e)}
         />
       );
@@ -174,8 +174,8 @@ export default function BroadcastApp() {
   const content = (
     <div className="min-h-screen bg-black text-white">
       <SEO 
-        title="Red Square Broadcast - Screen Display App"
-        description="Red Square Broadcast app for displaying content on digital screens. Connect your screen to receive and display broadcast content."
+        title="RedSquare Screens - Digital Display Interface"
+        description="RedSquare Screens application for displaying scheduled digital advertising content"
       />
 
       {/* Header Bar - Only show when not in fullscreen content mode */}
@@ -186,7 +186,7 @@ export default function BroadcastApp() {
               <div className="w-8 h-8 bg-gradient-to-br from-red-600 to-red-800 rounded-lg flex items-center justify-center">
                 <Monitor className="h-4 w-4 text-white" />
               </div>
-              <h1 className="text-xl font-bold">Red Square Broadcast</h1>
+              <h1 className="text-xl font-bold">RedSquare Screens</h1>
             </div>
 
             <div className="flex items-center gap-4">

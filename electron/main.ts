@@ -150,8 +150,8 @@ const createWindow = () => {
   // Load the app
   if (process.env.VITE_DEV_SERVER_URL) {
     console.log('Loading RedSquare Screens from dev server:', process.env.VITE_DEV_SERVER_URL);
-    // Load broadcast app directly for screen application
-    mainWindow.loadURL(process.env.VITE_DEV_SERVER_URL + '/#/broadcast-app');
+    // Load RedSquare Screens directly for screen application
+    mainWindow.loadURL(process.env.VITE_DEV_SERVER_URL + '/#/redsquare-screens');
     mainWindow.webContents.openDevTools();
   } else {
     // Production mode
@@ -173,11 +173,11 @@ const createWindow = () => {
             const fallbackCSS = fs.readFileSync(fallbackCSSPath, 'utf-8');
             mainWindow.webContents.insertCSS(fallbackCSS);
             
-            // Navigate to broadcast app after CSS is injected
+            // Navigate to RedSquare Screens after CSS is injected
             mainWindow.webContents.executeJavaScript(`
-              console.log('Electron: Redirecting to broadcast app...');
-              if (window.location.hash !== '#/broadcast-app') {
-                window.location.hash = '#/broadcast-app';
+              console.log('Electron: Redirecting to RedSquare Screens...');
+              if (window.location.hash !== '#/redsquare-screens') {
+                window.location.hash = '#/redsquare-screens';
               }
             `);
           } catch (error) {
@@ -187,11 +187,11 @@ const createWindow = () => {
       } else {
         // No fallback CSS, just navigate to broadcast app
         mainWindow.webContents.once('dom-ready', () => {
-          console.log('DOM ready, navigating to broadcast app...');
+          console.log('DOM ready, navigating to RedSquare Screens...');
           mainWindow.webContents.executeJavaScript(`
-            console.log('Electron: Redirecting to broadcast app...');
-            if (window.location.hash !== '#/broadcast-app') {
-              window.location.hash = '#/broadcast-app';
+            console.log('Electron: Redirecting to RedSquare Screens...');
+            if (window.location.hash !== '#/redsquare-screens') {
+              window.location.hash = '#/redsquare-screens';
             }
           `);
         });
