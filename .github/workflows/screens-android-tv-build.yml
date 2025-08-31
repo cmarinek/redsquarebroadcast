@@ -3,7 +3,7 @@ name: Build RedSquare Screens (Android TV)
 on:
   repository_dispatch:
     types: [trigger-screens-android-tv-build]
-  workflow_dispatch: # Allows manual triggering from the GitHub UI for testing
+  workflow_dispatch:
     inputs:
       build_id:
         description: 'ID of the build record in the database'
@@ -68,7 +68,7 @@ jobs:
 
       - name: Setup Capacitor Android Platform
         run: |
-          set -e  # Exit on any error
+          set -e
           echo "Setting up Capacitor Android Platform for TV..."
           
           # Ensure clean build environment
@@ -94,7 +94,7 @@ jobs:
 
       - name: Sync Capacitor Project
         run: |
-          set -e  # Exit on any error
+          set -e
           echo "Syncing Capacitor project for Android TV..."
           
           npx cap sync android
@@ -110,7 +110,7 @@ jobs:
 
       - name: Configure Android Build for TV
         run: |
-          set -e  # Exit on any error
+          set -e
           echo "Configuring Android build for Android TV..."
           
           # Ensure Android project exists
@@ -195,7 +195,7 @@ jobs:
         env:
           KEYSTORE_BASE64: ${{ secrets.ANDROID_SIGNING_KEY_BASE64 }}
         run: |
-          set -e  # Exit on any error
+          set -e
           echo "Setting up Android keystore for signing..."
           
           if [ ! -z "$KEYSTORE_BASE64" ]; then
@@ -207,7 +207,7 @@ jobs:
 
       - name: Build RedSquare Screens Android TV APK
         run: |
-          set -e  # Exit on any error
+          set -e
           echo "Building RedSquare Screens for Android TV..."
           
           cd android
@@ -259,7 +259,7 @@ jobs:
       - name: Upload APK to Supabase Storage
         id: upload_apk
         run: |
-          set -e  # Exit on any error
+          set -e
           echo "Uploading Android TV APK to storage..."
           
           # Find the actual APK file
