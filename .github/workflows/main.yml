@@ -30,4 +30,4 @@ jobs:
       run: npx vitest run
 
     - name: Build project
-      run: vite build
+      run: npx vite build
