@@ -81,12 +81,8 @@ Deno.serve(async (req: Request) => {
       });
     }
 
-    if (typeof content_size === 'number' && content_size > MAX_SIZE_BYTES) {
-      return new Response(JSON.stringify({ error: 'File too large', max_size_bytes: MAX_SIZE_BYTES }), {
-        status: 413,
-        headers: { 'Content-Type': 'application/json', ...corsHeaders },
-      });
-    }
+    // Note: File size validation is handled by Supabase Storage during upload
+    // We don't validate size here to avoid edge function request limits
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
