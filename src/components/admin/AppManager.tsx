@@ -69,7 +69,7 @@ const PLATFORM_CONFIG = {
   },
   tv: {
     icon: Tv,
-    name: 'TV App',
+    name: 'Android TV',
     fileExtension: 'apk',
     bucket: 'app_artifacts',
     acceptedFiles: '.apk',
@@ -571,8 +571,8 @@ export const AppManager = () => {
             <CardHeader>
                 <div className="flex justify-between items-start">
                     <div>
-                        <CardTitle>Automated TV App Build</CardTitle>
-                        <CardDescription>Use the automated system to build the latest version of the TV app.</CardDescription>
+                        <CardTitle>Automated Android TV Build</CardTitle>
+                        <CardDescription>Use the automated system to build the latest version of the Android TV app.</CardDescription>
                     </div>
                     <Button 
                       onClick={() => handleTriggerBuild('android_tv')} 
@@ -583,7 +583,7 @@ export const AppManager = () => {
                         <Upload className="mr-2 h-4 w-4" />
                         {isTriggeringBuild ? 'Starting...' : 
                          buildSuccessfullyStarted === 'android_tv' ? '✓ Build Started Successfully!' : 
-                         'Start Automated TV App Build'}
+                         'Start Automated Android TV Build'}
                     </Button>
                 </div>
             </CardHeader>
@@ -863,7 +863,7 @@ export const AppManager = () => {
           </TabsTrigger>
           <TabsTrigger value="tv" className="flex items-center gap-2">
             <Tv className="h-4 w-4" />
-            TV App
+            Android TV
           </TabsTrigger>
           <TabsTrigger value="desktop" className="flex items-center gap-2">
             <Monitor className="h-4 w-4" />
