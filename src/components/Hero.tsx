@@ -45,6 +45,12 @@ export const Hero = () => {
                   </Link>
                 </Button>
                 <Button size="lg" variant="outline" asChild>
+                  <Link to="/setup-redsquare-screen">
+                    <Monitor className="mr-2 h-5 w-5" />
+                    Connect Your Screen
+                  </Link>
+                </Button>
+                <Button size="lg" variant="outline" asChild>
                   <Link to="/demo">
                     {t('hero.viewDemo')}
                   </Link>

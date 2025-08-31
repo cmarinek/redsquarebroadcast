@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Menu, X, Monitor, Upload, Calendar, CreditCard, User, LogOut, Settings, BarChart3, Shield, HelpCircle, Smartphone } from "lucide-react";
+import { Menu, X, Monitor, Upload, Calendar, CreditCard, User, LogOut, Settings, BarChart3, Shield, HelpCircle, Smartphone, Cast } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserRoles } from "@/hooks/useUserRoles";
 import { useOnboarding } from "@/hooks/useOnboarding";
@@ -209,6 +209,12 @@ export const Navigation = () => {
                   <Link to="/setup-guide">Setup Guide</Link>
                 </Button>
                 <Button variant="outline" asChild>
+                  <Link to="/setup-redsquare-screen">
+                    <Cast className="w-4 h-4 mr-2" />
+                    Connect Screen
+                  </Link>
+                </Button>
+                <Button variant="outline" asChild>
                   <Link to="/download">
                     <Smartphone className="w-4 h-4 mr-2" />
                     {t('navigation.downloadApp')}
@@ -318,6 +324,12 @@ export const Navigation = () => {
                       </Button>
                       <Button variant="outline" asChild className="w-full justify-start">
                         <Link to="/setup-guide">Setup Guide</Link>
+                      </Button>
+                      <Button variant="outline" asChild className="w-full justify-start">
+                        <Link to="/setup-redsquare-screen">
+                          <Cast className="w-4 h-4 mr-2" />
+                          Connect Screen
+                        </Link>
                       </Button>
                       <Button variant="outline" asChild className="w-full justify-start">
                         <Link to="/download">
