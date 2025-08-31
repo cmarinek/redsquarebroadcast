@@ -47,8 +47,6 @@
     "compression": "maximum"
   },
   "nsis": {
-    "compression": "lzma",
-    "compressLevel": 9,
     "oneClick": false,
     "allowToChangeInstallationDirectory": true,
     "differentialPackage": false
