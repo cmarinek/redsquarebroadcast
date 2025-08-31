@@ -9,7 +9,12 @@
     "allowSyntheticDefaultImports": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-    "resolveJsonModule": true
+    "resolveJsonModule": true,
+    "types": ["node"],
+    "typeRoots": ["../node_modules/@types"],
+    "incremental": false,
+    "tsBuildInfoFile": null
   },
-  "include": ["./**/*"]
+  "include": ["./**/*"],
+  "exclude": ["../dist-electron", "../node_modules"]
 }
