@@ -16,6 +16,9 @@ on:
 jobs:
   build-screens-macos:
     runs-on: macos-latest
+    permissions:
+      contents: write
+      releases: write
     steps:
       - name: Get Build Info from Dispatch
         id: build_info
