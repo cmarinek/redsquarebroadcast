@@ -107,10 +107,35 @@ jobs:
 
       - name: Build RedSquare Screens Android Mobile APK
         run: |
+          set -e  # Exit on any error
+          echo "Building RedSquare Screens Android Mobile APK..."
           cd android
-          ./gradlew assembleRelease
+          
+          # Clean previous builds
+          ./gradlew clean
+          
+          # Build with detailed output
+          ./gradlew assembleRelease --info --stacktrace
+          
           echo "Listing build outputs:"
           find . -name "*.apk" -type f
+          
+          # Validate APK was created
+          if [ ! -f "app/build/outputs/apk/release/app-release.apk" ] && [ ! -f "app/build/outputs/apk/release/app-release-unsigned.apk" ]; then
+            echo "❌ APK file not found in expected location"
+            exit 1
+          fi
+          
+          APK_PATH=$(find app/build/outputs/apk/release/ -name "*.apk" | head -1)
+          APK_SIZE=$(stat -c%s "$APK_PATH" 2>/dev/null || stat -f%z "$APK_PATH")
+          APK_SIZE_MB=$((APK_SIZE / 1024 / 1024))
+          
+          echo "✅ Android Mobile APK built successfully (${APK_SIZE_MB}MB)"
+          
+          # Validate APK size (should be reasonable for mobile app)
+          if [ $APK_SIZE_MB -gt 200 ]; then
+            echo "⚠️ Warning: APK size is quite large (${APK_SIZE_MB}MB)"
+          fi
         env:
           SIGNING_KEY_ALIAS: ${{ secrets.ANDROID_SIGNING_KEY_ALIAS }}
           SIGNING_KEY_PASSWORD: ${{ secrets.ANDROID_SIGNING_KEY_PASSWORD }}

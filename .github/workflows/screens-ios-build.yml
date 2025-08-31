@@ -85,7 +85,14 @@ jobs:
 
       - name: Build iOS Screens App
         run: |
+          set -e  # Exit on any error
+          echo "Building RedSquare Screens iOS App..."
           cd ios/App
+          
+          # Clean previous builds
+          xcodebuild clean -workspace App.xcworkspace -scheme App
+          
+          # Build with enhanced error handling
           xcodebuild -workspace App.xcworkspace \
             -scheme App \
             -configuration Release \
@@ -94,18 +101,47 @@ jobs:
             archive \
             CODE_SIGN_IDENTITY="" \
             CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGNING_ALLOWED=NO
+            CODE_SIGNING_ALLOWED=NO \
+            -quiet
+            
+          # Validate archive was created
+          if [ ! -d "App.xcarchive" ]; then
+            echo "❌ iOS archive not created"
+            exit 1
+          fi
+          
+          echo "✅ iOS archive created successfully"
 
       - name: Export IPA
         run: |
+          set -e  # Exit on any error
+          echo "Exporting iOS IPA..."
           cd ios/App
+          
           xcodebuild -exportArchive \
             -archivePath App.xcarchive \
             -exportPath Export \
             -exportOptionsPlist ../../build-scripts/ExportOptions.plist \
             CODE_SIGN_IDENTITY="" \
             CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGNING_ALLOWED=NO
+            CODE_SIGNING_ALLOWED=NO \
+            -quiet
+            
+          # Validate IPA was created
+          if [ ! -f "Export/App.ipa" ]; then
+            echo "❌ IPA file not created"
+            exit 1
+          fi
+          
+          IPA_SIZE=$(stat -c%s "Export/App.ipa" 2>/dev/null || stat -f%z "Export/App.ipa")
+          IPA_SIZE_MB=$((IPA_SIZE / 1024 / 1024))
+          
+          echo "✅ iOS IPA exported successfully (${IPA_SIZE_MB}MB)"
+          
+          # Validate IPA size
+          if [ $IPA_SIZE_MB -gt 200 ]; then
+            echo "⚠️ Warning: IPA size is quite large (${IPA_SIZE_MB}MB)"
+          fi
 
       - name: Upload IPA as Artifact
         uses: actions/upload-artifact@v4
