@@ -110,7 +110,7 @@ const PLATFORM_CONFIG = {
   },
   screens_ios: {
     icon: Smartphone,
-    name: 'RedSquare Screens (iOS)',
+    name: 'RedSquare Screens (iOS Mobile)',
     description: 'Content display app for iOS devices used as screens',
     fileExtension: 'ipa',
     bucket: 'ios-files',
@@ -1172,7 +1172,7 @@ export const AppManager = () => {
                 onClick={() => setActivePlatform('screens_ios')}
               >
                 <Smartphone className="h-4 w-4 mr-1" />
-                iOS
+                iOS Mobile
               </Button>
               <Button 
                 variant={activePlatform === 'screens_windows' ? 'default' : 'outline'} 
