@@ -93,61 +93,93 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }} # electron-builder may need this to download binaries
         shell: pwsh
 
-      - name: Upload Artifact to Supabase Storage
+      - name: Create and Upload Artifact Zip
         id: upload_artifact
         run: |
           $file = Get-ChildItem -Path release -Filter "*.exe" | Select-Object -First 1
+          if (-not $file) {
+            Write-Error "No .exe file found in release directory"
+            exit 1
+          }
+          
           $fileName = $file.Name
           $filePath = $file.FullName
+          $fileSizeMB = [math]::Round($file.Length / 1MB, 2)
+          
+          Write-Host "Original file: $fileName (${fileSizeMB}MB)"
+          
+          # Create zip file
+          $zipName = "RedSquare-Desktop-v${{ steps.build_info.outputs.version }}.zip"
+          $zipPath = Join-Path $env:TEMP $zipName
+          
+          Write-Host "Creating zip file: $zipName"
+          Compress-Archive -Path $filePath -DestinationPath $zipPath -CompressionLevel Optimal
+          
+          # Check zip file size
+          $zipFile = Get-Item $zipPath
+          $zipSizeMB = [math]::Round($zipFile.Length / 1MB, 2)
+          Write-Host "Zip file created: $zipName (${zipSizeMB}MB) - Compression ratio: $([math]::Round((1 - $zipFile.Length / $file.Length) * 100, 1))%"
+          
+          # Set up upload variables
           $bucket = "app_artifacts"
-          $artifactName = "RedSquare-Desktop-v${{ steps.build_info.outputs.version }}.exe"
+          $artifactName = $zipName
           $artifactUrl = "${{ secrets.SUPABASE_URL }}/storage/v1/object/public/$bucket/$artifactName"
           
-          # Log file information
-          $fileSizeMB = [math]::Round($file.Length / 1MB, 2)
-          Write-Host "Uploading file: $fileName"
-          Write-Host "File size: $fileSizeMB MB"
-          Write-Host "Target URL: $artifactUrl"
-
           echo "artifact_url=$artifactUrl" >> $env:GITHUB_OUTPUT
-
-          # Upload with retry logic
-          $maxRetries = 3
-          $retryCount = 0
-          $uploadSuccess = $false
           
-          while ($retryCount -lt $maxRetries -and -not $uploadSuccess) {
+          # Upload zip file to Supabase Storage
+          try {
+            Write-Host "Uploading zip file to Supabase Storage..."
+            Invoke-RestMethod -Uri "${{ secrets.SUPABASE_URL }}/storage/v1/object/$bucket/$artifactName" `
+              -Method POST `
+              -Headers @{
+                "Authorization" = "Bearer ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}";
+                "Content-Type" = "application/zip";
+              } `
+              -InFile $zipPath `
+              -TimeoutSec 300
+            
+            Write-Host "Zip file uploaded successfully!"
+          }
+          catch {
+            Write-Host "Upload failed with error: $($_.Exception.Message)"
+            
+            # If direct upload fails, try with signed URL
+            Write-Host "Attempting upload with signed URL..."
             try {
-              Write-Host "Upload attempt $($retryCount + 1) of $maxRetries..."
-              
-              Invoke-RestMethod -Uri "${{ secrets.SUPABASE_URL }}/storage/v1/object/$bucket/$artifactName" `
+              $signedUrlBody = @{
+                bucket = $bucket
+                file_name = $artifactName
+                content_type = "application/zip"
+                content_size = $zipFile.Length
+              } | ConvertTo-Json -Compress
+
+              $signedResponse = Invoke-RestMethod -Uri "${{ secrets.SUPABASE_URL }}/functions/v1/create-signed-upload" `
                 -Method POST `
                 -Headers @{
                   "Authorization" = "Bearer ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}";
-                  "Content-Type" = "application/vnd.microsoft.portable-executable";
+                  "Content-Type" = "application/json";
                 } `
-                -InFile $filePath `
-                -TimeoutSec 300
-              
-              $uploadSuccess = $true
-              Write-Host "Upload successful!"
+                -Body $signedUrlBody
+
+              # Upload using the signed URL
+              Invoke-RestMethod -Uri $signedResponse.url `
+                -Method PUT `
+                -Headers $signedResponse.headers `
+                -InFile $zipPath
+
+              Write-Host "Zip file uploaded successfully using signed URL!"
             }
             catch {
-              $retryCount++
-              Write-Warning "Upload failed: $($_.Exception.Message)"
-              
-              if ($_.Exception.Message -match "413|Payload too large|size") {
-                Write-Error "File is too large for Supabase Storage. Current size: $fileSizeMB MB. Consider optimizing the build or upgrading your Supabase plan."
-                exit 1
-              }
-              
-              if ($retryCount -lt $maxRetries) {
-                Write-Host "Retrying in 10 seconds..."
-                Start-Sleep -Seconds 10
-              } else {
-                Write-Error "Upload failed after $maxRetries attempts: $($_.Exception.Message)"
-                exit 1
-              }
+              Write-Host "Signed URL upload also failed: $($_.Exception.Message)"
+              throw $_
+            }
+          }
+          finally {
+            # Clean up temp zip file
+            if (Test-Path $zipPath) {
+              Remove-Item $zipPath -Force
+              Write-Host "Temporary zip file cleaned up"
             }
           }
         shell: pwsh
