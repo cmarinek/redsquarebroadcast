@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
+import { castToPaymentStatus } from "@/types";
 
 interface MonetizationDefaults {
   platform_fee_percent?: number;
@@ -62,7 +63,10 @@ const AdminMonetization = () => {
           supabase.from("app_settings").select("value").eq("key", "monetization_defaults").maybeSingle(),
           supabase.functions.invoke("admin-monetization", { body: { action: "list" } }),
         ]);
-        if (settings?.value) setDefaults({ ...defaults, ...settings.value });
+        if (settings?.value) {
+          const settingsValue = settings.value as Record<string, any>;
+          setDefaults({ ...defaults, ...settingsValue });
+        }
         if ((fnRes.data as any)?.screens) setScreens((fnRes.data as any).screens as ScreenRow[]);
       } catch (e: any) {
         console.error(e);

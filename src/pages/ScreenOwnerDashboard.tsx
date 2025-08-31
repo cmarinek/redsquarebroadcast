@@ -399,7 +399,7 @@ const ScreenOwnerDashboard = () => {
           </TabsContent>
 
           <TabsContent value="revenue">
-            <RevenueOptimization screens={screens} />
+            <RevenueOptimization screens={screens as any} />
           </TabsContent>
 
           <TabsContent value="monitoring">
@@ -411,7 +411,7 @@ const ScreenOwnerDashboard = () => {
           </TabsContent>
 
           <TabsContent value="content">
-            <ContentApprovalWorkflows screens={screens} />
+            <ContentApprovalWorkflows screens={screens as any} />
           </TabsContent>
 
           <TabsContent value="availability">

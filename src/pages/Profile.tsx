@@ -18,12 +18,14 @@ import { useUserRoles } from "@/hooks/useUserRoles";
 
 interface ProfileData {
   id: string;
-  user_id: string;
   display_name: string;
-  avatar_url: string;
   bio: string;
   phone: string;
+  avatar_url: string;
   role: string;
+  has_completed_advertiser_onboarding: boolean;
+  has_completed_screen_owner_onboarding: boolean;
+  has_completed_broadcaster_onboarding: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -102,11 +104,24 @@ const Profile = () => {
       if (error) throw error;
 
       if (data) {
-        setProfile(data);
-        setFormData({
+        const profileData: ProfileData = {
+          id: data.user_id,
           display_name: data.display_name || '',
-          bio: data.bio || '',
-          phone: data.phone || ''
+          bio: '', // Not stored in profiles table
+          phone: '', // Not stored in profiles table
+          avatar_url: data.avatar_url || '',
+          role: data.role,
+          has_completed_advertiser_onboarding: data.has_completed_advertiser_onboarding,
+          has_completed_screen_owner_onboarding: data.has_completed_screen_owner_onboarding,
+          has_completed_broadcaster_onboarding: data.has_completed_broadcaster_onboarding,
+          created_at: data.created_at,
+          updated_at: data.updated_at
+        };
+        setProfile(profileData);
+        setFormData({
+          display_name: profileData.display_name || '',
+          bio: profileData.bio || '',
+          phone: profileData.phone || ''
         });
       }
     } catch (error) {

@@ -11,20 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 import SEO from "@/components/SEO";
-interface AppRelease {
-  id: string;
-  version_name: string;
-  version_code: number;
-  platform: 'android' | 'ios' | 'tv';
-  file_extension: 'apk' | 'ipa' | 'zip';
-  file_path: string;
-  file_size: number;
-  release_notes?: string;
-  download_count: number;
-  minimum_os_version?: string;
-  bundle_id?: string;
-  created_at: string;
-}
+import { castToPlatformType, type AppRelease, type PlatformType } from "@/types";
 const DownloadApp = () => {
   const {
     toast
@@ -54,9 +41,13 @@ const DownloadApp = () => {
         ios: null,
         tv: null
       };
-      (data || []).forEach((release: AppRelease) => {
-        if (!latestByPlatform[release.platform]) {
-          latestByPlatform[release.platform] = release;
+      (data || []).forEach((release: any) => {
+        const typedRelease = {
+          ...release,
+          platform: castToPlatformType(release.platform)
+        };
+        if (!latestByPlatform[typedRelease.platform]) {
+          latestByPlatform[typedRelease.platform] = typedRelease;
         }
       });
       setReleases(latestByPlatform);

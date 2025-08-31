@@ -28,17 +28,30 @@ import { format } from "date-fns";
 
 interface ScreenData {
   id: string;
-  screen_name: string;
-  address: string;
-  city: string;
+  name?: string;
+  size?: string;
+  location: string;
+  latitude: number;
+  longitude: number;
+  address?: string;
+  city?: string;
+  country_id: string;
+  owner_user_id: string;
   price_per_hour: number;
-  availability_start: string;
-  availability_end: string;
-  is_active: boolean;
-  qr_code_url: string;
+  currency: string;
+  local_currency?: string;
+  exchange_rate?: number;
+  availability_start?: string;
+  availability_end?: string;
+  is_active?: boolean;
+  qr_code_url?: string;
+  group_id?: string;
+  timezone?: string;
   created_at: string;
+  updated_at: string;
   bookings_count: number;
   total_earnings: number;
+  bookings?: any[];
 }
 
 const Dashboard = () => {
@@ -59,21 +72,43 @@ const Dashboard = () => {
 
   const fetchUserScreens = async () => {
     try {
-      const { data, error } = await supabase
+  const { data, error } = await supabase
         .from('screens')
         .select(`
           *,
-          bookings!inner(id, total_amount)
+          bookings!inner(id, amount_cents)
         `)
-        .eq('owner_id', user.id);
+        .eq('owner_user_id', user.id);
 
       if (error) throw error;
 
       // Process data to calculate stats
-      const processedScreens = data.map(screen => ({
-        ...screen,
+      const processedScreens: ScreenData[] = data.map((screen: any) => ({
+        id: screen.id,
+        name: screen.name,
+        size: screen.size,
+        location: screen.location,
+        latitude: screen.latitude,
+        longitude: screen.longitude,
+        address: screen.address,
+        city: screen.city,
+        country_id: screen.country_id,
+        owner_user_id: screen.owner_user_id,
+        price_per_hour: screen.price_per_hour,
+        currency: screen.currency,
+        local_currency: screen.local_currency,
+        exchange_rate: screen.exchange_rate,
+        availability_start: screen.availability_start,
+        availability_end: screen.availability_end,
+        is_active: screen.is_active,
+        qr_code_url: screen.qr_code_url,
+        group_id: screen.group_id,
+        timezone: screen.timezone,
+        created_at: screen.created_at,
+        updated_at: screen.updated_at,
         bookings_count: screen.bookings?.length || 0,
-        total_earnings: screen.bookings?.reduce((sum, booking) => sum + (booking.total_amount || 0), 0) || 0,
+        total_earnings: screen.bookings?.reduce((sum: number, booking: any) => sum + (booking.amount_cents || 0), 0) || 0,
+        bookings: screen.bookings || []
       }));
 
       setScreens(processedScreens);
@@ -93,7 +128,7 @@ const Dashboard = () => {
     try {
       const { error } = await supabase
         .from('screens')
-        .update({ is_active: !currentStatus })
+        .update({ is_active: !currentStatus } as any)
         .eq('id', screenId);
 
       if (error) throw error;
@@ -237,7 +272,7 @@ const Dashboard = () => {
                 <CardHeader>
                   <div className="flex items-start justify-between">
                     <div>
-                      <CardTitle className="text-lg">{screen.screen_name}</CardTitle>
+                      <CardTitle className="text-lg">{screen.name || 'Unnamed Screen'}</CardTitle>
                       <CardDescription className="flex items-center gap-1 mt-1">
                         <MapPin className="h-3 w-3" />
                         {screen.address}, {screen.city}
@@ -298,7 +333,7 @@ const Dashboard = () => {
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => downloadQRCode(screen.qr_code_url, screen.screen_name)}
+                          onClick={() => downloadQRCode(screen.qr_code_url, screen.name || 'screen')}
                         >
                           <Download className="h-4 w-4" />
                         </Button>
@@ -309,7 +344,7 @@ const Dashboard = () => {
                       <div className="flex justify-center p-4 bg-white rounded-lg">
                       <img 
                         src={screen.qr_code_url} 
-                        alt={`QR Code for ${screen.screen_name}`}
+                        alt={`QR Code for ${screen.name || 'screen'}`}
                         className="w-32 h-32"
                         loading="lazy"
                         decoding="async"

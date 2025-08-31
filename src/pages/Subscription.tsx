@@ -7,30 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import SEO from "@/components/SEO";
-
-interface SubscriptionPlan {
-  id: string;
-  name: string;
-  description: string;
-  price_cents: number;
-  currency: string;
-  interval_type: 'month' | 'year';
-  features: string[];
-  max_screens: number | null;
-  max_campaigns: number | null;
-  analytics_retention_days: number;
-  stripe_price_id: string | null;
-  is_active: boolean;
-}
-
-interface UserSubscription {
-  id: string;
-  plan_id: string;
-  status: 'active' | 'canceled' | 'past_due' | 'paused';
-  current_period_start: string | null;
-  current_period_end: string | null;
-  trial_end: string | null;
-}
+import { castToIntervalType, type SubscriptionPlan, type UserSubscription } from "@/types";
 
 const Subscription = () => {
   const { user } = useAuth();
@@ -56,7 +33,21 @@ const Subscription = () => {
         .order('price_cents', { ascending: true });
 
       if (error) throw error;
-      setPlans(data || []);
+      const typedPlans: SubscriptionPlan[] = (data || []).map(plan => ({
+        id: plan.id,
+        name: plan.name,
+        description: plan.description,
+        price_cents: plan.price_cents,
+        currency: plan.currency,
+        interval_type: castToIntervalType(plan.interval_type),
+        features: Array.isArray(plan.features) ? plan.features as string[] : [],
+        max_screens: plan.max_screens,
+        max_campaigns: plan.max_campaigns,
+        analytics_retention_days: plan.analytics_retention_days,
+        stripe_price_id: (plan as any).stripe_price_id || '',
+        is_active: (plan as any).is_active ?? true
+      }));
+      setPlans(typedPlans);
     } catch (error) {
       console.error('Error fetching plans:', error);
       toast({
@@ -81,7 +72,19 @@ const Subscription = () => {
         .maybeSingle();
 
       if (error) throw error;
-      setCurrentSubscription(data);
+      if (data) {
+        const typedSubscription: UserSubscription = {
+          id: data.id,
+          plan_id: data.plan_id,
+          status: data.status as 'active' | 'canceled' | 'past_due' | 'paused',
+          current_period_start: data.current_period_start,
+          current_period_end: data.current_period_end,
+          trial_end: data.trial_end
+        };
+        setCurrentSubscription(typedSubscription);
+      } else {
+        setCurrentSubscription(null);
+      }
     } catch (error) {
       console.error('Error fetching subscription:', error);
     }

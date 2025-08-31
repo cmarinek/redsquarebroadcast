@@ -369,9 +369,22 @@ const AdminDashboard = () => {
       const { data: ownerProfiles } = await supabase.from('profiles').select('user_id, display_name').in('user_id', ownerIds);
       const ownerMap = new Map(ownerProfiles?.map(p => [p.user_id, p.display_name]));
 
-      const screenIds = allScreens.map(s => s.id);
-      const { data: bookingCounts } = await supabase.rpc('get_booking_counts_for_screens', { screen_ids: screenIds });
-      const bookingCountMap = new Map(bookingCounts?.map((c: { screen_id: string, count: number }) => [c.screen_id, c.count]));
+      // Get booking counts for screens
+      const { data: bookingCounts } = await supabase
+        .from('bookings')
+        .select('screen_id')
+        .in('screen_id', allScreens.map(s => s.id));
+      
+      const bookingCountMap = new Map();
+      if (bookingCounts) {
+        const counts = bookingCounts.reduce((acc: Record<string, number>, booking) => {
+          acc[booking.screen_id] = (acc[booking.screen_id] || 0) + 1;
+          return acc;
+        }, {});
+        Object.entries(counts).forEach(([screenId, count]) => {
+          bookingCountMap.set(screenId, count);
+        });
+      }
 
       const processedScreens: ScreenData[] = allScreens.map(screen => ({
         id: screen.id,
@@ -705,7 +718,7 @@ const AdminDashboard = () => {
     try {
       const { error } = await supabase
         .from('screens')
-        .update({ is_active: !currentStatus })
+        .update({ is_active: !currentStatus } as any)
         .eq('id', screenId);
 
       if (error) throw error;
