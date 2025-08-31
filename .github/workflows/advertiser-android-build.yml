@@ -80,38 +80,75 @@ jobs:
 
       - name: Setup Capacitor Android Platform
         run: |
-          echo "Checking current directory structure..."
+          echo "=== DEBUG: Current working directory ==="
+          pwd
           ls -la
           
-          echo "Removing any existing android directory to ensure clean setup..."
-          rm -rf android
-          
-          echo "Adding Android platform..."
-          npx cap add android
-          
-          echo "Verifying Android platform was created..."
-          if [ ! -d "android" ]; then
-            echo "ERROR: Android directory was not created"
+          echo "=== DEBUG: Checking Capacitor configuration ==="
+          if [ -f "capacitor.config.ts" ]; then
+            cat capacitor.config.ts
+          else
+            echo "ERROR: capacitor.config.ts not found"
             exit 1
           fi
           
+          echo "=== DEBUG: Checking if built web app exists ==="
+          if [ -d "dist" ]; then
+            echo "dist directory found"
+            ls -la dist/
+          else
+            echo "ERROR: dist directory not found - web app needs to be built first"
+            exit 1
+          fi
+          
+          echo "=== DEBUG: Removing any existing android directory ==="
+          rm -rf android
+          
+          echo "=== DEBUG: Installing Capacitor if needed ==="
+          npm list @capacitor/android || npm install @capacitor/android
+          
+          echo "=== DEBUG: Adding Android platform ==="
+          npx cap add android --debug
+          
+          echo "=== DEBUG: Verifying Android platform creation ==="
+          if [ ! -d "android" ]; then
+            echo "ERROR: Android directory was not created"
+            echo "Capacitor version:"
+            npx cap --version
+            echo "Available platforms:"
+            npx cap list
+            exit 1
+          fi
+          
+          echo "Android directory created successfully"
+          ls -la android/
+          
           if [ ! -f "android/gradlew" ]; then
             echo "ERROR: gradlew was not created"
-            echo "Contents of android directory:"
-            ls -la android/
-            exit 1
+            echo "Trying to manually create gradlew..."
+            cd android
+            gradle wrapper || echo "Gradle wrapper creation failed"
+            cd ..
+            
+            if [ ! -f "android/gradlew" ]; then
+              echo "ERROR: Still no gradlew after manual creation"
+              exit 1
+            fi
           fi
           
           if [ ! -f "android/build.gradle" ]; then
             echo "ERROR: build.gradle was not created"
-            echo "Contents of android directory:"
-            ls -la android/
             exit 1
           fi
           
-          echo "Android platform successfully set up"
+          echo "=== DEBUG: Making gradlew executable ==="
+          chmod +x android/gradlew
+          
+          echo "=== DEBUG: Final verification ==="
           echo "Contents of android directory:"
           ls -la android/
+          echo "Gradle wrapper version:"
+          cd android && ./gradlew --version && cd ..
 
       - name: Sync Capacitor Project
         run: |
