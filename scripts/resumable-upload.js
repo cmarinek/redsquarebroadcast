@@ -67,6 +67,9 @@ async function uploadWithResumable() {
     
   } catch (error) {
     console.error('Upload failed:', error);
+    
+    // Write error result for the workflow to handle gracefully
+    fs.writeFileSync('upload-result.txt', 'UPLOAD_FAILED');
     process.exit(1);
   }
 }

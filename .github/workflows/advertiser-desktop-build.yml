@@ -111,11 +111,15 @@ jobs:
           node scripts/resumable-upload.js "$zipPath" "app_artifacts" "$zipName" "${{ secrets.SUPABASE_URL }}" "${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}"
           
           # Read the result URL
-          $artifactUrl = Get-Content "upload-result.txt"
-          echo "artifact_url=$artifactUrl" >> $env:GITHUB_OUTPUT
+          $result = Get-Content "upload-result.txt"
+          if ($result -eq "UPLOAD_FAILED") {
+            Write-Error "Upload failed - file likely exceeds Supabase Storage limits (50MB free tier, 5GB Pro tier)"
+            exit 1
+          }
           
+          echo "artifact_url=$result" >> $env:GITHUB_OUTPUT
           Write-Host "Zip file uploaded successfully using resumable upload!"
-          Write-Host "Artifact URL: $artifactUrl"
+          Write-Host "Artifact URL: $result"
           
           # Clean up temp files
           if (Test-Path $zipPath) {
