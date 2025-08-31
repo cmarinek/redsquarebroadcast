@@ -78,11 +78,11 @@ jobs:
           cd ios/App
           pod install --repo-update
 
-       - name: Install iOS Platform
-         run: |
-           echo "Using latest Xcode set up by setup-xcode action"
-           xcodebuild -version
-           echo "✅ Xcode configuration verified"
+      - name: Install iOS Platform
+        run: |
+          echo "Using latest Xcode set up by setup-xcode action"
+          xcodebuild -version
+          echo "✅ Xcode configuration verified"
 
       - name: Build iOS Screens App
         run: |
