@@ -92,20 +92,32 @@ Deno.serve(async (req: Request) => {
     const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const authHeader = req.headers.get('Authorization') ?? '';
 
-    const supabase = createClient(supabaseUrl, serviceRoleKey, {
-      global: { headers: { Authorization: authHeader } },
-    });
-
-    const { data: userData, error: userError } = await supabase.auth.getUser();
-    if (userError || !userData?.user) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-        status: 401,
-        headers: { 'Content-Type': 'application/json', ...corsHeaders },
+    // Check if this is a service role request (for automated builds)
+    const isServiceRoleRequest = authHeader.includes(serviceRoleKey);
+    
+    let userId: string;
+    
+    if (isServiceRoleRequest) {
+      // For service role requests (GitHub Actions), use a system user ID
+      userId = 'system';
+    } else {
+      // For regular user requests, authenticate normally
+      const supabase = createClient(supabaseUrl, serviceRoleKey, {
+        global: { headers: { Authorization: authHeader } },
       });
+
+      const { data: userData, error: userError } = await supabase.auth.getUser();
+      if (userError || !userData?.user) {
+        return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+          status: 401,
+          headers: { 'Content-Type': 'application/json', ...corsHeaders },
+        });
+      }
+      userId = userData.user.id;
     }
 
     // Rate limit per IP+user
-    const rl = rateLimit(`${ip}|${userData.user.id}|create-signed-upload`);
+    const rl = rateLimit(`${ip}|${userId}|create-signed-upload`);
     if (!rl.allowed) {
       return new Response(JSON.stringify({ error: 'Rate limit exceeded' }), {
         status: 429,
@@ -113,11 +125,12 @@ Deno.serve(async (req: Request) => {
       });
     }
 
-    const userId = userData.user.id;
     const safeName = sanitizeFilename(file_name);
     const path = `${userId}/${Date.now()}-${safeName}`;
 
-    const { data, error } = await supabase.storage
+    // Create admin client for storage operations
+    const adminClient = createClient(supabaseUrl, serviceRoleKey);
+    const { data, error } = await adminClient.storage
       .from(bucket)
       .createSignedUploadUrl(path);
 
