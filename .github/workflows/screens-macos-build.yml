@@ -54,6 +54,9 @@ jobs:
       - name: Install Dependencies
         run: npm install
 
+      - name: Build Web App
+        run: npm run build
+
       - name: Build macOS Desktop App
         run: |
           set -e  # Exit on any error
