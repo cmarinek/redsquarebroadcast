@@ -149,8 +149,9 @@ const createWindow = () => {
 
   // Load the app
   if (process.env.VITE_DEV_SERVER_URL) {
-    console.log('Loading from dev server:', process.env.VITE_DEV_SERVER_URL);
-    mainWindow.loadURL(process.env.VITE_DEV_SERVER_URL);
+    console.log('Loading RedSquare Screens from dev server:', process.env.VITE_DEV_SERVER_URL);
+    // Load broadcast app directly for screen application
+    mainWindow.loadURL(process.env.VITE_DEV_SERVER_URL + '/#/broadcast-app');
     mainWindow.webContents.openDevTools();
   } else {
     // Production mode
@@ -161,19 +162,38 @@ const createWindow = () => {
     if (fs.existsSync(htmlPath)) {
       console.log('HTML file exists, loading RedSquare Screens...');
       
-      // Inject fallback CSS if available
+      // Inject fallback CSS and navigate to broadcast app
       const fallbackCSSPath = path.join(__dirname, '..', 'dist', 'electron-fallback.css');
       if (fs.existsSync(fallbackCSSPath)) {
         console.log('Fallback CSS found, will inject into page');
         
         mainWindow.webContents.once('dom-ready', () => {
-          console.log('DOM ready, injecting fallback CSS...');
+          console.log('DOM ready, injecting fallback CSS and navigating to broadcast app...');
           try {
             const fallbackCSS = fs.readFileSync(fallbackCSSPath, 'utf-8');
             mainWindow.webContents.insertCSS(fallbackCSS);
+            
+            // Navigate to broadcast app after CSS is injected
+            mainWindow.webContents.executeJavaScript(`
+              console.log('Electron: Redirecting to broadcast app...');
+              if (window.location.hash !== '#/broadcast-app') {
+                window.location.hash = '#/broadcast-app';
+              }
+            `);
           } catch (error) {
             console.error('Failed to inject fallback CSS:', error);
           }
+        });
+      } else {
+        // No fallback CSS, just navigate to broadcast app
+        mainWindow.webContents.once('dom-ready', () => {
+          console.log('DOM ready, navigating to broadcast app...');
+          mainWindow.webContents.executeJavaScript(`
+            console.log('Electron: Redirecting to broadcast app...');
+            if (window.location.hash !== '#/broadcast-app') {
+              window.location.hash = '#/broadcast-app';
+            }
+          `);
         });
       }
       

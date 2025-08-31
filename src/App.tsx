@@ -1,11 +1,12 @@
-import { Suspense, lazy } from "react";
+import { Suspense, lazy, useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
 import { Footer } from "@/components/Footer";
 import { Navigation } from "@/components/Navigation";
 import { StatusIndicator } from "@/components/StatusIndicator";
+import { shouldAutoRedirectToScreen, getApplicationMode } from "@/utils/environment";
 
 const Index = lazy(() => import("./pages/Index"));
 const Demo = lazy(() => import("./pages/Demo"));
@@ -48,64 +49,90 @@ const BroadcastApp = lazy(() => import("./pages/BroadcastApp"));
 const SetupRedSquareScreen = lazy(() => import("./pages/SetupRedSquareScreen"));
 import AdminRoute from "@/components/routing/AdminRoute";
 
-const App = () => (
-  <TooltipProvider>
-    <Toaster />
-    <Sonner />
-    <Suspense fallback={<div className="p-6 text-muted-foreground">Loading…</div>}>
-      <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
-        <Navigation />
-        <StatusIndicator />
-        <main className="pt-16">
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/demo" element={<Demo />} />
-            <Route path="/auth" element={<Auth />} />
-            <Route path="/role-selection" element={<RoleSelection />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/admin" element={<AdminDashboard />} />
-            <Route path="/admin/overview" element={<AdminProjectOverview />} />
-            <Route path="/admin/operations" element={<AdminRoute><AdminOperations /></AdminRoute>} />
-            <Route path="/admin/performance" element={<AdminRoute><AdminPerformance /></AdminRoute>} />
-            <Route path="/admin/monetization" element={<AdminRoute><AdminMonetization /></AdminRoute>} />
-            <Route path="/admin/ops-infra" element={<AdminRoute><AdminOpsInfra /></AdminRoute>} />
-            <Route path="/admin/documentation" element={<AdminRoute><AdminDocumentation /></AdminRoute>} />
-            <Route path="/my-campaigns" element={<AdvertiserDashboard />} />
-            <Route path="/my-screens" element={<ScreenOwnerDashboard />} />
-            <Route path="/profile" element={<Profile />} />
-            <Route path="/register-screen" element={<ScreenRegistration />} />
-            <Route path="/how-it-works" element={<HowItWorksDetailed />} />
-            <Route path="/production-plan" element={<ProductionPlan />} />
-            <Route path="/discover" element={<ScreenDiscovery />} />
-            <Route path="/screen/:screenId" element={<ScreenDetails />} />
-            <Route path="/book/:screenId/upload" element={<ContentUpload />} />
-            <Route path="/book/:screenId/schedule" element={<Scheduling />} />
-            <Route path="/book/:screenId/payment" element={<Payment />} />
-            <Route path="/confirmation/:bookingId" element={<Confirmation />} />
-            <Route path="/device-setup" element={<DeviceSetup />} />
-            <Route path="/smart-tv" element={<SmartTVApp />} />
-            <Route path="/tv" element={<SmartTVApp />} />
-            <Route path="/subscription" element={<Subscription />} />
-            <Route path="/privacy" element={<Privacy />} />
-            <Route path="/terms" element={<Terms />} />
-            <Route path="/cookies" element={<Cookies />} />
-            <Route path="/learn" element={<Learn />} />
-            <Route path="/setup-guide" element={<SetupGuide />} />
-            <Route path="/download" element={<DownloadApp />} />
-            <Route path="/screen-owner-mobile" element={<ScreenOwnerMobile />} />
-            <Route path="/mobile-app" element={<ScreenOwnerMobile />} /> {/* Legacy redirect */}
-            <Route path="/regional-settings" element={<RegionalSettings />} />
-        <Route path="/web-app" element={<WebApp />} />
-        <Route path="/broadcast-app" element={<BroadcastApp />} />
-            <Route path="/setup-redsquare-screen" element={<SetupRedSquareScreen />} />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </main>
-        <Footer />
-      </div>
-    </Suspense>
-  </TooltipProvider>
-);
+const App = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  useEffect(() => {
+    // Auto-redirect screen applications to broadcast interface
+    if (shouldAutoRedirectToScreen() && location.pathname === '/') {
+      console.log('RedSquare: Auto-redirecting screen application to broadcast interface');
+      navigate('/broadcast-app', { replace: true });
+    }
+  }, [navigate, location.pathname]);
+
+  const applicationMode = getApplicationMode();
+  console.log('RedSquare App Mode:', applicationMode, 'Current path:', location.pathname);
+  
+  return (
+    <TooltipProvider>
+      <Toaster />
+      <Sonner />
+      <Suspense fallback={
+        <div className="min-h-screen flex items-center justify-center bg-background text-foreground p-6">
+          <div className="flex flex-col items-center gap-4">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+            <p className="text-sm text-muted-foreground">Loading RedSquare...</p>
+            <div className="text-xs opacity-50">Mode: {applicationMode}</div>
+          </div>
+        </div>
+      }>
+        <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
+          {/* Hide navigation and footer for screen/TV applications */}
+          {!shouldAutoRedirectToScreen() && <Navigation />}
+          <StatusIndicator />
+          <main className={shouldAutoRedirectToScreen() ? "" : "pt-16"}>
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/demo" element={<Demo />} />
+              <Route path="/auth" element={<Auth />} />
+              <Route path="/role-selection" element={<RoleSelection />} />
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/admin" element={<AdminDashboard />} />
+              <Route path="/admin/overview" element={<AdminProjectOverview />} />
+              <Route path="/admin/operations" element={<AdminRoute><AdminOperations /></AdminRoute>} />
+              <Route path="/admin/performance" element={<AdminRoute><AdminPerformance /></AdminRoute>} />
+              <Route path="/admin/monetization" element={<AdminRoute><AdminMonetization /></AdminRoute>} />
+              <Route path="/admin/ops-infra" element={<AdminRoute><AdminOpsInfra /></AdminRoute>} />
+              <Route path="/admin/documentation" element={<AdminRoute><AdminDocumentation /></AdminRoute>} />
+              <Route path="/my-campaigns" element={<AdvertiserDashboard />} />
+              <Route path="/my-screens" element={<ScreenOwnerDashboard />} />
+              <Route path="/profile" element={<Profile />} />
+              <Route path="/register-screen" element={<ScreenRegistration />} />
+              <Route path="/how-it-works" element={<HowItWorksDetailed />} />
+              <Route path="/production-plan" element={<ProductionPlan />} />
+              <Route path="/discover" element={<ScreenDiscovery />} />
+              <Route path="/screen/:screenId" element={<ScreenDetails />} />
+              <Route path="/book/:screenId/upload" element={<ContentUpload />} />
+              <Route path="/book/:screenId/schedule" element={<Scheduling />} />
+              <Route path="/book/:screenId/payment" element={<Payment />} />
+              <Route path="/confirmation/:bookingId" element={<Confirmation />} />
+              <Route path="/device-setup" element={<DeviceSetup />} />
+              <Route path="/smart-tv" element={<SmartTVApp />} />
+              <Route path="/tv" element={<SmartTVApp />} />
+              <Route path="/subscription" element={<Subscription />} />
+              <Route path="/privacy" element={<Privacy />} />
+              <Route path="/terms" element={<Terms />} />
+              <Route path="/cookies" element={<Cookies />} />
+              <Route path="/learn" element={<Learn />} />
+              <Route path="/setup-guide" element={<SetupGuide />} />
+              <Route path="/download" element={<DownloadApp />} />
+              <Route path="/screen-owner-mobile" element={<ScreenOwnerMobile />} />
+              <Route path="/mobile-app" element={<ScreenOwnerMobile />} /> {/* Legacy redirect */}
+              <Route path="/regional-settings" element={<RegionalSettings />} />
+          <Route path="/web-app" element={<WebApp />} />
+          <Route path="/broadcast-app" element={<BroadcastApp />} />
+              <Route path="/setup-redsquare-screen" element={<SetupRedSquareScreen />} />
+              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </main>
+          {/* Hide footer for screen/TV applications */}
+          {!shouldAutoRedirectToScreen() && <Footer />}
+        </div>
+      </Suspense>
+    </TooltipProvider>
+  );
+};
 
 export default App;

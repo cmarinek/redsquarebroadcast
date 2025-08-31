@@ -11,6 +11,7 @@ import {
   Play,
   Pause,
   Volume2,
+  VolumeX,
   Settings,
   QrCode,
   Smartphone,
@@ -18,6 +19,8 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
+import { getApplicationMode, isElectronApp, isTVApp } from '@/utils/environment';
+import { TVRemoteHandler } from '@/components/tv/TVRemoteHandler';
 
 interface BroadcastContent {
   id: string;
@@ -37,6 +40,10 @@ export default function BroadcastApp() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [volume, setVolume] = useState(75);
   const [qrCode, setQrCode] = useState('');
+  
+  const applicationMode = getApplicationMode();
+  const isElectron = isElectronApp();
+  const isTV = isTVApp();
 
   useEffect(() => {
     const handleOnline = () => setIsOnline(true);
@@ -48,11 +55,19 @@ export default function BroadcastApp() {
     // Generate unique screen ID and QR code on mount
     generateScreenIdentifiers();
 
+    // Log environment for debugging
+    console.log('RedSquare Broadcast App started:', {
+      mode: applicationMode,
+      isElectron,
+      isTV,
+      userAgent: navigator.userAgent
+    });
+
     return () => {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
     };
-  }, []);
+  }, [applicationMode, isElectron, isTV]);
 
   const generateScreenIdentifiers = () => {
     const id = `RS-${Math.random().toString(36).substr(2, 8).toUpperCase()}`;
@@ -116,7 +131,23 @@ export default function BroadcastApp() {
     }
   };
 
-  return (
+  // TV Remote navigation handlers
+  const handleTVNavigation = (direction: 'up' | 'down' | 'left' | 'right') => {
+    console.log('TV Navigation:', direction);
+  };
+
+  const handleTVSelect = () => {
+    console.log('TV Select pressed');
+    if (isPaired && currentContent) {
+      handlePlayPause();
+    }
+  };
+
+  const handleTVBack = () => {
+    console.log('TV Back pressed');
+  };
+
+  const content = (
     <div className="min-h-screen bg-black text-white">
       <SEO 
         title="Red Square Broadcast - Screen Display App"
@@ -139,6 +170,22 @@ export default function BroadcastApp() {
                 {isOnline ? <Wifi className="h-3 w-3 mr-1" /> : <WifiOff className="h-3 w-3 mr-1" />}
                 {isOnline ? 'Connected' : 'Offline'}
               </Badge>
+              
+              <Badge variant="outline" className="text-blue-400 border-blue-400 text-xs">
+                {applicationMode.toUpperCase()}
+              </Badge>
+              
+              {isElectron && (
+                <Badge variant="outline" className="text-green-400 border-green-400 text-xs">
+                  DESKTOP
+                </Badge>
+              )}
+              
+              {isTV && (
+                <Badge variant="outline" className="text-purple-400 border-purple-400 text-xs">
+                  TV
+                </Badge>
+              )}
               
               {isPaired && (
                 <Badge variant="secondary">
@@ -165,6 +212,11 @@ export default function BroadcastApp() {
                 <p className="text-muted-foreground">
                   Scan the QR code with the Red Square app or enter the pairing code
                 </p>
+                <div className="text-xs text-gray-400 space-y-1">
+                  <div>Environment: {isElectron ? 'Desktop App' : isTV ? 'TV App' : 'Web App'}</div>
+                  <div>Mode: {applicationMode}</div>
+                  <div>Status: {isOnline ? 'Online' : 'Offline'}</div>
+                </div>
               </div>
 
               <Card className="bg-card/50 border-white/10">
@@ -176,7 +228,7 @@ export default function BroadcastApp() {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="bg-white p-4 rounded-lg">
-                    {/* QR Code would be generated here */}
+                    {/* QR Code placeholder */}
                     <div className="w-32 h-32 bg-black/10 mx-auto rounded-lg flex items-center justify-center">
                       <QrCode className="h-16 w-16 text-gray-400" />
                     </div>
@@ -217,8 +269,8 @@ export default function BroadcastApp() {
           <div className="flex-1 relative">
             {renderContent()}
             
-            {/* Control Overlay - Shows on hover or when content is paused */}
-            <div className="absolute bottom-4 left-4 right-4 bg-black/80 backdrop-blur-sm rounded-lg p-4 opacity-0 hover:opacity-100 transition-opacity">
+            {/* Control Overlay - Shows on hover or always visible for TV */}
+            <div className={`absolute bottom-4 left-4 right-4 bg-black/80 backdrop-blur-sm rounded-lg p-4 transition-opacity ${isTV ? 'opacity-100' : 'opacity-0 hover:opacity-100'}`}>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
                   <Button
@@ -231,21 +283,26 @@ export default function BroadcastApp() {
                   </Button>
                   
                   <div className="flex items-center gap-2">
-                    <Volume2 className="h-4 w-4" />
+                    {volume === 0 ? (
+                      <VolumeX className="h-4 w-4 text-white" />
+                    ) : (
+                      <Volume2 className="h-4 w-4 text-white" />
+                    )}
                     <input
                       type="range"
                       min="0"
                       max="100"
                       value={volume}
                       onChange={(e) => setVolume(Number(e.target.value))}
-                      className="w-20"
+                      className="w-20 accent-white"
                     />
+                    <span className="text-white text-sm w-8">{volume}%</span>
                   </div>
                 </div>
 
                 <div className="flex items-center gap-2">
                   <Badge variant="secondary" className="bg-white/10">
-                    {screenId}
+                    {screenId} | {applicationMode}
                   </Badge>
                   <Button variant="outline" size="sm" className="bg-white/10 border-white/20 text-white hover:bg-white/20">
                     <Settings className="h-4 w-4" />
@@ -258,4 +315,19 @@ export default function BroadcastApp() {
       </main>
     </div>
   );
+
+  // Wrap with TV remote handler for TV applications
+  if (isTV) {
+    return (
+      <TVRemoteHandler
+        onNavigate={handleTVNavigation}
+        onSelect={handleTVSelect}
+        onBack={handleTVBack}
+      >
+        {content}
+      </TVRemoteHandler>
+    );
+  }
+
+  return content;
 }

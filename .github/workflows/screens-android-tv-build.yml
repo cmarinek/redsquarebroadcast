@@ -106,7 +106,7 @@ jobs:
 
       - name: Configure Android Build for TV
         run: |
-          # Configure for Android TV
+          # Configure for Android TV and ensure it loads broadcast app by default
           if [ -f "android/app/src/main/AndroidManifest.xml" ]; then
             echo "Configuring Android TV manifest..."
             
@@ -127,10 +127,15 @@ jobs:
               sed -i 's/<application/& android:banner="@drawable\/banner"/' android/app/src/main/AndroidManifest.xml
             fi
             
-            # Add leanback feature requirement
+            # Add leanback feature requirement and configure as screen application
             if ! grep -q 'android:name="android.software.leanback"' android/app/src/main/AndroidManifest.xml; then
               sed -i '/<\/manifest>/i\    <uses-feature android:name="android.software.leanback" android:required="true" />' android/app/src/main/AndroidManifest.xml
               sed -i '/<\/manifest>/i\    <uses-feature android:name="android.hardware.touchscreen" android:required="false" />' android/app/src/main/AndroidManifest.xml
+            fi
+            
+            # Set default intent to open broadcast app directly
+            if ! grep -q 'android.intent.action.VIEW' android/app/src/main/AndroidManifest.xml; then
+              sed -i '/<\/activity>/i\                <intent-filter>\n                    <action android:name="android.intent.action.VIEW" />\n                    <category android:name="android.intent.category.DEFAULT" />\n                    <category android:name="android.intent.category.BROWSABLE" />\n                    <data android:scheme="redsquare" android:host="broadcast" />\n                </intent-filter>' android/app/src/main/AndroidManifest.xml
             fi
             
             echo "Android TV configuration completed"
