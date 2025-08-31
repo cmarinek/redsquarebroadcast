@@ -159,8 +159,8 @@ serve(async (req) => {
     const dispatchPayload = {
       ref: 'main', // or 'master' depending on your default branch
       inputs: {
-        build_id: newBuild.id,
-        version: newBuild.version,
+        build_id: newBuild.id.toString(),
+        version: newBuild.version.toString(),
       },
     };
 
@@ -170,25 +170,27 @@ serve(async (req) => {
       method: "POST",
       headers: {
         Authorization: `Bearer ${githubToken}`,
-        Accept: "application/vnd.github.v3+json",
+        Accept: "application/vnd.github+json",
         "Content-Type": "application/json",
-        "User-Agent": "Supabase-Edge-Function"
+        "User-Agent": "Supabase-Edge-Function",
+        "X-GitHub-Api-Version": "2022-11-28"
       },
       body: JSON.stringify(dispatchPayload),
     });
 
     console.log("📡 GitHub API response status:", ghResponse.status);
     console.log("📡 GitHub API response headers:", Object.fromEntries(ghResponse.headers.entries()));
-
+    
+    const responseText = await ghResponse.text();
+    console.log("📡 GitHub API response body:", responseText);
     if (!ghResponse.ok) {
-      const errorBody = await ghResponse.text();
-      console.error("❌ GitHub API Error:", errorBody);
+      console.error("❌ GitHub API Error:", responseText);
       // If GitHub dispatch fails, update the build status to 'failed'
       await supabaseAdminClient
         .from('app_builds')
         .update({ status: 'failed' })
         .eq('id', newBuild.id);
-      throw new Error(`GitHub API request failed: ${ghResponse.statusText} - ${errorBody}`);
+      throw new Error(`GitHub API request failed: ${ghResponse.status} ${ghResponse.statusText} - ${responseText}`);
     }
 
     console.log("✅ GitHub workflow dispatched successfully");
