@@ -138,9 +138,9 @@ jobs:
           $compressionRatio = [math]::Round((1 - $zipFile.Length / $file.Length) * 100, 1)
           Write-Host "7z archive created: $zipName (${zipSizeMB}MB) - Compression ratio: ${compressionRatio}%"
           
-          # Final size check for 7z file (80MB = 83,886,080 bytes to be extra safe)
-          if ($zipFile.Length -gt 83886080) {
-            Write-Error "7z archive size (${zipSizeMB}MB) still exceeds safe limit of 80MB. Further optimization needed."
+          # Final size check for 7z file (85MB = 89,128,960 bytes to match raw limit)
+          if ($zipFile.Length -gt 89128960) {
+            Write-Error "7z archive size (${zipSizeMB}MB) still exceeds safe limit of 85MB. Further optimization needed."
             exit 1
           }
           
