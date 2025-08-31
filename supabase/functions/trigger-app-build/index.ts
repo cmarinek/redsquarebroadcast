@@ -152,15 +152,15 @@ serve(async (req) => {
 
     console.log("🔧 Workflow file:", workflowFile);
 
-    // Use workflow_dispatch instead of repository_dispatch for better reliability
-    const dispatchUrl = `https://api.github.com/repos/${githubRepoOwner}/${githubRepoName}/actions/workflows/${workflowFile}/dispatches`;
+    // Use repository_dispatch as it was working before
+    const dispatchUrl = `https://api.github.com/repos/${githubRepoOwner}/${githubRepoName}/dispatches`;
     console.log("🚀 Dispatch URL:", dispatchUrl);
 
     const dispatchPayload = {
-      ref: 'main', // or 'master' depending on your default branch
-      inputs: {
-        build_id: newBuild.id.toString(),
-        version: newBuild.version.toString(),
+      event_type: `trigger-${app_type.replace('_', '-')}-build`,
+      client_payload: {
+        build_id: newBuild.id,
+        version: newBuild.version,
       },
     };
 
