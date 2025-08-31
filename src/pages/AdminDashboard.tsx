@@ -1,51 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { 
-  Users, 
-  Monitor, 
-  Calendar, 
-  DollarSign, 
-  BarChart3, 
-  Shield, 
-  Settings,
-  AlertTriangle,
-  TrendingUp,
-  Eye,
-  Ban,
-  CheckCircle,
-  XCircle,
-  Search,
-  Filter,
-  Download,
-  FileText,
-  Clock,
-  MapPin,
-  Activity,
-  Server,
-  Database,
-  Wifi,
-  WifiOff,
-  Bell,
-  Lock,
-  Globe,
-  Zap,
-  CreditCard,
-  Cloud,
-  RefreshCw,
-  HardDrive,
-  Cpu,
-  MemoryStick,
-  Router,
-  LineChart,
-  PieChart,
-  UserCheck,
-  UserX,
-  AlertCircle,
-  Info,
-  CheckSquare,
-  Upload,
-  Smartphone
-} from "lucide-react";
+import { Users, Monitor, Calendar, DollarSign, BarChart3, Shield, Settings, AlertTriangle, TrendingUp, Eye, Ban, CheckCircle, XCircle, Search, Filter, Download, FileText, Clock, MapPin, Activity, Server, Database, Wifi, WifiOff, Bell, Lock, Globe, Zap, CreditCard, Cloud, RefreshCw, HardDrive, Cpu, MemoryStick, Router, LineChart, PieChart, UserCheck, UserX, AlertCircle, Info, CheckSquare, Upload, Smartphone } from "lucide-react";
 import { Link } from "react-router-dom";
 import { AdminSystemHealth } from "@/components/admin/AdminSystemHealth";
 import { AppManager } from "@/components/admin/AppManager";
@@ -56,28 +11,15 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
-import { 
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { 
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Layout } from "@/components/Layout";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserRoles, type UserRole } from "@/hooks/useUserRoles";
 import { format } from "date-fns";
-
 interface SystemHealth {
   database: 'healthy' | 'warning' | 'critical';
   storage: 'healthy' | 'warning' | 'critical';
@@ -86,7 +28,6 @@ interface SystemHealth {
   payments: 'healthy' | 'warning' | 'critical';
   lastUpdated: string;
 }
-
 interface SecurityAlert {
   id: string;
   type: 'failed_login' | 'suspicious_activity' | 'data_breach' | 'unauthorized_access';
@@ -95,7 +36,6 @@ interface SecurityAlert {
   timestamp: string;
   resolved: boolean;
 }
-
 interface AnalyticsData {
   dailyActiveUsers: number;
   weeklyActiveUsers: number;
@@ -106,7 +46,6 @@ interface AnalyticsData {
   revenueGrowth: number;
   screenUtilization: number;
 }
-
 interface AdminStats {
   totalUsers: number;
   totalScreens: number;
@@ -117,7 +56,6 @@ interface AdminStats {
   thisMonthRevenue: number;
   thisMonthBookings: number;
 }
-
 interface UserData {
   id: string;
   email: string;
@@ -126,7 +64,6 @@ interface UserData {
   created_at: string;
   last_sign_in_at: string;
 }
-
 interface ScreenData {
   id: string;
   screen_name: string;
@@ -137,7 +74,6 @@ interface ScreenData {
   created_at: string;
   bookings_count: number;
 }
-
 interface BookingData {
   id: string;
   user_email: string;
@@ -151,65 +87,64 @@ interface BookingData {
 
 // Types for Supabase RPC and table rows
 interface PlatformAnalytics extends AnalyticsData {
-    totalUsers: number;
-    activeScreens: number;
-    totalBookings: number;
-    totalRevenue: number;
+  totalUsers: number;
+  activeScreens: number;
+  totalBookings: number;
+  totalRevenue: number;
 }
-
 interface SystemHealthRecord {
-    service_name: string;
-    status: 'healthy' | 'warning' | 'critical';
-    last_check: string;
+  service_name: string;
+  status: 'healthy' | 'warning' | 'critical';
+  last_check: string;
 }
-
 interface SecurityAlertRecord {
-    id: string;
-    alert_type: 'failed_login' | 'suspicious_activity' | 'data_breach' | 'unauthorized_access';
-    severity: 'low' | 'medium' | 'high' | 'critical';
-    message: string;
-    created_at: string;
-    resolved: boolean;
+  id: string;
+  alert_type: 'failed_login' | 'suspicious_activity' | 'data_breach' | 'unauthorized_access';
+  severity: 'low' | 'medium' | 'high' | 'critical';
+  message: string;
+  created_at: string;
+  resolved: boolean;
 }
-
 interface ProfileRecord {
-    user_id: string;
-    display_name: string | null;
-    created_at: string;
+  user_id: string;
+  display_name: string | null;
+  created_at: string;
 }
-
 interface ScreenRecord {
-    id: string;
-    owner_id: string;
-    screen_name: string | null;
-    city: string | null;
-    is_active: boolean;
-    price_per_hour: number | null;
-    created_at: string;
+  id: string;
+  owner_id: string;
+  screen_name: string | null;
+  city: string | null;
+  is_active: boolean;
+  price_per_hour: number | null;
+  created_at: string;
 }
-
 interface BookingRecord {
-    id: string;
-    user_id: string;
-    screen_id: string;
-    scheduled_date: string;
-    total_amount: number;
-    status: string;
-    payment_status: string;
-    created_at: string;
+  id: string;
+  user_id: string;
+  screen_id: string;
+  scheduled_date: string;
+  total_amount: number;
+  status: string;
+  payment_status: string;
+  created_at: string;
 }
-
 interface UserRoleRecord {
-    user_id: string;
-    role: UserRole;
+  user_id: string;
+  role: UserRole;
 }
-
 const AdminDashboard = () => {
   const navigate = useNavigate();
-  const { toast } = useToast();
-  const { user } = useAuth();
-  const { isAdmin, loading: rolesLoading } = useUserRoles();
-  
+  const {
+    toast
+  } = useToast();
+  const {
+    user
+  } = useAuth();
+  const {
+    isAdmin,
+    loading: rolesLoading
+  } = useUserRoles();
   const [stats, setStats] = useState<AdminStats>({
     totalUsers: 0,
     totalScreens: 0,
@@ -220,7 +155,6 @@ const AdminDashboard = () => {
     thisMonthRevenue: 0,
     thisMonthBookings: 0
   });
-  
   const [users, setUsers] = useState<UserData[]>([]);
   const [screens, setScreens] = useState<ScreenData[]>([]);
   const [bookings, setBookings] = useState<BookingData[]>([]);
@@ -246,40 +180,37 @@ const AdminDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("overview");
-
-  const [rlsResults, setRlsResults] = useState<{ name: string; ok: boolean; detail?: string }[]>([]);
+  const [rlsResults, setRlsResults] = useState<{
+    name: string;
+    ok: boolean;
+    detail?: string;
+  }[]>([]);
   const [rlsRunning, setRlsRunning] = useState(false);
-  
+
   // Prevent repeated fetching and allow suspending on error
   const fetchAttemptedRef = useRef(false);
   const fetchSuspendedRef = useRef(false);
   const [dataUnavailable, setDataUnavailable] = useState<string | null>(null);
-
   useEffect(() => {
     if (!user) {
       navigate('/auth');
       return;
     }
-
     if (rolesLoading) return;
-
     const admin = isAdmin();
     if (!admin) {
       navigate('/');
       toast({
         title: "Access Denied",
         description: "You don't have admin privileges.",
-        variant: "destructive",
+        variant: "destructive"
       });
       return;
     }
-
     if (fetchSuspendedRef.current || fetchAttemptedRef.current) return;
     fetchAttemptedRef.current = true;
     fetchAdminData();
   }, [user?.id, rolesLoading, navigate]);
-
-
   const fetchAdminData = async () => {
     try {
       // Initialize default analytics data in case RPC fails
@@ -297,34 +228,37 @@ const AdminDashboard = () => {
         revenueGrowth: 0,
         screenUtilization: 0
       };
-
       try {
-        const { data: rpcData, error: analyticsError } = await supabase
-          .rpc('get_platform_analytics');
-
+        const {
+          data: rpcData,
+          error: analyticsError
+        } = await supabase.rpc('get_platform_analytics');
         if (analyticsError) {
           console.warn('Analytics RPC failed:', analyticsError);
         } else {
-          analyticsData = { ...analyticsData, ...(rpcData as unknown as PlatformAnalytics) };
+          analyticsData = {
+            ...analyticsData,
+            ...(rpcData as unknown as PlatformAnalytics)
+          };
         }
       } catch (e) {
         console.warn('Failed to fetch platform analytics:', e);
       }
-
-      const { data: healthData, error: healthError } = await supabase
-        .from('admin_system_health')
-        .select('*')
-        .order('last_check', { ascending: false })
-        .limit(5)
-        .returns<SystemHealthRecord[]>();
-
+      const {
+        data: healthData,
+        error: healthError
+      } = await supabase.from('admin_system_health').select('*').order('last_check', {
+        ascending: false
+      }).limit(5).returns<SystemHealthRecord[]>();
       if (healthError) throw healthError;
-
       const healthStatus: SystemHealth = {
-        database: 'healthy', storage: 'healthy', cdn: 'healthy', api: 'healthy', payments: 'healthy',
+        database: 'healthy',
+        storage: 'healthy',
+        cdn: 'healthy',
+        api: 'healthy',
+        payments: 'healthy',
         lastUpdated: new Date().toISOString()
       };
-
       if (healthData && healthData.length > 0) {
         healthData.forEach(health => {
           if (health.service_name in healthStatus) {
@@ -333,48 +267,42 @@ const AdminDashboard = () => {
         });
         healthStatus.lastUpdated = healthData[0].last_check;
       }
-
-      const { data: alertsData, error: alertsError } = await supabase
-        .from('admin_security_alerts')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .limit(20)
-        .returns<SecurityAlertRecord[]>();
-
+      const {
+        data: alertsData,
+        error: alertsError
+      } = await supabase.from('admin_security_alerts').select('*').order('created_at', {
+        ascending: false
+      }).limit(20).returns<SecurityAlertRecord[]>();
       if (alertsError) throw alertsError;
-
       const alerts: SecurityAlert[] = (alertsData || []).map(alert => ({
         ...alert,
         type: alert.alert_type,
-        timestamp: alert.created_at,
+        timestamp: alert.created_at
       }));
-
-      const { data: usersData, error: usersError } = await supabase
-        .from('profiles')
-        .select('user_id, display_name, created_at')
-        .order('created_at', { ascending: false })
-        .returns<ProfileRecord[]>();
-
+      const {
+        data: usersData,
+        error: usersError
+      } = await supabase.from('profiles').select('user_id, display_name, created_at').order('created_at', {
+        ascending: false
+      }).returns<ProfileRecord[]>();
       if (usersError) throw usersError;
-
-      const { data: allScreens, error: screensError } = await supabase
-        .from('screens')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .returns<ScreenRecord[]>();
-
+      const {
+        data: allScreens,
+        error: screensError
+      } = await supabase.from('screens').select('*').order('created_at', {
+        ascending: false
+      }).returns<ScreenRecord[]>();
       if (screensError) throw screensError;
-
       const ownerIds = [...new Set(allScreens.map(s => s.owner_id))];
-      const { data: ownerProfiles } = await supabase.from('profiles').select('user_id, display_name').in('user_id', ownerIds);
+      const {
+        data: ownerProfiles
+      } = await supabase.from('profiles').select('user_id, display_name').in('user_id', ownerIds);
       const ownerMap = new Map(ownerProfiles?.map(p => [p.user_id, p.display_name]));
 
       // Get booking counts for screens
-      const { data: bookingCounts } = await supabase
-        .from('bookings')
-        .select('screen_id')
-        .in('screen_id', allScreens.map(s => s.id));
-      
+      const {
+        data: bookingCounts
+      } = await supabase.from('bookings').select('screen_id').in('screen_id', allScreens.map(s => s.id));
       const bookingCountMap = new Map();
       if (bookingCounts) {
         const counts = bookingCounts.reduce((acc: Record<string, number>, booking) => {
@@ -385,7 +313,6 @@ const AdminDashboard = () => {
           bookingCountMap.set(screenId, count);
         });
       }
-
       const processedScreens: ScreenData[] = allScreens.map(screen => ({
         id: screen.id,
         screen_name: screen.screen_name || 'Unnamed Screen',
@@ -394,25 +321,25 @@ const AdminDashboard = () => {
         is_active: screen.is_active,
         price_per_hour: screen.price_per_hour || 0,
         created_at: screen.created_at,
-        bookings_count: (bookingCountMap.get(screen.id) as number) || 0,
+        bookings_count: bookingCountMap.get(screen.id) as number || 0
       }));
-
-      const { data: allBookings, error: bookingsError } = await supabase
-        .from('bookings')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .limit(50)
-        .returns<BookingRecord[]>();
-
+      const {
+        data: allBookings,
+        error: bookingsError
+      } = await supabase.from('bookings').select('*').order('created_at', {
+        ascending: false
+      }).limit(50).returns<BookingRecord[]>();
       if (bookingsError) throw bookingsError;
-
       const bookingUserIds = [...new Set(allBookings.map(b => b.user_id))];
       const bookingScreenIds = [...new Set(allBookings.map(b => b.screen_id))];
-      const { data: bookingUsers } = await supabase.from('profiles').select('user_id, display_name').in('user_id', bookingUserIds);
-      const { data: bookingScreens } = await supabase.from('screens').select('id, screen_name').in('id', bookingScreenIds);
+      const {
+        data: bookingUsers
+      } = await supabase.from('profiles').select('user_id, display_name').in('user_id', bookingUserIds);
+      const {
+        data: bookingScreens
+      } = await supabase.from('screens').select('id, screen_name').in('id', bookingScreenIds);
       const bookingUserMap = new Map(bookingUsers?.map(p => [p.user_id, p.display_name]));
       const bookingScreenMap = new Map(bookingScreens?.map(s => [s.id, s.screen_name]));
-
       const processedBookings: BookingData[] = allBookings.map(booking => ({
         id: booking.id,
         user_email: bookingUserMap.get(booking.user_id) || 'Unknown User',
@@ -421,35 +348,30 @@ const AdminDashboard = () => {
         total_amount: booking.total_amount,
         status: booking.status,
         payment_status: booking.payment_status,
-        created_at: booking.created_at,
+        created_at: booking.created_at
       }));
-
-      const { data: rolesData, error: rolesError } = await supabase
-        .from('user_roles')
-        .select('user_id, role')
-        .returns<UserRoleRecord[]>();
+      const {
+        data: rolesData,
+        error: rolesError
+      } = await supabase.from('user_roles').select('user_id, role').returns<UserRoleRecord[]>();
       if (rolesError) throw rolesError;
-
       const rolesByUser = (rolesData || []).reduce((acc, row) => {
         if (!acc[row.user_id]) acc[row.user_id] = [];
         acc[row.user_id].push(row.role);
         return acc;
       }, {} as Record<string, UserRole[]>);
-
       const processedUsers: UserData[] = (usersData || []).map(user => ({
         id: user.user_id,
         email: user.user_id.slice(0, 8) + '...',
         display_name: user.display_name || 'Unknown User',
         roles: rolesByUser[user.user_id] ?? [],
         created_at: user.created_at,
-        last_sign_in_at: user.created_at,
+        last_sign_in_at: user.created_at
       }));
-
       const thisMonth = new Date();
       thisMonth.setDate(1);
       const thisMonthBookings = processedBookings.filter(b => new Date(b.created_at) >= thisMonth);
       const thisMonthRevenue = thisMonthBookings.reduce((sum, b) => sum + b.total_amount, 0);
-
       setStats({
         totalUsers: analyticsData?.totalUsers || 0,
         totalScreens: (analyticsData?.activeScreens || 0) + processedScreens.filter(s => !s.is_active).length,
@@ -458,9 +380,8 @@ const AdminDashboard = () => {
         activeScreens: analyticsData?.activeScreens || 0,
         pendingBookings: processedBookings.filter(b => b.status === 'pending').length,
         thisMonthRevenue,
-        thisMonthBookings: thisMonthBookings.length,
+        thisMonthBookings: thisMonthBookings.length
       });
-
       setAnalytics({
         dailyActiveUsers: analyticsData?.dailyActiveUsers || 0,
         weeklyActiveUsers: analyticsData?.weeklyActiveUsers || 0,
@@ -478,49 +399,41 @@ const AdminDashboard = () => {
       setBookings(processedBookings);
     } catch (error) {
       console.error("Error fetching admin data:", error);
-      
+
       // Show user-friendly error instead of just logging
-      setDataUnavailable(
-        "Unable to load admin dashboard data. Please refresh the page or contact support if the issue persists."
-      );
-      
+      setDataUnavailable("Unable to load admin dashboard data. Please refresh the page or contact support if the issue persists.");
       toast({
         title: "Loading Error",
         description: "There was an issue loading the admin dashboard. Please try refreshing the page.",
-        variant: "destructive",
+        variant: "destructive"
       });
-      
       fetchSuspendedRef.current = true;
     } finally {
       setLoading(false);
     }
   };
-
   const refreshSystemHealth = async () => {
     try {
       // Simulate health checks and record them in the database
       const services = ['database', 'storage', 'cdn', 'api', 'payments'];
-      const healthPromises = services.map(async (service) => {
+      const healthPromises = services.map(async service => {
         const responseTime = Math.floor(Math.random() * 200) + 50;
         const statuses = ['healthy', 'warning'];
         const status = statuses[Math.floor(Math.random() * statuses.length)];
-        
         return supabase.rpc('record_system_health', {
           service_name: service,
           status: status,
           response_time_ms: responseTime
         });
       });
-      
       await Promise.all(healthPromises);
-      
+
       // Fetch updated health data
-      const { data: healthData } = await supabase
-        .from('admin_system_health')
-        .select('*')
-        .order('last_check', { ascending: false })
-        .limit(5);
-      
+      const {
+        data: healthData
+      } = await supabase.from('admin_system_health').select('*').order('last_check', {
+        ascending: false
+      }).limit(5);
       const healthStatus: SystemHealth = {
         database: 'healthy',
         storage: 'healthy',
@@ -529,7 +442,6 @@ const AdminDashboard = () => {
         payments: 'healthy',
         lastUpdated: new Date().toISOString()
       };
-
       if (healthData && healthData.length > 0) {
         healthData.forEach(health => {
           if (health.service_name in healthStatus) {
@@ -538,12 +450,10 @@ const AdminDashboard = () => {
         });
         healthStatus.lastUpdated = healthData[0].last_check;
       }
-      
       setSystemHealth(healthStatus);
-      
       toast({
         title: "System health refreshed",
-        description: "All services checked successfully.",
+        description: "All services checked successfully."
       });
     } catch (error) {
       console.error("Error refreshing system health:", error);
@@ -554,20 +464,20 @@ const AdminDashboard = () => {
       });
     }
   };
-
   const resolveSecurityAlert = async (alertId: string) => {
     try {
-      const { error } = await supabase.rpc('resolve_security_alert', {
+      const {
+        error
+      } = await supabase.rpc('resolve_security_alert', {
         alert_id: alertId,
         resolved_by_user_id: user!.id
       });
-      
       if (error) throw error;
-      
-      setSecurityAlerts(prev => prev.map(alert => 
-        alert.id === alertId ? { ...alert, resolved: true } : alert
-      ));
-      
+      setSecurityAlerts(prev => prev.map(alert => alert.id === alertId ? {
+        ...alert,
+        resolved: true
+      } : alert));
+
       // Log the admin action
       await supabase.rpc('log_admin_action', {
         admin_user_id: user!.id,
@@ -575,10 +485,9 @@ const AdminDashboard = () => {
         target_type: 'security_alert',
         target_id: alertId
       });
-      
       toast({
         title: "Security alert resolved",
-        description: "Alert has been marked as resolved.",
+        description: "Alert has been marked as resolved."
       });
     } catch (error) {
       console.error("Error resolving security alert:", error);
@@ -589,82 +498,91 @@ const AdminDashboard = () => {
       });
     }
   };
-
   const getHealthIcon = (status: 'healthy' | 'warning' | 'critical') => {
     switch (status) {
-      case 'healthy': return <CheckCircle className="h-4 w-4 text-green-500" />;
-      case 'warning': return <AlertTriangle className="h-4 w-4 text-yellow-500" />;
-      case 'critical': return <XCircle className="h-4 w-4 text-red-500" />;
+      case 'healthy':
+        return <CheckCircle className="h-4 w-4 text-green-500" />;
+      case 'warning':
+        return <AlertTriangle className="h-4 w-4 text-yellow-500" />;
+      case 'critical':
+        return <XCircle className="h-4 w-4 text-red-500" />;
     }
   };
-
   const getHealthColor = (status: 'healthy' | 'warning' | 'critical') => {
     switch (status) {
-      case 'healthy': return 'text-green-600 bg-green-50 border-green-200';
-      case 'warning': return 'text-yellow-600 bg-yellow-50 border-yellow-200';
-      case 'critical': return 'text-red-600 bg-red-50 border-red-200';
+      case 'healthy':
+        return 'text-green-600 bg-green-50 border-green-200';
+      case 'warning':
+        return 'text-yellow-600 bg-yellow-50 border-yellow-200';
+      case 'critical':
+        return 'text-red-600 bg-red-50 border-red-200';
     }
   };
-
   const getSeverityColor = (severity: 'low' | 'medium' | 'high' | 'critical') => {
     switch (severity) {
-      case 'low': return 'bg-blue-50 text-blue-700 border-blue-200';
-      case 'medium': return 'bg-yellow-50 text-yellow-700 border-yellow-200';
-      case 'high': return 'bg-orange-50 text-orange-700 border-orange-200';
-      case 'critical': return 'bg-red-50 text-red-700 border-red-200';
-      default: return 'bg-gray-50 text-gray-700 border-gray-200';
+      case 'low':
+        return 'bg-blue-50 text-blue-700 border-blue-200';
+      case 'medium':
+        return 'bg-yellow-50 text-yellow-700 border-yellow-200';
+      case 'high':
+        return 'bg-orange-50 text-orange-700 border-orange-200';
+      case 'critical':
+        return 'bg-red-50 text-red-700 border-red-200';
+      default:
+        return 'bg-gray-50 text-gray-700 border-gray-200';
     }
   };
-
   const updateUserRole = async (userId: string, targetRole: UserRole) => {
     try {
       const targetUser = users.find(u => u.id === userId);
       const hasRole = !!targetUser?.roles.includes(targetRole);
-
       if (hasRole) {
-        const { error } = await supabase
-          .from('user_roles')
-          .delete()
-          .eq('user_id', userId)
-          .eq('role', targetRole);
+        const {
+          error
+        } = await supabase.from('user_roles').delete().eq('user_id', userId).eq('role', targetRole);
         if (error) throw error;
-
         await supabase.rpc('log_admin_action', {
           admin_user_id: user!.id,
           action: 'remove_user_role',
           target_type: 'user',
           target_id: userId,
-          new_values: { role: targetRole }
+          new_values: {
+            role: targetRole
+          }
         });
-
-        setUsers(prev => prev.map(u => 
-          u.id === userId 
-            ? { ...u, roles: u.roles.filter(r => r !== targetRole) }
-            : u
-        ));
-
-        toast({ title: 'Role removed', description: `Removed ${targetRole} role` });
+        setUsers(prev => prev.map(u => u.id === userId ? {
+          ...u,
+          roles: u.roles.filter(r => r !== targetRole)
+        } : u));
+        toast({
+          title: 'Role removed',
+          description: `Removed ${targetRole} role`
+        });
       } else {
-        const { error } = await supabase
-          .from('user_roles')
-          .insert({ user_id: userId, role: targetRole as any });
+        const {
+          error
+        } = await supabase.from('user_roles').insert({
+          user_id: userId,
+          role: targetRole as any
+        });
         if (error) throw error;
-
         await supabase.rpc('log_admin_action', {
           admin_user_id: user!.id,
           action: 'add_user_role',
           target_type: 'user',
           target_id: userId,
-          new_values: { role: targetRole }
+          new_values: {
+            role: targetRole
+          }
         });
-
-        setUsers(prev => prev.map(u => 
-          u.id === userId 
-            ? { ...u, roles: [...u.roles, targetRole] }
-            : u
-        ));
-
-        toast({ title: 'Role added', description: `Added ${targetRole} role` });
+        setUsers(prev => prev.map(u => u.id === userId ? {
+          ...u,
+          roles: [...u.roles, targetRole]
+        } : u));
+        toast({
+          title: 'Role added',
+          description: `Added ${targetRole} role`
+        });
       }
     } catch (error) {
       console.error('Error updating user role:', error);
@@ -675,14 +593,13 @@ const AdminDashboard = () => {
       });
     }
   };
-
   const updateBookingStatus = async (bookingId: string, newStatus: string) => {
     try {
-      const { error } = await supabase
-        .from('bookings')
-        .update({ status: newStatus })
-        .eq('id', bookingId);
-
+      const {
+        error
+      } = await supabase.from('bookings').update({
+        status: newStatus
+      }).eq('id', bookingId);
       if (error) throw error;
 
       // Log the admin action
@@ -691,18 +608,17 @@ const AdminDashboard = () => {
         action: 'update_booking_status',
         target_type: 'booking',
         target_id: bookingId,
-        new_values: { status: newStatus }
+        new_values: {
+          status: newStatus
+        }
       });
-
-      setBookings(prev => prev.map(booking => 
-        booking.id === bookingId 
-          ? { ...booking, status: newStatus }
-          : booking
-      ));
-
+      setBookings(prev => prev.map(booking => booking.id === bookingId ? {
+        ...booking,
+        status: newStatus
+      } : booking));
       toast({
         title: "Booking status updated",
-        description: `Booking ${newStatus}`,
+        description: `Booking ${newStatus}`
       });
     } catch (error) {
       console.error("Error updating booking:", error);
@@ -713,14 +629,13 @@ const AdminDashboard = () => {
       });
     }
   };
-
   const toggleScreenStatus = async (screenId: string, currentStatus: boolean) => {
     try {
-      const { error } = await supabase
-        .from('screens')
-        .update({ is_active: !currentStatus } as any)
-        .eq('id', screenId);
-
+      const {
+        error
+      } = await supabase.from('screens').update({
+        is_active: !currentStatus
+      } as any).eq('id', screenId);
       if (error) throw error;
 
       // Log the admin action
@@ -729,18 +644,17 @@ const AdminDashboard = () => {
         action: 'toggle_screen_status',
         target_type: 'screen',
         target_id: screenId,
-        new_values: { is_active: !currentStatus }
+        new_values: {
+          is_active: !currentStatus
+        }
       });
-
-      setScreens(prev => prev.map(screen => 
-        screen.id === screenId 
-          ? { ...screen, is_active: !currentStatus }
-          : screen
-      ));
-
+      setScreens(prev => prev.map(screen => screen.id === screenId ? {
+        ...screen,
+        is_active: !currentStatus
+      } : screen));
       toast({
         title: !currentStatus ? "Screen activated" : "Screen deactivated",
-        description: "Screen status updated successfully.",
+        description: "Screen status updated successfully."
       });
     } catch (error) {
       console.error("Error updating screen:", error);
@@ -751,20 +665,31 @@ const AdminDashboard = () => {
       });
     }
   };
-
   const runRlsChecks = async () => {
     setRlsRunning(true);
-    const results: { name: string; ok: boolean; detail?: string }[] = [];
+    const results: {
+      name: string;
+      ok: boolean;
+      detail?: string;
+    }[] = [];
     try {
       const admin = isAdmin();
 
       // Check 1: admin_analytics is protected for non-admins
       const sel = await supabase.from('admin_analytics').select('id').limit(1);
       if (admin) {
-        results.push({ name: 'admin_analytics readable by admin', ok: !sel.error, detail: sel.error?.message });
+        results.push({
+          name: 'admin_analytics readable by admin',
+          ok: !sel.error,
+          detail: sel.error?.message
+        });
       } else {
-        const protectedOk = !!sel.error || (Array.isArray(sel.data) && sel.data.length === 0);
-        results.push({ name: 'admin_analytics protected for non-admin', ok: protectedOk, detail: sel.error?.message });
+        const protectedOk = !!sel.error || Array.isArray(sel.data) && sel.data.length === 0;
+        results.push({
+          name: 'admin_analytics protected for non-admin',
+          ok: protectedOk,
+          detail: sel.error?.message
+        });
       }
 
       // Check 2: INSERT with foreign user_id should be denied by RLS (idempotency_keys)
@@ -777,58 +702,46 @@ const AdminDashboard = () => {
         status: 'processed'
       });
       const denied = !!ins.error;
-      results.push({ name: 'deny insert with mismatched user_id', ok: denied, detail: ins.error?.message });
+      results.push({
+        name: 'deny insert with mismatched user_id',
+        ok: denied,
+        detail: ins.error?.message
+      });
     } catch (e: any) {
-      results.push({ name: 'unexpected error running checks', ok: false, detail: e?.message });
+      results.push({
+        name: 'unexpected error running checks',
+        ok: false,
+        detail: e?.message
+      });
     } finally {
       setRlsResults(results);
       setRlsRunning(false);
     }
   };
-  const filteredUsers = users.filter(user =>
-    user.display_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    user.roles.join(',').toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
-  const filteredScreens = screens.filter(screen =>
-    screen.screen_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    screen.city.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    screen.owner_email.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
-  const filteredBookings = bookings.filter(booking =>
-    booking.user_email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    booking.screen_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    booking.status.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
+  const filteredUsers = users.filter(user => user.display_name.toLowerCase().includes(searchQuery.toLowerCase()) || user.roles.join(',').toLowerCase().includes(searchQuery.toLowerCase()));
+  const filteredScreens = screens.filter(screen => screen.screen_name.toLowerCase().includes(searchQuery.toLowerCase()) || screen.city.toLowerCase().includes(searchQuery.toLowerCase()) || screen.owner_email.toLowerCase().includes(searchQuery.toLowerCase()));
+  const filteredBookings = bookings.filter(booking => booking.user_email.toLowerCase().includes(searchQuery.toLowerCase()) || booking.screen_name.toLowerCase().includes(searchQuery.toLowerCase()) || booking.status.toLowerCase().includes(searchQuery.toLowerCase()));
   if (loading || rolesLoading) {
-    return (
-      <Layout>
+    return <Layout>
         <div className="container mx-auto px-4 py-8">
           <div className="animate-pulse space-y-4">
             <div className="h-8 bg-muted rounded w-1/4"></div>
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-              {[1, 2, 3, 4].map(i => (
-                <div key={i} className="h-32 bg-muted rounded"></div>
-              ))}
+              {[1, 2, 3, 4].map(i => <div key={i} className="h-32 bg-muted rounded"></div>)}
             </div>
           </div>
         </div>
-      </Layout>
-    );
+      </Layout>;
   }
-
-  return (
-    <Layout>
+  return <Layout>
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="flex flex-col lg:flex-row lg:items-center justify-between mb-8 gap-4">
           <div>
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent mb-2">
+            <h1 className="font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent mb-2 text-2xl">
               Admin Dashboard
             </h1>
-            <p className="text-muted-foreground text-lg">
+            <p className="text-muted-foreground text-sm">
               Platform management and analytics overview
             </p>
           </div>
@@ -849,15 +762,13 @@ const AdminDashboard = () => {
           </div>
         </div>
 
-        {dataUnavailable && (
-          <div className="mb-6">
+        {dataUnavailable && <div className="mb-6">
             <Alert>
               <AlertTriangle className="h-4 w-4" />
               <AlertTitle>Limited dashboard data</AlertTitle>
               <AlertDescription>{dataUnavailable}</AlertDescription>
             </Alert>
-          </div>
-        )}
+          </div>}
 
         {/* Stats Grid */}
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4 mb-8">
@@ -929,18 +840,13 @@ const AdminDashboard = () => {
           <CardHeader className="border-b bg-muted/5">
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
               <div>
-                <CardTitle className="text-2xl">Platform Management</CardTitle>
-                <CardDescription>Manage users, screens, bookings, and platform settings</CardDescription>
+                <CardTitle className="text-xl">Platform Management</CardTitle>
+                <CardDescription className="text-sm">Manage users, screens, bookings, and platform settings</CardDescription>
               </div>
               <div className="flex items-center gap-3">
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    placeholder="Search..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-10 w-full lg:w-64"
-                  />
+                  <Input placeholder="Search..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="pl-10 w-full lg:w-64" />
                 </div>
               </div>
             </div>
@@ -950,30 +856,30 @@ const AdminDashboard = () => {
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
               <div className="border-b overflow-x-auto">
                  <TabsList className="inline-flex h-auto min-w-full w-max items-center justify-start bg-transparent p-0 md:w-full md:justify-center">
-                   <TabsTrigger value="overview" className="py-4 whitespace-nowrap data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-50 data-[state=active]:to-blue-100 data-[state=active]:text-blue-700">
+                   <TabsTrigger value="overview" className="py-4 whitespace-nowrap data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-50 data-[state=active]:to-blue-100 text-red-700 text-sm">
                      Overview
                    </TabsTrigger>
-                   <TabsTrigger value="users" className="py-4 whitespace-nowrap data-[state=active]:bg-gradient-to-r data-[state=active]:from-emerald-50 data-[state=active]:to-emerald-100 data-[state=active]:text-emerald-700">
+                   <TabsTrigger value="users" className="py-4 whitespace-nowrap data-[state=active]:bg-gradient-to-r data-[state=active]:from-emerald-50 data-[state=active]:to-emerald-100 text-red-700 text-sm">
                      <Users className="h-4 w-4 mr-2" />
                      Users ({stats.totalUsers})
                    </TabsTrigger>
-                   <TabsTrigger value="screens" className="py-4 whitespace-nowrap data-[state=active]:bg-gradient-to-r data-[state=active]:from-violet-50 data-[state=active]:to-violet-100 data-[state=active]:text-violet-700">
+                   <TabsTrigger value="screens" className="py-4 whitespace-nowrap data-[state=active]:bg-gradient-to-r data-[state=active]:from-violet-50 data-[state=active]:to-violet-100 text-red-700 text-sm">
                      <Monitor className="h-4 w-4 mr-2" />
                      Screens ({stats.totalScreens})
                    </TabsTrigger>
-                   <TabsTrigger value="bookings" className="py-4 whitespace-nowrap data-[state=active]:bg-gradient-to-r data-[state=active]:from-amber-50 data-[state=active]:to-amber-100 data-[state=active]:text-amber-700">
+                   <TabsTrigger value="bookings" className="py-4 whitespace-nowrap data-[state=active]:bg-gradient-to-r data-[state=active]:from-amber-50 data-[state=active]:to-amber-100 text-red-700 text-sm">
                      <Calendar className="h-4 w-4 mr-2" />
                      Bookings ({stats.totalBookings})
                    </TabsTrigger>
-                   <TabsTrigger value="system" className="py-4 whitespace-nowrap data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-50 data-[state=active]:to-green-100 data-[state=active]:text-green-700">
+                   <TabsTrigger value="system" className="py-4 whitespace-nowrap data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-50 data-[state=active]:to-green-100 text-red-700 text-sm">
                      <Server className="h-4 w-4 mr-2" />
                      System Health
                    </TabsTrigger>
-                   <TabsTrigger value="security" className="py-4 whitespace-nowrap data-[state=active]:bg-gradient-to-r data-[state=active]:from-red-50 data-[state=active]:to-red-100 data-[state=active]:text-red-700">
+                   <TabsTrigger value="security" className="py-4 whitespace-nowrap data-[state=active]:bg-gradient-to-r data-[state=active]:from-red-50 data-[state=active]:to-red-100 data-[state=active]:text-red-700 text-sm">
                      <Shield className="h-4 w-4 mr-2" />
                      Security
                    </TabsTrigger>
-                   <TabsTrigger value="mobile" className="py-4 whitespace-nowrap data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-50 data-[state=active]:to-purple-100 data-[state=active]:text-purple-700">
+                   <TabsTrigger value="mobile" className="py-4 whitespace-nowrap data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-50 data-[state=active]:to-purple-100 text-sm text-red-700">
                      <Smartphone className="h-4 w-4 mr-2" />
                      Apps
                    </TabsTrigger>
@@ -1006,7 +912,7 @@ const AdminDashboard = () => {
                         </div>
                         <div className="flex items-center justify-between">
                           <span className="text-sm">Conversion Rate</span>
-                          <span className="font-medium">{(analytics?.conversionRate || 0)}%</span>
+                          <span className="font-medium">{analytics?.conversionRate || 0}%</span>
                         </div>
                       </div>
                     </CardContent>
@@ -1029,7 +935,7 @@ const AdminDashboard = () => {
                         <div className="flex items-center justify-between">
                           <span className="text-sm">Average booking value</span>
                           <span className="font-medium">
-                            ${stats.totalBookings > 0 ? ((stats.totalRevenue / stats.totalBookings) / 100).toFixed(2) : '0.00'}
+                            ${stats.totalBookings > 0 ? (stats.totalRevenue / stats.totalBookings / 100).toFixed(2) : '0.00'}
                           </span>
                         </div>
                         <div className="flex items-center justify-between">
@@ -1096,8 +1002,7 @@ const AdminDashboard = () => {
                        </TableRow>
                      </TableHeader>
                     <TableBody>
-                      {filteredUsers.slice(0, 10).map((user) => (
-                        <TableRow key={user.id}>
+                      {filteredUsers.slice(0, 10).map(user => <TableRow key={user.id}>
                           <TableCell>
                             <div>
                               <div className="font-medium">{user.display_name}</div>
@@ -1106,24 +1011,9 @@ const AdminDashboard = () => {
                           </TableCell>
                            <TableCell>
                              <div className="flex flex-wrap gap-1">
-                               {user.roles.length > 0 ? (
-                                 user.roles.map((r) => (
-                                   <Badge 
-                                     key={r} 
-                                     variant="outline" 
-                                     className={`capitalize ${
-                                       r === 'admin' ? 'bg-red-50 text-red-700 border-red-200' :
-                                       r === 'screen_owner' ? 'bg-blue-50 text-blue-700 border-blue-200' :
-                                       r === 'broadcaster' ? 'bg-green-50 text-green-700 border-green-200' :
-                                       'bg-gray-50 text-gray-700 border-gray-200'
-                                     }`}
-                                   >
+                               {user.roles.length > 0 ? user.roles.map(r => <Badge key={r} variant="outline" className={`capitalize ${r === 'admin' ? 'bg-red-50 text-red-700 border-red-200' : r === 'screen_owner' ? 'bg-blue-50 text-blue-700 border-blue-200' : r === 'broadcaster' ? 'bg-green-50 text-green-700 border-green-200' : 'bg-gray-50 text-gray-700 border-gray-200'}`}>
                                      {r}
-                                   </Badge>
-                                 ))
-                               ) : (
-                                 <Badge variant="secondary" className="bg-gray-100 text-gray-600">No roles</Badge>
-                               )}
+                                   </Badge>) : <Badge variant="secondary" className="bg-gray-100 text-gray-600">No roles</Badge>}
                              </div>
                            </TableCell>
                           <TableCell>
@@ -1149,8 +1039,7 @@ const AdminDashboard = () => {
                               </DropdownMenuContent>
                             </DropdownMenu>
                           </TableCell>
-                        </TableRow>
-                      ))}
+                        </TableRow>)}
                     </TableBody>
                   </Table>
                 </div>
@@ -1170,8 +1059,7 @@ const AdminDashboard = () => {
                        </TableRow>
                      </TableHeader>
                     <TableBody>
-                      {filteredScreens.slice(0, 10).map((screen) => (
-                        <TableRow key={screen.id}>
+                      {filteredScreens.slice(0, 10).map(screen => <TableRow key={screen.id}>
                           <TableCell>
                             <div>
                               <div className="font-medium">{screen.screen_name}</div>
@@ -1186,13 +1074,7 @@ const AdminDashboard = () => {
                             </div>
                           </TableCell>
                            <TableCell>
-                             <Badge 
-                               variant={screen.is_active ? "default" : "secondary"}
-                               className={screen.is_active ? 
-                                 "bg-green-100 text-green-800 border-green-200" : 
-                                 "bg-gray-100 text-gray-600 border-gray-200"
-                               }
-                             >
+                             <Badge variant={screen.is_active ? "default" : "secondary"} className={screen.is_active ? "bg-green-100 text-green-800 border-green-200" : "bg-gray-100 text-gray-600 border-gray-200"}>
                                {screen.is_active ? "Active" : "Inactive"}
                              </Badge>
                            </TableCell>
@@ -1206,17 +1088,13 @@ const AdminDashboard = () => {
                               </DropdownMenuTrigger>
                               <DropdownMenuContent>
                                 <DropdownMenuItem onClick={() => toggleScreenStatus(screen.id, screen.is_active)}>
-                                  {screen.is_active ? (
-                                    <>
+                                  {screen.is_active ? <>
                                       <XCircle className="h-4 w-4 mr-2" />
                                       Deactivate
-                                    </>
-                                  ) : (
-                                    <>
+                                    </> : <>
                                       <CheckCircle className="h-4 w-4 mr-2" />
                                       Activate
-                                    </>
-                                  )}
+                                    </>}
                                 </DropdownMenuItem>
                                 <DropdownMenuItem>
                                   <Eye className="h-4 w-4 mr-2" />
@@ -1225,8 +1103,7 @@ const AdminDashboard = () => {
                               </DropdownMenuContent>
                             </DropdownMenu>
                           </TableCell>
-                        </TableRow>
-                      ))}
+                        </TableRow>)}
                     </TableBody>
                   </Table>
                 </div>
@@ -1246,8 +1123,7 @@ const AdminDashboard = () => {
                        </TableRow>
                      </TableHeader>
                     <TableBody>
-                      {filteredBookings.slice(0, 10).map((booking) => (
-                        <TableRow key={booking.id}>
+                      {filteredBookings.slice(0, 10).map(booking => <TableRow key={booking.id}>
                           <TableCell>{booking.user_email}</TableCell>
                           <TableCell>{booking.screen_name}</TableCell>
                           <TableCell>
@@ -1261,26 +1137,10 @@ const AdminDashboard = () => {
                           </TableCell>
                            <TableCell>
                              <div className="flex gap-2">
-                               <Badge 
-                                 variant="outline" 
-                                 className={`capitalize ${
-                                   booking.status === 'confirmed' ? 'bg-green-50 text-green-700 border-green-200' :
-                                   booking.status === 'pending' ? 'bg-yellow-50 text-yellow-700 border-yellow-200' :
-                                   booking.status === 'cancelled' ? 'bg-red-50 text-red-700 border-red-200' :
-                                   'bg-gray-50 text-gray-700 border-gray-200'
-                                 }`}
-                               >
+                               <Badge variant="outline" className={`capitalize ${booking.status === 'confirmed' ? 'bg-green-50 text-green-700 border-green-200' : booking.status === 'pending' ? 'bg-yellow-50 text-yellow-700 border-yellow-200' : booking.status === 'cancelled' ? 'bg-red-50 text-red-700 border-red-200' : 'bg-gray-50 text-gray-700 border-gray-200'}`}>
                                  {booking.status}
                                </Badge>
-                               <Badge 
-                                 variant="outline" 
-                                 className={`capitalize ${
-                                   booking.payment_status === 'paid' ? 'bg-green-50 text-green-700 border-green-200' :
-                                   booking.payment_status === 'pending' ? 'bg-yellow-50 text-yellow-700 border-yellow-200' :
-                                   booking.payment_status === 'failed' ? 'bg-red-50 text-red-700 border-red-200' :
-                                   'bg-gray-50 text-gray-700 border-gray-200'
-                                 }`}
-                               >
+                               <Badge variant="outline" className={`capitalize ${booking.payment_status === 'paid' ? 'bg-green-50 text-green-700 border-green-200' : booking.payment_status === 'pending' ? 'bg-yellow-50 text-yellow-700 border-yellow-200' : booking.payment_status === 'failed' ? 'bg-red-50 text-red-700 border-red-200' : 'bg-gray-50 text-gray-700 border-gray-200'}`}>
                                  {booking.payment_status}
                                </Badge>
                              </div>
@@ -1308,8 +1168,7 @@ const AdminDashboard = () => {
                               </DropdownMenuContent>
                             </DropdownMenu>
                           </TableCell>
-                        </TableRow>
-                      ))}
+                        </TableRow>)}
                     </TableBody>
                   </Table>
                 </div>
@@ -1334,15 +1193,11 @@ const AdminDashboard = () => {
                         </Button>
                       </div>
                       <div className="space-y-2">
-                        {rlsResults.map((r, i) => (
-                          <div key={i} className="text-sm flex items-center justify-between">
+                        {rlsResults.map((r, i) => <div key={i} className="text-sm flex items-center justify-between">
                             <span>{r.name}</span>
                             <span className={r.ok ? 'text-emerald-600' : 'text-red-600'}>{r.ok ? 'PASS' : 'FAIL'}</span>
-                          </div>
-                        ))}
-                        {rlsResults.length === 0 && (
-                          <div className="text-sm text-muted-foreground">No results yet. Click Run to verify.</div>
-                        )}
+                          </div>)}
+                        {rlsResults.length === 0 && <div className="text-sm text-muted-foreground">No results yet. Click Run to verify.</div>}
                       </div>
                     </CardContent>
                   </Card>
@@ -1352,20 +1207,13 @@ const AdminDashboard = () => {
                        <AlertTriangle className="h-5 w-5 text-amber-500" />
                        Security Alerts & Monitoring
                      </h3>
-                     <Badge 
-                       variant={securityAlerts.filter(a => !a.resolved).length > 0 ? "destructive" : "default"}
-                       className={securityAlerts.filter(a => !a.resolved).length > 0 ? 
-                         "bg-red-100 text-red-800 border-red-200" : 
-                         "bg-green-100 text-green-800 border-green-200"
-                       }
-                     >
+                     <Badge variant={securityAlerts.filter(a => !a.resolved).length > 0 ? "destructive" : "default"} className={securityAlerts.filter(a => !a.resolved).length > 0 ? "bg-red-100 text-red-800 border-red-200" : "bg-green-100 text-green-800 border-green-200"}>
                        {securityAlerts.filter(a => !a.resolved).length} Unresolved
                      </Badge>
                    </div>
                   
                   <div className="space-y-4">
-                    {securityAlerts.map((alert) => (
-                      <Card key={alert.id} className={`border ${alert.resolved ? 'opacity-60' : ''}`}>
+                    {securityAlerts.map(alert => <Card key={alert.id} className={`border ${alert.resolved ? 'opacity-60' : ''}`}>
                         <CardContent className="p-4">
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-3">
@@ -1389,30 +1237,21 @@ const AdminDashboard = () => {
                                 </p>
                               </div>
                             </div>
-                            {!alert.resolved && (
-                              <Button 
-                                onClick={() => resolveSecurityAlert(alert.id)} 
-                                variant="outline" 
-                                size="sm"
-                              >
+                            {!alert.resolved && <Button onClick={() => resolveSecurityAlert(alert.id)} variant="outline" size="sm">
                                 <CheckSquare className="h-4 w-4 mr-2" />
                                 Resolve
-                              </Button>
-                            )}
+                              </Button>}
                           </div>
                         </CardContent>
-                      </Card>
-                    ))}
+                      </Card>)}
                     
-                    {securityAlerts.length === 0 && (
-                      <Card>
+                    {securityAlerts.length === 0 && <Card>
                         <CardContent className="p-8 text-center">
                           <Shield className="h-12 w-12 text-green-500 mx-auto mb-4" />
                           <h3 className="text-lg font-semibold mb-2">All Clear</h3>
                           <p className="text-muted-foreground">No security alerts detected</p>
                         </CardContent>
-                      </Card>
-                    )}
+                      </Card>}
                   </div>
                 </div>
               </TabsContent>
@@ -1424,10 +1263,7 @@ const AdminDashboard = () => {
                       <h2 className="text-3xl font-bold mb-2">Red Square Documentation</h2>
                       <p className="text-muted-foreground">Complete setup and user guides for screen owners and broadcasters</p>
                     </div>
-                    <Button 
-                      onClick={() => window.open('/admin/documentation', '_blank')}
-                      className="flex items-center gap-2"
-                    >
+                    <Button onClick={() => window.open('/admin/documentation', '_blank')} className="flex items-center gap-2">
                       <Download className="w-4 h-4" />
                       Open Full Manual
                     </Button>
@@ -1542,8 +1378,6 @@ const AdminDashboard = () => {
           </CardContent>
         </Card>
       </div>
-    </Layout>
-  );
+    </Layout>;
 };
-
 export default AdminDashboard;
