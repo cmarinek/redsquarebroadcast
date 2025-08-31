@@ -83,21 +83,95 @@ jobs:
         id: upload_artifact
         run: |
           $file = Get-ChildItem -Path release -Filter "*.exe" | Select-Object -First 1
+          if (-not $file) {
+            Write-Error "No .exe file found in release directory"
+            exit 1
+          }
+          
           $fileName = $file.Name
           $filePath = $file.FullName
+          $fileSizeMB = [math]::Round($file.Length / 1MB, 2)
           $bucket = "app_artifacts"
           $artifactName = "RedSquare-Advertiser-Desktop-v${{ steps.build_info.outputs.version }}.exe"
           $artifactUrl = "${{ secrets.SUPABASE_URL }}/storage/v1/object/public/$bucket/$artifactName"
 
           echo "artifact_url=$artifactUrl" >> $env:GITHUB_OUTPUT
+          Write-Host "Uploading file: $fileName (${fileSizeMB}MB)"
 
-          Invoke-RestMethod -Uri "${{ secrets.SUPABASE_URL }}/storage/v1/object/$bucket/$artifactName" `
-            -Method POST `
-            -Headers @{
-              "Authorization" = "Bearer ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}";
-              "Content-Type" = "application/vnd.microsoft.portable-executable";
-            } `
-            -InFile $filePath
+          # Check if file size is over 45MB (Supabase limit is ~50MB)
+          if ($file.Length -gt 47185920) {  # 45MB in bytes
+            Write-Host "File is large (${fileSizeMB}MB), using chunked upload approach..."
+            
+            # First, try to get a signed upload URL
+            try {
+              $signedUrlBody = @{
+                bucket = $bucket
+                file_name = $artifactName
+                content_type = "application/vnd.microsoft.portable-executable"
+                content_size = $file.Length
+              } | ConvertTo-Json -Compress
+
+              $signedResponse = Invoke-RestMethod -Uri "${{ secrets.SUPABASE_URL }}/functions/v1/create-signed-upload" `
+                -Method POST `
+                -Headers @{
+                  "Authorization" = "Bearer ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}";
+                  "Content-Type" = "application/json";
+                } `
+                -Body $signedUrlBody
+
+              # Upload using the signed URL
+              $uploadResponse = Invoke-RestMethod -Uri $signedResponse.url `
+                -Method PUT `
+                -Headers $signedResponse.headers `
+                -InFile $filePath
+
+              Write-Host "Large file uploaded successfully using signed URL"
+            }
+            catch {
+              Write-Host "Signed URL upload failed, attempting direct upload with retry logic..."
+              
+              # Fallback: Direct upload with retry
+              $maxRetries = 3
+              $retryCount = 0
+              $uploadSuccess = $false
+              
+              while ($retryCount -lt $maxRetries -and -not $uploadSuccess) {
+                try {
+                  $retryCount++
+                  Write-Host "Upload attempt $retryCount of $maxRetries..."
+                  
+                  Invoke-RestMethod -Uri "${{ secrets.SUPABASE_URL }}/storage/v1/object/$bucket/$artifactName" `
+                    -Method POST `
+                    -Headers @{
+                      "Authorization" = "Bearer ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}";
+                      "Content-Type" = "application/vnd.microsoft.portable-executable";
+                    } `
+                    -InFile $filePath `
+                    -TimeoutSec 300
+                  
+                  $uploadSuccess = $true
+                  Write-Host "Upload successful on attempt $retryCount"
+                }
+                catch {
+                  Write-Host "Upload attempt $retryCount failed: $($_.Exception.Message)"
+                  if ($retryCount -eq $maxRetries) {
+                    throw $_
+                  }
+                  Start-Sleep -Seconds (5 * $retryCount)  # Exponential backoff
+                }
+              }
+            }
+          }
+          else {
+            Write-Host "File size is acceptable (${fileSizeMB}MB), using direct upload..."
+            Invoke-RestMethod -Uri "${{ secrets.SUPABASE_URL }}/storage/v1/object/$bucket/$artifactName" `
+              -Method POST `
+              -Headers @{
+                "Authorization" = "Bearer ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}";
+                "Content-Type" = "application/vnd.microsoft.portable-executable";
+              } `
+              -InFile $filePath
+          }
         shell: pwsh
 
       - name: Update Build Status to 'Success'
