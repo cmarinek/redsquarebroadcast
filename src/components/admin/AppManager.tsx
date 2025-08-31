@@ -34,6 +34,7 @@ interface AppRelease {
   updated_at: string;
   source: 'manual' | 'automated';
   build_id?: string;
+  status?: string; // GitHub Action build status for automated builds
 }
 
 type Platform = 'redsquare_android' | 'redsquare_ios' | 'redsquare_web' | 'screens_android_tv' | 'screens_android_mobile' | 'screens_ios' | 'screens_windows' | 'screens_macos' | 'screens_linux' | 'screens_amazon_fire' | 'screens_roku' | 'screens_samsung_tizen' | 'screens_lg_webos' | 'system_test';
@@ -327,7 +328,8 @@ export const AppManager = () => {
           created_at: build.created_at,
           updated_at: build.updated_at || build.created_at,
           source: 'automated' as const,
-          build_id: build.id
+          build_id: build.id,
+          status: build.status // Include GitHub Action build status
         };
       });
 
@@ -740,9 +742,35 @@ export const AppManager = () => {
                           </div>
                         </TableCell>
                         <TableCell>
-                          <Badge variant={release.is_active ? "default" : "secondary"}>
-                            {release.is_active ? "Active" : "Inactive"}
-                          </Badge>
+                          {release.source === 'automated' ? (
+                            <div className="flex flex-col gap-1">
+                              <Badge 
+                                variant={
+                                  release.status === 'success' ? 'default' : 
+                                  release.status === 'in_progress' ? 'secondary' :
+                                  release.status === 'pending' ? 'outline' : 
+                                  'destructive'
+                                }
+                                className={
+                                  release.status === 'success' ? 'bg-green-600 text-white' :
+                                  release.status === 'in_progress' ? 'bg-blue-600 text-white animate-pulse' :
+                                  release.status === 'pending' ? 'bg-yellow-600 text-white' :
+                                  'bg-red-600 text-white'
+                                }
+                              >
+                                {release.status === 'in_progress' ? 'Building...' : 
+                                 release.status === 'pending' ? 'Queued' : 
+                                 release.status?.charAt(0).toUpperCase() + release.status?.slice(1)}
+                              </Badge>
+                              <Badge variant={release.is_active ? "default" : "secondary"} className="text-xs">
+                                {release.is_active ? "Active" : "Inactive"}
+                              </Badge>
+                            </div>
+                          ) : (
+                            <Badge variant={release.is_active ? "default" : "secondary"}>
+                              {release.is_active ? "Active" : "Inactive"}
+                            </Badge>
+                          )}
                         </TableCell>
                         <TableCell>
                           {formatFileSize(release.file_size, true)}
@@ -853,11 +881,37 @@ export const AppManager = () => {
                           </div>
                         </div>
                       </TableCell>
-                      <TableCell>
-                        <Badge variant={release.is_active ? "default" : "secondary"}>
-                          {release.is_active ? "Active" : "Inactive"}
-                        </Badge>
-                      </TableCell>
+                       <TableCell>
+                         {release.source === 'automated' ? (
+                           <div className="flex flex-col gap-1">
+                             <Badge 
+                               variant={
+                                 release.status === 'success' ? 'default' : 
+                                 release.status === 'in_progress' ? 'secondary' :
+                                 release.status === 'pending' ? 'outline' : 
+                                 'destructive'
+                               }
+                               className={
+                                 release.status === 'success' ? 'bg-green-600 text-white' :
+                                 release.status === 'in_progress' ? 'bg-blue-600 text-white animate-pulse' :
+                                 release.status === 'pending' ? 'bg-yellow-600 text-white' :
+                                 'bg-red-600 text-white'
+                               }
+                             >
+                               {release.status === 'in_progress' ? 'Building...' : 
+                                release.status === 'pending' ? 'Queued' : 
+                                release.status?.charAt(0).toUpperCase() + release.status?.slice(1)}
+                             </Badge>
+                             <Badge variant={release.is_active ? "default" : "secondary"} className="text-xs">
+                               {release.is_active ? "Active" : "Inactive"}
+                             </Badge>
+                           </div>
+                         ) : (
+                           <Badge variant={release.is_active ? "default" : "secondary"}>
+                             {release.is_active ? "Active" : "Inactive"}
+                           </Badge>
+                         )}
+                       </TableCell>
                        <TableCell>
                          {formatFileSize(release.file_size, release.source === 'automated')}
                        </TableCell>
