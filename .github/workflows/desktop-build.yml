@@ -120,67 +120,24 @@ jobs:
           $zipSizeMB = [math]::Round($zipFile.Length / 1MB, 2)
           Write-Host "Zip file created: $zipName (${zipSizeMB}MB) - Compression ratio: $([math]::Round((1 - $zipFile.Length / $file.Length) * 100, 1))%"
           
-          # Set up upload variables
-          $bucket = "app_artifacts"
-          $artifactName = $zipName
-          $artifactUrl = "${{ secrets.SUPABASE_URL }}/storage/v1/object/public/$bucket/$artifactName"
+          # Upload using resumable upload script
+          Write-Host "Uploading with resumable upload..."
+          node scripts/resumable-upload.js "$zipPath" "app_artifacts" "$zipName" "${{ secrets.SUPABASE_URL }}" "${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}"
           
+          # Read the result URL
+          $artifactUrl = Get-Content "upload-result.txt"
           echo "artifact_url=$artifactUrl" >> $env:GITHUB_OUTPUT
           
-          # Upload zip file to Supabase Storage
-          try {
-            Write-Host "Uploading zip file to Supabase Storage..."
-            Invoke-RestMethod -Uri "${{ secrets.SUPABASE_URL }}/storage/v1/object/$bucket/$artifactName" `
-              -Method POST `
-              -Headers @{
-                "Authorization" = "Bearer ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}";
-                "Content-Type" = "application/zip";
-              } `
-              -InFile $zipPath `
-              -TimeoutSec 300
-            
-            Write-Host "Zip file uploaded successfully!"
+          Write-Host "Zip file uploaded successfully using resumable upload!"
+          Write-Host "Artifact URL: $artifactUrl"
+          
+          # Clean up temp files
+          if (Test-Path $zipPath) {
+            Remove-Item $zipPath -Force
+            Write-Host "Temporary zip file cleaned up"
           }
-          catch {
-            Write-Host "Upload failed with error: $($_.Exception.Message)"
-            
-            # If direct upload fails, try with signed URL
-            Write-Host "Attempting upload with signed URL..."
-            try {
-              $signedUrlBody = @{
-                bucket = $bucket
-                file_name = $artifactName
-                content_type = "application/zip"
-                content_size = $zipFile.Length
-              } | ConvertTo-Json -Compress
-
-              $signedResponse = Invoke-RestMethod -Uri "${{ secrets.SUPABASE_URL }}/functions/v1/create-signed-upload" `
-                -Method POST `
-                -Headers @{
-                  "Authorization" = "Bearer ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}";
-                  "Content-Type" = "application/json";
-                } `
-                -Body $signedUrlBody
-
-              # Upload using the signed URL
-              Invoke-RestMethod -Uri $signedResponse.url `
-                -Method PUT `
-                -Headers $signedResponse.headers `
-                -InFile $zipPath
-
-              Write-Host "Zip file uploaded successfully using signed URL!"
-            }
-            catch {
-              Write-Host "Signed URL upload also failed: $($_.Exception.Message)"
-              throw $_
-            }
-          }
-          finally {
-            # Clean up temp zip file
-            if (Test-Path $zipPath) {
-              Remove-Item $zipPath -Force
-              Write-Host "Temporary zip file cleaned up"
-            }
+          if (Test-Path "upload-result.txt") {
+            Remove-Item "upload-result.txt" -Force
           }
         shell: pwsh
 
