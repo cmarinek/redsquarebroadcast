@@ -78,7 +78,19 @@ serve(async (req) => {
     const allowedAppTypes = ['redsquare_android', 'redsquare_ios', 'redsquare_web', 'screens_android_tv', 'screens_android_mobile', 'screens_ios', 'screens_amazon_fire', 'screens_roku', 'screens_samsung_tizen', 'screens_lg_webos'] as const;
     type AppType = typeof allowedAppTypes[number];
 
-    const { app_type }: { app_type: AppType } = await req.json();
+    let requestBody;
+    try {
+      requestBody = await req.json();
+      console.log("📦 Request body:", requestBody);
+    } catch (parseError) {
+      console.error("❌ Failed to parse request body:", parseError);
+      return new Response(JSON.stringify({ error: "Invalid JSON in request body" }), { 
+        status: 400, 
+        headers: { ...corsHeaders, "Content-Type": "application/json" } 
+      });
+    }
+
+    const { app_type }: { app_type: AppType } = requestBody;
     console.log("📱 App type requested:", app_type);
 
     if (!app_type || !allowedAppTypes.includes(app_type)) {
@@ -185,9 +197,15 @@ serve(async (req) => {
 
   } catch (error) {
     console.error("💥 Function error:", error);
+    console.error("💥 Error details:", {
+      message: error.message,
+      stack: error.stack,
+      name: error.name
+    });
     return new Response(JSON.stringify({ 
       error: error.message,
-      stack: error.stack 
+      stack: error.stack,
+      function: "trigger-app-build"
     }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
