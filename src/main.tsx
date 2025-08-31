@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { Suspense } from 'react'
 import { createRoot } from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
 import App from './App.tsx'
@@ -114,9 +114,9 @@ createRoot(rootElement!).render(
         <I18nextProvider i18n={i18n}>
           <LanguageProvider>
             <AuthProvider>
-              <React.Suspense fallback={<LoadingFallback message="Loading application..." />}>
+              <Suspense fallback={<LoadingFallback message="Loading application..." />}>
                 {isMobileApp ? <ScreenOwnerMobile /> : <App />}
-              </React.Suspense>
+              </Suspense>
               <Toaster />
             </AuthProvider>
           </LanguageProvider>
