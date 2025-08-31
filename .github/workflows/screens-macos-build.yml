@@ -104,7 +104,7 @@ jobs:
           ESCAPED_FILE_SIZE=$(echo "$FILE_SIZE_MB" | sed 's/"/\\"/g')
           
           # Create GitHub Release with proper JSON escaping
-          RELEASE_RESPONSE=$(curl -s -w "%{response_code}:%{http_code}" -X POST \
+          HTTP_STATUS=$(curl -s -w "%{http_code}" -X POST \
             "https://api.github.com/repos/${{ github.repository }}/releases" \
             -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
             -H "Accept: application/vnd.github.v3+json" \
@@ -116,16 +116,16 @@ jobs:
               \"body\": \"Automated build of RedSquare Screens for macOS\\n\\nCommit: ${{ github.sha }}\\nFile size: ${ESCAPED_FILE_SIZE}MB\",
               \"draft\": false,
               \"prerelease\": true
-            }")
+            }" \
+            -o /tmp/release_response.json)
           
-          # Extract HTTP status code and response body
-          HTTP_CODE=$(echo "$RELEASE_RESPONSE" | grep -o '[0-9]*$')
-          RESPONSE_BODY=$(echo "$RELEASE_RESPONSE" | sed 's/:response_code:[0-9]*$//')
+          echo "GitHub Release API Status: $HTTP_STATUS"
           
-          echo "GitHub Release API Status: $HTTP_CODE"
+          # Read the response body from file
+          RESPONSE_BODY=$(cat /tmp/release_response.json)
           
-          if [ "$HTTP_CODE" != "201" ]; then
-            echo "Failed to create GitHub release. HTTP Status: $HTTP_CODE"
+          if [ "$HTTP_STATUS" != "201" ]; then
+            echo "Failed to create GitHub release. HTTP Status: $HTTP_STATUS"
             echo "Response: $RESPONSE_BODY"
             exit 1
           fi
@@ -147,20 +147,20 @@ jobs:
           ASSET_NAME="RedSquare-Screens-macOS-v${{ steps.build_info.outputs.version }}.dmg"
           echo "Uploading asset: $ASSET_NAME"
           
-          UPLOAD_RESPONSE=$(curl -s -w "%{response_code}:%{http_code}" -X POST \
+          UPLOAD_HTTP_STATUS=$(curl -s -w "%{http_code}" -X POST \
             "${UPLOAD_URL}?name=${ASSET_NAME}&label=macOS%20Desktop%20App" \
             -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
             -H "Content-Type: application/octet-stream" \
-            --data-binary @"$FILE_PATH")
+            --data-binary @"$FILE_PATH" \
+            -o /tmp/upload_response.json)
           
-          # Extract HTTP status code and response body
-          UPLOAD_HTTP_CODE=$(echo "$UPLOAD_RESPONSE" | grep -o '[0-9]*$')
-          UPLOAD_BODY=$(echo "$UPLOAD_RESPONSE" | sed 's/:response_code:[0-9]*$//')
+          echo "Upload API Status: $UPLOAD_HTTP_STATUS"
           
-          echo "Upload API Status: $UPLOAD_HTTP_CODE"
+          # Read the upload response body from file
+          UPLOAD_BODY=$(cat /tmp/upload_response.json)
           
-          if [ "$UPLOAD_HTTP_CODE" != "201" ]; then
-            echo "Failed to upload asset. HTTP Status: $UPLOAD_HTTP_CODE"
+          if [ "$UPLOAD_HTTP_STATUS" != "201" ]; then
+            echo "Failed to upload asset. HTTP Status: $UPLOAD_HTTP_STATUS"
             echo "Response: $UPLOAD_BODY"
             exit 1
           fi
