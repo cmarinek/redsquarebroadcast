@@ -71,20 +71,16 @@ jobs:
           set -e
           echo "Setting up Capacitor Android Platform for TV..."
           
-          # Ensure clean build environment
           rm -rf android/ || true
           
-          # Ensure Capacitor is initialized
           if [ ! -f "capacitor.config.ts" ] && [ ! -f "capacitor.config.js" ]; then
             echo "Capacitor config not found, initializing..."
             npx cap init
           fi
           
-          # Add Android platform fresh
           echo "Adding Android platform..."
           npx cap add android
           
-          # Verify the platform was added successfully
           if [ ! -f "android/gradlew" ]; then
             echo "❌ Failed to create Android platform"
             exit 1
@@ -99,7 +95,6 @@ jobs:
           
           npx cap sync android
           
-          # Ensure gradlew is executable
           if [ -f "android/gradlew" ]; then
             chmod +x android/gradlew
             echo "✅ Android gradlew found and made executable"
@@ -113,42 +108,34 @@ jobs:
           set -e
           echo "Configuring Android build for Android TV..."
           
-          # Ensure Android project exists
           if [ ! -f "android/app/src/main/AndroidManifest.xml" ]; then
             echo "❌ Android manifest not found"
             exit 1
           fi
           
-          # Create Android TV banner asset
           echo "Creating Android TV banner..."
           mkdir -p android/app/src/main/res/drawable-xhdpi
           
-          # Create a simple banner placeholder (320x180 px for Android TV)
           echo "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==" | base64 -d > android/app/src/main/res/drawable-xhdpi/banner.png
           
-          # Configure AndroidManifest.xml for Android TV
           echo "Setting up Android TV-specific configurations..."
           
-          # Remove touchscreen requirement for TV
           if grep -q 'android:name="android.hardware.touchscreen"' android/app/src/main/AndroidManifest.xml; then
             sed -i 's/android:name="android.hardware.touchscreen" android:required="true"/android:name="android.hardware.touchscreen" android:required="false"/' android/app/src/main/AndroidManifest.xml
           else
             sed -i '/<\/manifest>/i\    <uses-feature android:name="android.hardware.touchscreen" android:required="false" />' android/app/src/main/AndroidManifest.xml
           fi
           
-          # Add Android TV launcher support (LEANBACK_LAUNCHER)
           if ! grep -q "android.intent.category.LEANBACK_LAUNCHER" android/app/src/main/AndroidManifest.xml; then
             sed -i '/<category android:name="android.intent.category.LAUNCHER"\/>/a\                <category android:name="android.intent.category.LEANBACK_LAUNCHER" />' android/app/src/main/AndroidManifest.xml
             echo "✅ Added LEANBACK_LAUNCHER category for Android TV"
           fi
           
-          # Add Android TV banner to application
           if ! grep -q 'android:banner=' android/app/src/main/AndroidManifest.xml; then
             sed -i 's/<application/& android:banner="@drawable\/banner"/' android/app/src/main/AndroidManifest.xml
             echo "✅ Added TV banner to application"
           fi
           
-          # Add Android TV feature requirements and permissions
           TV_FEATURES='    <!-- Android TV Requirements -->
       <uses-feature android:name="android.software.leanback" android:required="true" />
       <uses-feature android:name="android.hardware.touchscreen" android:required="false" />
@@ -175,16 +162,13 @@ jobs:
             echo "✅ Added Android TV feature requirements and permissions"
           fi
           
-          # Configure landscape orientation for TV
           sed -i 's/android:screenOrientation="[^"]*"/android:screenOrientation="sensorLandscape"/' android/app/src/main/AndroidManifest.xml || echo "Orientation already configured"
           
-          # Add TV-optimized activity attributes
           if ! grep -q 'android:launchMode="singleTask"' android/app/src/main/AndroidManifest.xml; then
             sed -i 's/<activity/& android:launchMode="singleTask"/' android/app/src/main/AndroidManifest.xml
             echo "✅ Added TV-optimized activity launch mode"
           fi
           
-          # Ensure the app can handle D-pad navigation
           if ! grep -q 'configChanges.*keyboardHidden' android/app/src/main/AndroidManifest.xml; then
             sed -i 's/android:configChanges="[^"]*"/android:configChanges="orientation|keyboardHidden|keyboard|screenSize|uiMode"/' android/app/src/main/AndroidManifest.xml || echo "ConfigChanges already optimized"
           fi
@@ -212,7 +196,6 @@ jobs:
           
           cd android
           
-          # Verify gradlew exists before attempting to use it
           if [ ! -f "./gradlew" ]; then
             echo "❌ gradlew not found in android directory"
             echo "Contents of android directory:"
@@ -220,20 +203,16 @@ jobs:
             exit 1
           fi
           
-          # Ensure gradlew is executable
           chmod +x ./gradlew
           
-          # Clean previous builds
           ./gradlew clean
           
-          # Build release APK
           ./gradlew assembleRelease
           
           echo "✅ APK build completed successfully"
           echo "Listing build outputs:"
           find . -name "*.apk" -type f
           
-          # Validate APK was created
           APK_COUNT=$(find ./app/build/outputs/apk/release/ -name "*.apk" | wc -l)
           if [ "$APK_COUNT" -eq 0 ]; then
             echo "❌ No APK files were generated"
@@ -262,7 +241,6 @@ jobs:
           set -e
           echo "Uploading Android TV APK to storage..."
           
-          # Find the actual APK file
           FILE_PATH=$(find android/app/build/outputs/apk/release/ -name "*.apk" | head -1)
           if [ -z "$FILE_PATH" ]; then
             echo "❌ No APK file found in release directory"
@@ -270,7 +248,6 @@ jobs:
           fi
           echo "Found APK: $FILE_PATH"
           
-          # Get file size for logging
           FILE_SIZE=$(stat -c%s "$FILE_PATH" 2>/dev/null || stat -f%z "$FILE_PATH")
           FILE_SIZE_MB=$((FILE_SIZE / 1024 / 1024))
           echo "APK size: ${FILE_SIZE_MB}MB"
@@ -278,11 +255,9 @@ jobs:
           FILE_NAME="screens-android-tv-app-v${{ steps.build_info.outputs.version }}.apk"
           SUPABASE_BUCKET="tv-files"
 
-          # Get the public URL of the bucket
           BUCKET_URL="${{ secrets.SUPABASE_URL }}/storage/v1/object/public/${SUPABASE_BUCKET}/${FILE_NAME}"
           echo "artifact_url=$BUCKET_URL" >> $GITHUB_OUTPUT
 
-          # Upload to Supabase Storage
           HTTP_STATUS=$(curl -s -w "%{http_code}" -X POST \
             "${{ secrets.SUPABASE_URL }}/storage/v1/object/${SUPABASE_BUCKET}/${FILE_NAME}" \
             -H "Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" \
