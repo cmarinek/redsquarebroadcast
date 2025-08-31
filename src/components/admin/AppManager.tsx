@@ -233,12 +233,10 @@ export const AppManager = () => {
       .channel('app-builds-changes')
       .on(
         'postgres_changes',
-        { event: 'UPDATE', schema: 'public', table: 'app_builds' },
+        { event: '*', schema: 'public', table: 'app_builds' },
         (payload) => {
-          // Refresh releases when a build status changes to success
-          if (payload.new.status === 'success' && payload.new.artifact_url) {
-            fetchReleases();
-          }
+          // Refresh releases when any build changes (pending, in_progress, success, failed)
+          fetchReleases();
         }
       )
       .subscribe();
@@ -258,12 +256,11 @@ export const AppManager = () => {
 
       if (manualError) throw manualError;
 
-      // Fetch successful automated builds
+      // Fetch automated builds (both pending and successful)
       const { data: automatedBuilds, error: automatedError } = await supabase
         .from('app_builds')
         .select('*')
-        .eq('status', 'success')
-        .not('artifact_url', 'is', null)
+        .in('status', ['pending', 'in_progress', 'success'])
         .order('created_at', { ascending: false });
 
       if (automatedError) throw automatedError;
@@ -305,8 +302,9 @@ export const AppManager = () => {
         const platform = platformMap[build.app_type] || 'redsquare_android';
         const config = PLATFORM_CONFIG[platform];
         
-        // Fetch actual file size for automated builds
-        const fileSize = build.artifact_url ? await fetchFileSizeFromUrl(build.artifact_url) : 0;
+        // Fetch actual file size for successful automated builds with artifacts
+        const fileSize = (build.status === 'success' && build.artifact_url) ? 
+          await fetchFileSizeFromUrl(build.artifact_url) : 0;
 
         return {
           id: build.id,
