@@ -2,6 +2,3 @@ project_id = "hqeyyutbuxhyildsasqq"
 
 [functions.update-build-status]
 verify_jwt = false
-
-[functions.fix-samsung-build]
-verify_jwt = false
