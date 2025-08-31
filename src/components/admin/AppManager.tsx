@@ -1000,35 +1000,35 @@ export const AppManager = () => {
         {/* Submenu for additional screen platforms */}
         {activePlatform.startsWith('screens_') && <div className="mt-4">
             <div className="flex flex-wrap gap-2">
-              <Button variant={activePlatform === 'screens_android_mobile' ? 'default' : 'outline'} size="sm" onClick={() => setActivePlatform('screens_android_mobile')}>
+              <Button variant={activePlatform === 'screens_android_mobile' ? 'default' : 'outline'} size="sm" onClick={() => setActivePlatform('screens_android_mobile')} className="text-xs">
                 <Smartphone className="h-4 w-4 mr-1" />
                 Android Mobile
               </Button>
-              <Button variant={activePlatform === 'screens_ios' ? 'default' : 'outline'} size="sm" onClick={() => setActivePlatform('screens_ios')}>
+              <Button variant={activePlatform === 'screens_ios' ? 'default' : 'outline'} size="sm" onClick={() => setActivePlatform('screens_ios')} className="text-xs">
                 <Smartphone className="h-4 w-4 mr-1" />
                 iOS Mobile
               </Button>
-              <Button variant={activePlatform === 'screens_windows' ? 'default' : 'outline'} size="sm" onClick={() => setActivePlatform('screens_windows')}>
+              <Button variant={activePlatform === 'screens_windows' ? 'default' : 'outline'} size="sm" onClick={() => setActivePlatform('screens_windows')} className="text-xs">
                 <Monitor className="h-4 w-4 mr-1" />
                 Windows
               </Button>
-              <Button variant={activePlatform === 'screens_macos' ? 'default' : 'outline'} size="sm" onClick={() => setActivePlatform('screens_macos')}>
+              <Button variant={activePlatform === 'screens_macos' ? 'default' : 'outline'} size="sm" onClick={() => setActivePlatform('screens_macos')} className="text-xs">
                 <Monitor className="h-4 w-4 mr-1" />
                 macOS
               </Button>
-              <Button variant={activePlatform === 'screens_linux' ? 'default' : 'outline'} size="sm" onClick={() => setActivePlatform('screens_linux')}>
+              <Button variant={activePlatform === 'screens_linux' ? 'default' : 'outline'} size="sm" onClick={() => setActivePlatform('screens_linux')} className="text-xs">
                  <Monitor className="h-4 w-4 mr-1" />
                 Linux
               </Button>
-              <Button variant={activePlatform === 'screens_android_tv' ? 'default' : 'outline'} size="sm" onClick={() => setActivePlatform('screens_android_tv')}>
+              <Button variant={activePlatform === 'screens_android_tv' ? 'default' : 'outline'} size="sm" onClick={() => setActivePlatform('screens_android_tv')} className="text-xs">
                 <Tv className="h-4 w-4 mr-1" />
                 Android TV
               </Button>
-              <Button variant={activePlatform === 'screens_amazon_fire' ? 'default' : 'outline'} size="sm" onClick={() => setActivePlatform('screens_amazon_fire')}>
+              <Button variant={activePlatform === 'screens_amazon_fire' ? 'default' : 'outline'} size="sm" onClick={() => setActivePlatform('screens_amazon_fire')} className="text-xs">
                 <Tv className="h-4 w-4 mr-1" />
                 Amazon Fire TV
               </Button>
-              <Button variant={activePlatform === 'screens_roku' ? 'default' : 'outline'} size="sm" onClick={() => setActivePlatform('screens_roku')}>
+              <Button variant={activePlatform === 'screens_roku' ? 'default' : 'outline'} size="sm" onClick={() => setActivePlatform('screens_roku')} className="text-xs">
                 <Tv className="h-4 w-4 mr-1" />
                 Roku
               </Button>
