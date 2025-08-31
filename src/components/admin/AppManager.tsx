@@ -568,6 +568,103 @@ export const AppManager = () => {
     // Common UI for Android, iOS, TV
     return (
       <>
+        {/* Available Releases Section - First */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Download className="h-5 w-5" />
+              Available {currentConfig.name} Releases
+            </CardTitle>
+            <CardDescription>Manage and download {currentConfig.name} app releases</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {getPlatformReleases(activePlatform).length === 0 ? (
+              <p className="text-center text-muted-foreground py-8">
+                No {currentConfig.name} releases found. Upload your first release or trigger an automated build.
+              </p>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Version</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Size</TableHead>
+                    <TableHead>Downloads</TableHead>
+                    <TableHead>Created</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {getPlatformReleases(activePlatform).map((release) => (
+                    <TableRow key={release.id}>
+                      <TableCell className="font-medium">
+                        <div className="flex items-center gap-2">
+                          {getPlatformIcon(release.platform)}
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <span className="font-semibold">v{release.version_name}</span>
+                              {release.source === 'automated' && (
+                                <Badge variant="secondary" className="text-xs">Auto</Badge>
+                              )}
+                            </div>
+                            {release.source === 'automated' && release.build_id && (
+                              <div className="text-xs text-muted-foreground">
+                                Build ID: {release.build_id?.slice(0, 8)}...
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant={release.is_active ? "default" : "secondary"}>
+                          {release.is_active ? "Active" : "Inactive"}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        {formatFileSize(release.file_size)}
+                      </TableCell>
+                      <TableCell>
+                        {release.download_count}
+                      </TableCell>
+                      <TableCell>
+                         <div className="text-sm">
+                           {format(new Date(release.created_at), 'MMM d, yyyy')}
+                         </div>
+                        {release.source === 'automated' && (
+                          <div className="text-xs text-muted-foreground">
+                            Commit: {release.release_notes?.split('commit ')[1]?.slice(0, 7) || 'unknown'}
+                          </div>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex justify-end gap-2">
+                          <Button size="sm" variant="outline" onClick={() => handleDownload(release)}>
+                            <Download className="h-4 w-4 mr-1" />
+                            Download
+                          </Button>
+                          <Button size="sm" variant={release.is_active ? "secondary" : "default"} onClick={() => toggleReleaseStatus(release.id, release.is_active)}>
+                            {release.is_active ? "Deactivate" : "Activate"}
+                          </Button>
+                          {release.source === 'manual' ? (
+                            <Button size="sm" variant="destructive" onClick={() => deleteRelease(release)}>
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          ) : (
+                            <Badge variant="outline" className="text-xs">
+                              Auto
+                            </Badge>
+                          )}
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Automated Build Sections - Second */}
         {activePlatform === 'tv' && (
           <Card>
             <CardHeader>
@@ -729,6 +826,8 @@ export const AppManager = () => {
               </Button>
             </CardContent>
           </Card>
+
+          {/* Build Instructions - Last */}
           <Alert>
             <FileArchive className="h-4 w-4" />
             <AlertDescription className="space-y-2">
@@ -750,103 +849,10 @@ export const AppManager = () => {
                   ))}
                 </ol>
             </AlertDescription>
-          </Alert>
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Download className="h-5 w-5" />
-                Available {currentConfig.name} Releases
-              </CardTitle>
-              <CardDescription>Manage and download {currentConfig.name} app releases</CardDescription>
-            </CardHeader>
-            <CardContent>
-              {getPlatformReleases(activePlatform).length === 0 ? (
-                <p className="text-center text-muted-foreground py-8">
-                  No {currentConfig.name} releases found. Upload your first release above.
-                </p>
-              ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Version</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Size</TableHead>
-                      <TableHead>Downloads</TableHead>
-                      <TableHead>Created</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {getPlatformReleases(activePlatform).map((release) => (
-                      <TableRow key={release.id}>
-                        <TableCell className="font-medium">
-                          <div className="flex items-center gap-2">
-                            {getPlatformIcon(release.platform)}
-                            <div>
-                              <div className="flex items-center gap-2">
-                                <span className="font-semibold">v{release.version_name}</span>
-                                {release.source === 'automated' && (
-                                  <Badge variant="secondary" className="text-xs">Auto</Badge>
-                                )}
-                              </div>
-                              <div className="text-sm text-muted-foreground">
-                                Build {release.version_code}
-                                {release.minimum_os_version && ` • Min OS: ${release.minimum_os_version}`}
-                                {release.source === 'automated' && release.build_id && (
-                                  <span> • Build ID: {release.build_id.slice(0, 8)}</span>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant={release.is_active ? "default" : "secondary"}>
-                            {release.is_active ? "Active" : "Inactive"}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>{formatFileSize(release.file_size)}</TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-1">
-                            <Users className="h-4 w-4 text-muted-foreground" />
-                            {release.download_count}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                            <Calendar className="h-4 w-4" />
-                            {format(new Date(release.created_at), 'MMM d, yyyy')}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex justify-end gap-2">
-                            <Button size="sm" variant="outline" onClick={() => handleDownload(release)}>
-                              <Download className="h-4 w-4 mr-1" />
-                              Download
-                            </Button>
-                            <Button size="sm" variant={release.is_active ? "secondary" : "default"} onClick={() => toggleReleaseStatus(release.id, release.is_active)}>
-                              {release.is_active ? "Deactivate" : "Activate"}
-                            </Button>
-                            {release.source === 'manual' ? (
-                              <Button size="sm" variant="destructive" onClick={() => deleteRelease(release)}>
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            ) : (
-                              <Badge variant="outline" className="text-xs">
-                                Auto
-                              </Badge>
-                            )}
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              )}
-            </CardContent>
-          </Card>
+           </Alert>
       </>
-    )
-  }
+    );
+  };
 
   return (
     <div className="space-y-6">
