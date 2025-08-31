@@ -32,6 +32,8 @@ interface AppRelease {
   bundle_id?: string;
   created_at: string;
   updated_at: string;
+  source: 'manual' | 'automated';
+  build_id?: string;
 }
 
 type Platform = 'android' | 'ios' | 'tv' | 'desktop' | 'advertiser_android' | 'advertiser_ios' | 'advertiser_desktop' | 'system_test';
@@ -144,17 +146,93 @@ export const AppManager = () => {
 
   useEffect(() => {
     fetchReleases();
+
+    // Set up real-time subscription to refresh when builds complete
+    const channel = supabase
+      .channel('app-builds-changes')
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'app_builds' },
+        (payload) => {
+          // Refresh releases when a build status changes to success
+          if (payload.new.status === 'success' && payload.new.artifact_url) {
+            fetchReleases();
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const fetchReleases = async () => {
     try {
-      const { data, error } = await supabase
+      // Fetch manual releases
+      const { data: manualReleases, error: manualError } = await supabase
         .from('app_releases')
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
-      setReleases(data || []);
+      if (manualError) throw manualError;
+
+      // Fetch successful automated builds
+      const { data: automatedBuilds, error: automatedError } = await supabase
+        .from('app_builds')
+        .select('*')
+        .eq('status', 'success')
+        .not('artifact_url', 'is', null)
+        .order('created_at', { ascending: false });
+
+      if (automatedError) throw automatedError;
+
+      // Convert manual releases to unified format
+      const manualReleasesFormatted: AppRelease[] = (manualReleases || []).map(release => ({
+        ...release,
+        source: 'manual' as const
+      }));
+
+      // Convert automated builds to unified format
+      const automatedReleasesFormatted: AppRelease[] = (automatedBuilds || []).map(build => {
+        // Map app_type to platform
+        const platformMap: Record<string, Platform> = {
+          'android_tv': 'tv',
+          'android_mobile': 'android',
+          'ios': 'ios',
+          'desktop_windows': 'desktop',
+          'advertiser_android': 'advertiser_android',
+          'advertiser_ios': 'advertiser_ios',
+          'advertiser_desktop': 'advertiser_desktop'
+        };
+
+        const platform = platformMap[build.app_type] || 'android';
+        const config = PLATFORM_CONFIG[platform];
+
+        return {
+          id: build.id,
+          version_name: build.version || '1.0.0',
+          version_code: parseInt(build.version?.split('.').pop() || '1'),
+          platform,
+          file_extension: config.fileExtension as any,
+          file_path: build.artifact_url || '',
+          file_size: 0, // Not available from builds
+          uploaded_by: build.triggered_by || 'system',
+          release_notes: `Automated build from commit ${build.commit_hash?.slice(0, 7) || 'unknown'}`,
+          is_active: true,
+          download_count: 0,
+          created_at: build.created_at,
+          updated_at: build.updated_at || build.created_at,
+          source: 'automated' as const,
+          build_id: build.id
+        };
+      });
+
+      // Combine and sort by creation date
+      const allReleases = [...manualReleasesFormatted, ...automatedReleasesFormatted]
+        .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+
+      setReleases(allReleases);
     } catch (error) {
       console.error("Error fetching app releases:", error);
       toast({
@@ -269,18 +347,30 @@ export const AppManager = () => {
     const config = PLATFORM_CONFIG[release.platform];
     
     try {
-      const { data, error } = await supabase.storage
-        .from(config.bucket)
-        .createSignedUrl(release.file_path, 3600);
+      let downloadUrl: string;
+      
+      if (release.source === 'automated') {
+        // For automated builds, use the artifact_url directly
+        downloadUrl = release.file_path;
+      } else {
+        // For manual releases, create signed URL
+        const { data, error } = await supabase.storage
+          .from(config.bucket)
+          .createSignedUrl(release.file_path, 3600);
 
-      if (error) throw error;
+        if (error) throw error;
+        downloadUrl = data.signedUrl;
+      }
 
-      await supabase.rpc('increment_app_download_count', {
-        release_id: release.id
-      });
+      // Only increment download count for manual releases
+      if (release.source === 'manual') {
+        await supabase.rpc('increment_app_download_count', {
+          release_id: release.id
+        });
+      }
 
       const link = document.createElement('a');
-      link.href = data.signedUrl;
+      link.href = downloadUrl;
       link.download = `RedSquare-${release.platform}-v${release.version_name}.${release.file_extension}`;
       document.body.appendChild(link);
       link.click();
@@ -303,6 +393,17 @@ export const AppManager = () => {
   };
 
   const toggleReleaseStatus = async (releaseId: string, currentStatus: boolean) => {
+    // Only allow toggling status for manual releases
+    const release = releases.find(r => r.id === releaseId);
+    if (release?.source === 'automated') {
+      toast({
+        title: "Cannot modify automated builds",
+        description: "Automated builds cannot be deactivated manually.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     try {
       const { error } = await supabase
         .from('app_releases')
@@ -328,6 +429,16 @@ export const AppManager = () => {
   };
 
   const deleteRelease = async (release: AppRelease) => {
+    // Only allow deleting manual releases
+    if (release.source === 'automated') {
+      toast({
+        title: "Cannot delete automated builds",
+        description: "Automated builds cannot be deleted from this interface.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     const config = PLATFORM_CONFIG[release.platform];
     
     if (!confirm(`Are you sure you want to delete ${config.name} version ${release.version_name}?`)) {
@@ -670,10 +781,18 @@ export const AppManager = () => {
                           <div className="flex items-center gap-2">
                             {getPlatformIcon(release.platform)}
                             <div>
-                              <div className="font-semibold">v{release.version_name}</div>
+                              <div className="flex items-center gap-2">
+                                <span className="font-semibold">v{release.version_name}</span>
+                                {release.source === 'automated' && (
+                                  <Badge variant="secondary" className="text-xs">Auto</Badge>
+                                )}
+                              </div>
                               <div className="text-sm text-muted-foreground">
                                 Build {release.version_code}
                                 {release.minimum_os_version && ` • Min OS: ${release.minimum_os_version}`}
+                                {release.source === 'automated' && release.build_id && (
+                                  <span> • Build ID: {release.build_id.slice(0, 8)}</span>
+                                )}
                               </div>
                             </div>
                           </div>
@@ -696,18 +815,27 @@ export const AppManager = () => {
                             {format(new Date(release.created_at), 'MMM d, yyyy')}
                           </div>
                         </TableCell>
-                        <TableCell className="text-right">
+                        <TableCell>
                           <div className="flex justify-end gap-2">
                             <Button size="sm" variant="outline" onClick={() => handleDownload(release)}>
                               <Download className="h-4 w-4 mr-1" />
                               Download
                             </Button>
-                            <Button size="sm" variant={release.is_active ? "secondary" : "default"} onClick={() => toggleReleaseStatus(release.id, release.is_active)}>
-                              {release.is_active ? "Deactivate" : "Activate"}
-                            </Button>
-                            <Button size="sm" variant="destructive" onClick={() => deleteRelease(release)}>
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
+                            {release.source === 'manual' && (
+                              <>
+                                <Button size="sm" variant={release.is_active ? "secondary" : "default"} onClick={() => toggleReleaseStatus(release.id, release.is_active)}>
+                                  {release.is_active ? "Deactivate" : "Activate"}
+                                </Button>
+                                <Button size="sm" variant="destructive" onClick={() => deleteRelease(release)}>
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </>
+                            )}
+                            {release.source === 'automated' && (
+                              <Badge variant="outline" className="text-xs">
+                                Automated Build
+                              </Badge>
+                            )}
                           </div>
                         </TableCell>
                       </TableRow>
