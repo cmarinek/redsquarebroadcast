@@ -194,9 +194,8 @@ export const AppManager = () => {
       }));
 
       // Convert automated builds to unified format
-      const automatedReleasesFormatted: AppRelease[] = (automatedBuilds || []).map(build => {
-        // Map app_type to platform
-        const platformMap: Record<string, Platform> = {
+      const automatedReleasesFormatted = automatedBuilds.map(async (build) => {
+        const platformMap: { [key: string]: Platform } = {
           'android_tv': 'tv',
           'android_mobile': 'android',
           'ios': 'ios',
@@ -208,6 +207,9 @@ export const AppManager = () => {
 
         const platform = platformMap[build.app_type] || 'android';
         const config = PLATFORM_CONFIG[platform];
+        
+        // Fetch actual file size for automated builds
+        const fileSize = build.artifact_url ? await fetchFileSizeFromUrl(build.artifact_url) : 0;
 
         return {
           id: build.id,
@@ -216,7 +218,7 @@ export const AppManager = () => {
           platform,
           file_extension: config.fileExtension as any,
           file_path: build.artifact_url || '',
-          file_size: 0, // Not available from builds
+          file_size: fileSize,
           uploaded_by: build.triggered_by || 'system',
           release_notes: `Automated build from commit ${build.commit_hash?.slice(0, 7) || 'unknown'}`,
           is_active: build.is_active || true,
@@ -228,8 +230,11 @@ export const AppManager = () => {
         };
       });
 
+      // Wait for all automated releases to be processed
+      const automatedReleasesFormattedResolved = await Promise.all(automatedReleasesFormatted);
+
       // Combine and sort by creation date
-      const allReleases = [...manualReleasesFormatted, ...automatedReleasesFormatted]
+      const allReleases = [...manualReleasesFormatted, ...automatedReleasesFormattedResolved]
         .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
       setReleases(allReleases);
@@ -245,12 +250,25 @@ export const AppManager = () => {
     }
   };
 
-  const formatFileSize = (bytes: number) => {
-    if (bytes === 0) return '0 Bytes';
+  const formatFileSize = (bytes: number, isAutomated = false) => {
+    if (bytes === 0) {
+      return isAutomated ? 'Calculating...' : '0 Bytes';
+    }
     const k = 1024;
     const sizes = ['Bytes', 'KB', 'MB', 'GB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  };
+
+  const fetchFileSizeFromUrl = async (url: string): Promise<number> => {
+    try {
+      const response = await fetch(url, { method: 'HEAD' });
+      const contentLength = response.headers.get('content-length');
+      return contentLength ? parseInt(contentLength, 10) : 0;
+    } catch (error) {
+      console.error('Error fetching file size:', error);
+      return 0;
+    }
   };
 
   const getCurrentPlatformConfig = () => PLATFORM_CONFIG[activePlatform];
@@ -620,9 +638,9 @@ export const AppManager = () => {
                           {release.is_active ? "Active" : "Inactive"}
                         </Badge>
                       </TableCell>
-                      <TableCell>
-                        {formatFileSize(release.file_size)}
-                      </TableCell>
+                       <TableCell>
+                         {formatFileSize(release.file_size, release.source === 'automated')}
+                       </TableCell>
                       <TableCell>
                         {release.download_count}
                       </TableCell>
