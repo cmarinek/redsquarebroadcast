@@ -12,6 +12,17 @@ on:
         description: 'Version for this build'
         required: true
         default: '1.0.0-manual'
+  workflow_call:
+    inputs:
+      build_id:
+        description: 'ID of the build record in the database'
+        required: true
+        type: string
+      version:
+        description: 'Version for this build'
+        required: true
+        type: string
+        default: '1.0.0-manual'
 
 jobs:
   build-screens-macos:
@@ -19,6 +30,7 @@ jobs:
     permissions:
       contents: write
       releases: write
+      actions: write
     steps:
       - name: Get Build Info from Dispatch
         id: build_info

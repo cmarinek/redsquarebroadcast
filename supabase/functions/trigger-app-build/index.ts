@@ -73,39 +73,38 @@ serve(async (req) => {
 
     if (insertError) throw insertError;
 
-    // 3. Dispatch GitHub Action workflow
-    const dispatchUrl = `https://api.github.com/repos/${githubRepoOwner}/${githubRepoName}/dispatches`;
-    
-    // Map app types to correct workflow event types
-    const eventTypeMap = {
+    // 3. Dispatch GitHub Action workflow using workflow_dispatch (more reliable than repository_dispatch)
+    const workflowFileMap = {
       // RedSquare App (main user management app)
-      'redsquare_android': 'trigger-redsquare-android-build',
-      'redsquare_ios': 'trigger-redsquare-ios-build',
-      'redsquare_web': 'trigger-redsquare-web-build',
+      'redsquare_android': 'redsquare-android-build.yml',
+      'redsquare_ios': 'redsquare-ios-build.yml', 
+      'redsquare_web': 'redsquare-web-build.yml',
       // RedSquare Screens (content display app)
-      'screens_android_tv': 'trigger-screens-android-tv-build',
-      'screens_android_mobile': 'trigger-screens-android-mobile-build',
-      'screens_ios': 'trigger-screens-ios-build',
-      'screens_windows': 'trigger-screens-windows-build',
-      'screens_macos': 'trigger-screens-macos-build',
-      'screens_linux': 'trigger-screens-linux-build',
+      'screens_android_tv': 'screens-android-tv-build.yml',
+      'screens_android_mobile': 'screens-android-mobile-build.yml',
+      'screens_ios': 'screens-ios-build.yml',
+      'screens_windows': 'screens-windows-build.yml',
+      'screens_macos': 'screens-macos-build.yml',
+      'screens_linux': 'screens-linux-build.yml',
       // RedSquare Screens (streaming platforms)
-      'screens_amazon_fire': 'trigger-screens-amazon-fire-build',
-      'screens_roku': 'trigger-screens-roku-build',
-      'screens_samsung_tizen': 'trigger-screens-samsung-tizen-build',
-      'screens_lg_webos': 'trigger-screens-lg-webos-build'
+      'screens_amazon_fire': 'screens-amazon-fire-build.yml',
+      'screens_roku': 'screens-roku-build.yml',
+      'screens_samsung_tizen': 'screens-samsung-tizen-build.yml',
+      'screens_lg_webos': 'screens-lg-webos-build.yml'
     };
     
-    const eventType = eventTypeMap[app_type];
-    if (!eventType) {
+    const workflowFile = workflowFileMap[app_type];
+    if (!workflowFile) {
       throw new Error(`No workflow configured for app type: ${app_type}`);
     }
 
+    // Use workflow_dispatch instead of repository_dispatch for better reliability
+    const dispatchUrl = `https://api.github.com/repos/${githubRepoOwner}/${githubRepoName}/actions/workflows/${workflowFile}/dispatches`;
+
     const dispatchPayload = {
-      event_type: eventType,
-      client_payload: {
+      ref: 'main', // or 'master' depending on your default branch
+      inputs: {
         build_id: newBuild.id,
-        app_type: newBuild.app_type,
         version: newBuild.version,
       },
     };
