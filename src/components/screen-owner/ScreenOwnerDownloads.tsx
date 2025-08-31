@@ -129,8 +129,8 @@ export const ScreenOwnerDownloads = ({ screenCount }: ScreenOwnerDownloadsProps)
 
       for (const build of builds) {
         let platform: keyof typeof PLATFORM_CONFIG | null = null;
-        if (build.app_type === 'android_tv') platform = 'tv';
-        if (build.app_type === 'desktop_windows') platform = 'desktop';
+        if (build.app_type === 'screens_android_tv') platform = 'tv';
+        if (build.app_type === 'screens_windows') platform = 'desktop';
 
         if (platform && !latestBuilds[platform]) {
           latestBuilds[platform] = {

@@ -27,7 +27,7 @@ interface ScreenAppRelease {
   created_at: string;
 }
 
-type ScreenType = 'android_tv' | 'android_mobile' | 'windows' | 'ios' | 'amazon_fire' | 'roku' | 'samsung_tizen' | 'lg_webos' | 'unknown';
+type ScreenType = 'screens_android_tv' | 'screens_android_mobile' | 'screens_windows' | 'screens_ios' | 'screens_amazon_fire' | 'screens_roku' | 'screens_samsung_tizen' | 'screens_lg_webos' | 'unknown';
 
 const SetupRedSquareScreen = () => {
   const { toast } = useToast();
@@ -47,14 +47,14 @@ const SetupRedSquareScreen = () => {
     
     if (userAgent.includes('android')) {
       if (userAgent.includes('tv') || userAgent.includes('googletv')) {
-        setDetectedPlatform('android_tv');
+        setDetectedPlatform('screens_android_tv');
       } else {
-        setDetectedPlatform('android_mobile');
+        setDetectedPlatform('screens_android_mobile');
       }
     } else if (userAgent.includes('iphone') || userAgent.includes('ipad') || userAgent.includes('ipod')) {
-      setDetectedPlatform('ios');
+      setDetectedPlatform('screens_ios');
     } else if (userAgent.includes('windows')) {
-      setDetectedPlatform('windows');
+      setDetectedPlatform('screens_windows');
     }
   };
 
@@ -92,7 +92,7 @@ const SetupRedSquareScreen = () => {
 
   const screenTypes = [
     {
-      id: 'android_tv' as ScreenType,
+      id: 'screens_android_tv' as ScreenType,
       name: 'Android TV',
       icon: Tv,
       description: 'Smart TVs, Android TV boxes, and streaming devices',
@@ -100,7 +100,7 @@ const SetupRedSquareScreen = () => {
       examples: ['Samsung Smart TV', 'Sony Android TV', 'Nvidia Shield', 'Chromecast with Google TV']
     },
     {
-      id: 'android_mobile' as ScreenType,
+      id: 'screens_android_mobile' as ScreenType,
       name: 'Android Tablet/Phone',
       icon: Smartphone,
       description: 'Android tablets and phones used as digital displays',
@@ -108,7 +108,7 @@ const SetupRedSquareScreen = () => {
       examples: ['Samsung Galaxy Tab', 'Google Pixel Tablet', 'Any Android phone/tablet']
     },
     {
-      id: 'windows' as ScreenType,
+      id: 'screens_windows' as ScreenType,
       name: 'Windows PC',
       icon: Laptop,
       description: 'Windows computers, laptops, and digital signage displays',
@@ -116,7 +116,7 @@ const SetupRedSquareScreen = () => {
       examples: ['Windows 10/11 PC', 'Surface Pro', 'Digital signage computer']
     },
     {
-      id: 'ios' as ScreenType,
+      id: 'screens_ios' as ScreenType,
       name: 'iPad/iPhone',
       icon: Apple,
       description: 'iPads and iPhones used as digital displays',
@@ -124,7 +124,7 @@ const SetupRedSquareScreen = () => {
       examples: ['iPad Pro', 'iPad Air', 'iPad Mini', 'iPhone (landscape mode)']
     },
     {
-      id: 'amazon_fire' as ScreenType,
+      id: 'screens_amazon_fire' as ScreenType,
       name: 'Amazon Fire TV',
       icon: Tv2,
       description: 'Amazon Fire TV sticks and Fire TV devices',
@@ -132,7 +132,7 @@ const SetupRedSquareScreen = () => {
       examples: ['Fire TV Stick 4K', 'Fire TV Cube', 'Fire TV Stick Lite']
     },
     {
-      id: 'roku' as ScreenType,
+      id: 'screens_roku' as ScreenType,
       name: 'Roku',
       icon: Tv2,
       description: 'Roku streaming devices and Roku TVs',
@@ -140,7 +140,7 @@ const SetupRedSquareScreen = () => {
       examples: ['Roku Ultra', 'Roku Streaming Stick 4K+', 'Roku TV', 'Roku Express']
     },
     {
-      id: 'samsung_tizen' as ScreenType,
+      id: 'screens_samsung_tizen' as ScreenType,
       name: 'Samsung Smart TV',
       icon: Tv,
       description: 'Samsung smart TVs with Tizen OS (future)',
@@ -148,7 +148,7 @@ const SetupRedSquareScreen = () => {
       examples: ['Samsung QLED', 'Samsung Crystal UHD', 'Samsung The Frame', 'Samsung Neo QLED']
     },
     {
-      id: 'lg_webos' as ScreenType,
+      id: 'screens_lg_webos' as ScreenType,
       name: 'LG Smart TV',
       icon: Tv,
       description: 'LG smart TVs with webOS (future)',
