@@ -1,44 +1,23 @@
 {
-  "appId": "com.redsquare.desktop",
-  "productName": "RedSquare Desktop",
+  "appId": "com.redsquare.screens",
+  "productName": "RedSquare Screens",
+  "description": "Display and manage RedSquare digital advertising screens",
+  "author": {
+    "name": "RedSquare",
+    "email": "support@redsquare.app"
+  },
   "compression": "maximum",
   "removePackageScripts": true,
   "files": [
     "dist/**/*",
     "dist-electron/**/*",
-    "src/electron-fallback.css",
     "!dist/**/*.map",
     "!**/*.ts",
     "!src",
     "!electron/tsconfig.json",
     "!**/*.test.*",
-    "!**/*.spec.*",
-    "!node_modules/.cache",
-    "!node_modules/@types",
-    "!node_modules/**/*.md",
-    "!node_modules/**/*.txt", 
-    "!node_modules/**/LICENSE*",
-    "!node_modules/**/CHANGELOG*",
-    "!node_modules/**/*.d.ts",
-    "!node_modules/**/*.map",
-    "!node_modules/**/docs/**",
-    "!node_modules/**/test/**",
-    "!node_modules/**/tests/**",
-    "!node_modules/**/*.test.js",
-    "!node_modules/**/*.spec.js",
-    "!node_modules/**/example/**",
-    "!node_modules/**/examples/**",
-    "!node_modules/**/.github/**",
-    "!node_modules/**/coverage/**",
-    "!node_modules/**/*.nyc_output",
-    "!node_modules/**/benchmark/**",
-    "!node_modules/**/benchmarks/**",
-    "!**/README.md",
-    "!**/CHANGELOG.md", 
-    "!**/LICENSE*",
-    "!**/*.d.ts"
+    "!**/*.spec.*"
   ],
-  "asarUnpack": [],
   "directories": {
     "buildResources": "assets",
     "output": "release"
@@ -48,34 +27,56 @@
       "target": "nsis",
       "arch": ["x64"]
     },
+    "icon": "public/icon-512x512.png",
     "compression": "maximum",
-    "requestedExecutionLevel": "asInvoker"
+    "requestedExecutionLevel": "asInvoker",
+    "publisherName": "RedSquare"
   },
   "mac": {
-    "target": {
-      "target": "dmg", 
-      "arch": ["x64", "arm64"]
-    },
-    "compression": "maximum"
+    "target": [
+      {
+        "target": "dmg", 
+        "arch": ["x64", "arm64"]
+      }
+    ],
+    "icon": "public/icon-512x512.png",
+    "compression": "maximum",
+    "category": "public.app-category.business"
   },
   "linux": {
     "target": {
       "target": "AppImage",
       "arch": ["x64"]
     },
-    "compression": "maximum"
+    "icon": "public/icon-512x512.png",
+    "compression": "maximum",
+    "category": "Office"
   },
   "nsis": {
     "oneClick": false,
     "allowToChangeInstallationDirectory": true,
-    "differentialPackage": false,
-    "createDesktopShortcut": false,
-    "createStartMenuShortcut": false
+    "allowElevation": false,
+    "createDesktopShortcut": true,
+    "createStartMenuShortcut": true,
+    "shortcutName": "RedSquare Screens",
+    "include": "build/installer.nsh"
   },
-  "extraMetadata": {
-    "devDependencies": {}
-  },
-  "buildDependenciesFromSource": false,
-  "nodeGypRebuild": false,
-  "buildVersion": "0.0.1"
+  "dmg": {
+    "title": "RedSquare Screens ${version}",
+    "icon": "public/icon-512x512.png",
+    "background": "assets/dmg-background.png",
+    "contents": [
+      {
+        "x": 130,
+        "y": 220,
+        "type": "file"
+      },
+      {
+        "x": 410,
+        "y": 220,
+        "type": "link",
+        "path": "/Applications"
+      }
+    ]
+  }
 }
