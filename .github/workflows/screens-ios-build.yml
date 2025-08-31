@@ -1,0 +1,157 @@
+name: Build RedSquare Screens (iOS)
+
+on:
+  repository_dispatch:
+    types: [trigger-screens-ios-build]
+  workflow_dispatch:
+    inputs:
+      build_id:
+        description: 'ID of the build record in the database'
+        required: true
+      version:
+        description: 'Version for this build'
+        required: true
+        default: '1.0.0-manual'
+
+jobs:
+  build-screens-ios:
+    runs-on: macos-latest
+    steps:
+      - name: Get Build Info from Dispatch
+        id: build_info
+        run: |
+          if [ -n "${{ github.event.client_payload.build_id }}" ]; then
+            echo "build_id=${{ github.event.client_payload.build_id }}" >> $GITHUB_OUTPUT
+            echo "version=${{ github.event.client_payload.version }}" >> $GITHUB_OUTPUT
+          else
+            echo "build_id=${{ github.event.inputs.build_id }}" >> $GITHUB_OUTPUT
+            echo "version=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Update Build Status to 'In Progress'
+        run: |
+          curl -X POST "${{ secrets.SUPABASE_URL }}/functions/v1/update-build-status" \
+            -H "Authorization: Bearer ${{ secrets.GH_ACTION_SECRET }}" \
+            -H "Content-Type: application/json" \
+            -d '{
+              "build_id": "${{ steps.build_info.outputs.build_id }}",
+              "status": "in_progress",
+              "logs_url": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}",
+              "commit_hash": "${{ github.sha }}"
+            }'
+
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Build Web App
+        run: npm run build
+
+      - name: Set up Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: '16.2'
+
+      - name: Setup Capacitor iOS Platform
+        run: |
+          if [ ! -f "ios/App/App.xcodeproj/project.pbxproj" ]; then
+            echo "iOS project incomplete, removing and re-adding platform"
+            rm -rf ios
+            npx cap add ios
+          else
+            echo "iOS platform properly configured, skipping add"
+          fi
+
+      - name: Sync Capacitor Project
+        run: npx cap sync ios
+
+      - name: Install CocoaPods
+        run: |
+          sudo gem install cocoapods
+          cd ios/App
+          pod install --repo-update
+
+      - name: Install iOS Platform
+        run: |
+          sudo xcode-select -s /Applications/Xcode_16.2.app/Contents/Developer
+          xcodebuild -downloadPlatform iOS
+
+      - name: Build iOS Screens App
+        run: |
+          cd ios/App
+          xcodebuild -workspace App.xcworkspace \
+            -scheme App \
+            -configuration Release \
+            -destination 'generic/platform=iOS' \
+            -archivePath App.xcarchive \
+            archive \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO
+
+      - name: Export IPA
+        run: |
+          cd ios/App
+          xcodebuild -exportArchive \
+            -archivePath App.xcarchive \
+            -exportPath Export \
+            -exportOptionsPlist ../../build-scripts/ExportOptions.plist \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO
+
+      - name: Upload IPA as Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: screens-ios-app
+          path: ios/App/Export/App.ipa
+
+      - name: Upload IPA to Supabase Storage
+        id: upload_ipa
+        run: |
+          FILE_PATH="ios/App/Export/App.ipa"
+          FILE_NAME="screens-ios-app-v${{ steps.build_info.outputs.version }}.ipa"
+          SUPABASE_BUCKET="ios-files"
+
+          BUCKET_URL="${{ secrets.SUPABASE_URL }}/storage/v1/object/public/${SUPABASE_BUCKET}/${FILE_NAME}"
+          echo "artifact_url=$BUCKET_URL" >> $GITHUB_OUTPUT
+
+          curl -X POST \
+            "${{ secrets.SUPABASE_URL }}/storage/v1/object/${SUPABASE_BUCKET}/${FILE_NAME}" \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" \
+            -H "Content-Type: application/octet-stream" \
+            --data-binary @"$FILE_PATH"
+
+      - name: Update Build Status to 'Success'
+        if: success()
+        run: |
+          curl -X POST "${{ secrets.SUPABASE_URL }}/functions/v1/update-build-status" \
+            -H "Authorization: Bearer ${{ secrets.GH_ACTION_SECRET }}" \
+            -H "Content-Type: application/json" \
+            -d '{
+              "build_id": "${{ steps.build_info.outputs.build_id }}",
+              "status": "success",
+              "artifact_url": "${{ steps.upload_ipa.outputs.artifact_url }}"
+            }'
+
+      - name: Update Build Status to 'Failed'
+        if: failure() || cancelled()
+        run: |
+          STATUS="failed"
+          if [ "${{ job.status }}" == "cancelled" ]; then
+            STATUS="cancelled"
+          fi
+          curl -X POST "${{ secrets.SUPABASE_URL }}/functions/v1/update-build-status" \
+            -H "Authorization: Bearer ${{ secrets.GH_ACTION_SECRET }}" \
+            -H "Content-Type: application/json" \
+            -d '{
+              "build_id": "${{ steps.build_info.outputs.build_id }}",
+              "status": "'$STATUS'"
+            }'

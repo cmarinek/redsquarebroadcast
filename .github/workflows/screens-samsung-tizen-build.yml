@@ -1,0 +1,142 @@
+name: Build RedSquare Screens (Samsung Tizen)
+
+on:
+  repository_dispatch:
+    types: [trigger-screens-samsung-tizen-build]
+  workflow_dispatch:
+    inputs:
+      build_id:
+        description: 'ID of the build record in the database'
+        required: true
+      version:
+        description: 'Version for this build'
+        required: true
+        default: '1.0.0-manual'
+
+jobs:
+  build-screens-samsung-tizen:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get Build Info from Dispatch
+        id: build_info
+        run: |
+          if [ -n "${{ github.event.client_payload.build_id }}" ]; then
+            echo "build_id=${{ github.event.client_payload.build_id }}" >> $GITHUB_OUTPUT
+            echo "version=${{ github.event.client_payload.version }}" >> $GITHUB_OUTPUT
+          else
+            echo "build_id=${{ github.event.inputs.build_id }}" >> $GITHUB_OUTPUT
+            echo "version=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Update Build Status to 'In Progress'
+        run: |
+          curl -X POST "${{ secrets.SUPABASE_URL }}/functions/v1/update-build-status" \
+            -H "Authorization: Bearer ${{ secrets.GH_ACTION_SECRET }}" \
+            -H "Content-Type: application/json" \
+            -d '{
+              "build_id": "${{ steps.build_info.outputs.build_id }}",
+              "status": "in_progress",
+              "logs_url": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}",
+              "commit_hash": "${{ github.sha }}"
+            }'
+
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Build Web App
+        run: npm run build
+
+      - name: Create Samsung Tizen Package
+        run: |
+          # Create Tizen-specific build structure
+          mkdir -p tizen-build/css
+          mkdir -p tizen-build/js
+          mkdir -p tizen-build/images
+          
+          # Copy dist files
+          cp -r dist/* tizen-build/
+          
+          # Create config.xml for Tizen
+          cat > tizen-build/config.xml << EOF
+          <?xml version="1.0" encoding="UTF-8"?>
+          <widget xmlns="http://www.w3.org/ns/widgets" 
+                  xmlns:tizen="http://tizen.org/ns/widgets" 
+                  id="https://redsquare.tv/screens" 
+                  version="${{ steps.build_info.outputs.version }}" 
+                  viewmodes="maximized">
+              <tizen:application id="RedSquareScreens.main" package="RedSquareScreens" required_version="2.3"/>
+              <content src="index.html"/>
+              <feature name="http://tizen.org/feature/screen.size.normal.1080.1920"/>
+              <icon src="images/icon.png"/>
+              <name>RedSquare Screens</name>
+              <tizen:privilege name="http://tizen.org/privilege/internet"/>
+              <tizen:privilege name="http://tizen.org/privilege/filesystem.read"/>
+              <tizen:privilege name="http://tizen.org/privilege/application.launch"/>
+              <tizen:setting screen-orientation="landscape" context-menu="enable" background-support="disable" encryption="disable" install-location="auto" hwkey-event="enable"/>
+          </widget>
+          EOF
+          
+          # Create a simple icon (placeholder)
+          echo "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==" | base64 -d > tizen-build/images/icon.png
+          
+          # Create TPK package (for now, just zip - real Tizen build requires SDK)
+          cd tizen-build
+          zip -r ../screens-samsung-tizen-app-v${{ steps.build_info.outputs.version }}.tpk .
+          cd ..
+
+      - name: Upload Samsung Tizen Package as Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: screens-samsung-tizen-app
+          path: screens-samsung-tizen-app-v${{ steps.build_info.outputs.version }}.tpk
+
+      - name: Upload Samsung Tizen Package to Supabase Storage
+        id: upload_tizen
+        run: |
+          FILE_PATH="screens-samsung-tizen-app-v${{ steps.build_info.outputs.version }}.tpk"
+          FILE_NAME="screens-samsung-tizen-app-v${{ steps.build_info.outputs.version }}.tpk"
+          SUPABASE_BUCKET="tv-files"
+
+          BUCKET_URL="${{ secrets.SUPABASE_URL }}/storage/v1/object/public/${SUPABASE_BUCKET}/${FILE_NAME}"
+          echo "artifact_url=$BUCKET_URL" >> $GITHUB_OUTPUT
+
+          curl -X POST \
+            "${{ secrets.SUPABASE_URL }}/storage/v1/object/${SUPABASE_BUCKET}/${FILE_NAME}" \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" \
+            -H "Content-Type: application/octet-stream" \
+            --data-binary @"$FILE_PATH"
+
+      - name: Update Build Status to 'Success'
+        if: success()
+        run: |
+          curl -X POST "${{ secrets.SUPABASE_URL }}/functions/v1/update-build-status" \
+            -H "Authorization: Bearer ${{ secrets.GH_ACTION_SECRET }}" \
+            -H "Content-Type: application/json" \
+            -d '{
+              "build_id": "${{ steps.build_info.outputs.build_id }}",
+              "status": "success",
+              "artifact_url": "${{ steps.upload_tizen.outputs.artifact_url }}"
+            }'
+
+      - name: Update Build Status to 'Failed'
+        if: failure() || cancelled()
+        run: |
+          STATUS="failed"
+          if [ "${{ job.status }}" == "cancelled" ]; then
+            STATUS="cancelled"
+          fi
+          curl -X POST "${{ secrets.SUPABASE_URL }}/functions/v1/update-build-status" \
+            -H "Authorization: Bearer ${{ secrets.GH_ACTION_SECRET }}" \
+            -H "Content-Type: application/json" \
+            -d '{
+              "build_id": "${{ steps.build_info.outputs.build_id }}",
+              "status": "'$STATUS'"
+            }'

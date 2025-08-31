@@ -47,7 +47,7 @@ serve(async (req) => {
       return new Response(JSON.stringify({ error: "Admin access required" }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    const allowedAppTypes = ['redsquare_android', 'redsquare_ios', 'redsquare_web', 'screens_android_tv', 'screens_android_mobile', 'screens_ios', 'screens_windows', 'screens_macos', 'screens_linux'] as const;
+    const allowedAppTypes = ['redsquare_android', 'redsquare_ios', 'redsquare_web', 'screens_android_tv', 'screens_android_mobile', 'screens_ios', 'screens_windows', 'screens_macos', 'screens_linux', 'screens_amazon_fire', 'screens_roku', 'screens_samsung_tizen', 'screens_lg_webos'] as const;
     type AppType = typeof allowedAppTypes[number];
 
     const { app_type }: { app_type: AppType } = await req.json();
@@ -88,7 +88,12 @@ serve(async (req) => {
       'screens_ios': 'trigger-screens-ios-build',
       'screens_windows': 'trigger-screens-windows-build',
       'screens_macos': 'trigger-screens-macos-build',
-      'screens_linux': 'trigger-screens-linux-build'
+      'screens_linux': 'trigger-screens-linux-build',
+      // RedSquare Screens (streaming platforms)
+      'screens_amazon_fire': 'trigger-screens-amazon-fire-build',
+      'screens_roku': 'trigger-screens-roku-build',
+      'screens_samsung_tizen': 'trigger-screens-samsung-tizen-build',
+      'screens_lg_webos': 'trigger-screens-lg-webos-build'
     };
     
     const eventType = eventTypeMap[app_type];

@@ -1,0 +1,111 @@
+name: Build RedSquare Web App
+
+on:
+  repository_dispatch:
+    types: [trigger-redsquare-web-build]
+  workflow_dispatch:
+    inputs:
+      build_id:
+        description: 'ID of the build record in the database'
+        required: true
+      version:
+        description: 'Version for this build'
+        required: true
+        default: '1.0.0-manual'
+
+jobs:
+  build-redsquare-web:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get Build Info from Dispatch
+        id: build_info
+        run: |
+          if [ -n "${{ github.event.client_payload.build_id }}" ]; then
+            echo "build_id=${{ github.event.client_payload.build_id }}" >> $GITHUB_OUTPUT
+            echo "version=${{ github.event.client_payload.version }}" >> $GITHUB_OUTPUT
+          else
+            echo "build_id=${{ github.event.inputs.build_id }}" >> $GITHUB_OUTPUT
+            echo "version=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Update Build Status to 'In Progress'
+        run: |
+          curl -X POST "${{ secrets.SUPABASE_URL }}/functions/v1/update-build-status" \
+            -H "Authorization: Bearer ${{ secrets.GH_ACTION_SECRET }}" \
+            -H "Content-Type: application/json" \
+            -d '{
+              "build_id": "${{ steps.build_info.outputs.build_id }}",
+              "status": "in_progress",
+              "logs_url": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}",
+              "commit_hash": "${{ github.sha }}"
+            }'
+
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Build Web App
+        run: npm run build
+
+      - name: Create Web App Archive
+        run: |
+          cd dist
+          zip -r ../redsquare-web-app-v${{ steps.build_info.outputs.version }}.zip .
+          cd ..
+
+      - name: Upload Web App as Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: redsquare-web-app
+          path: redsquare-web-app-v${{ steps.build_info.outputs.version }}.zip
+
+      - name: Upload Web App to Supabase Storage
+        id: upload_web
+        run: |
+          FILE_PATH="redsquare-web-app-v${{ steps.build_info.outputs.version }}.zip"
+          FILE_NAME="redsquare-web-app-v${{ steps.build_info.outputs.version }}.zip"
+          SUPABASE_BUCKET="app_artifacts"
+
+          # Get the public URL of the bucket
+          BUCKET_URL="${{ secrets.SUPABASE_URL }}/storage/v1/object/public/${SUPABASE_BUCKET}/${FILE_NAME}"
+          echo "artifact_url=$BUCKET_URL" >> $GITHUB_OUTPUT
+
+          curl -X POST \
+            "${{ secrets.SUPABASE_URL }}/storage/v1/object/${SUPABASE_BUCKET}/${FILE_NAME}" \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" \
+            -H "Content-Type: application/zip" \
+            --data-binary @"$FILE_PATH"
+
+      - name: Update Build Status to 'Success'
+        if: success()
+        run: |
+          curl -X POST "${{ secrets.SUPABASE_URL }}/functions/v1/update-build-status" \
+            -H "Authorization: Bearer ${{ secrets.GH_ACTION_SECRET }}" \
+            -H "Content-Type: application/json" \
+            -d '{
+              "build_id": "${{ steps.build_info.outputs.build_id }}",
+              "status": "success",
+              "artifact_url": "${{ steps.upload_web.outputs.artifact_url }}"
+            }'
+
+      - name: Update Build Status to 'Failed'
+        if: failure() || cancelled()
+        run: |
+          STATUS="failed"
+          if [ "${{ job.status }}" == "cancelled" ]; then
+            STATUS="cancelled"
+          fi
+          curl -X POST "${{ secrets.SUPABASE_URL }}/functions/v1/update-build-status" \
+            -H "Authorization: Bearer ${{ secrets.GH_ACTION_SECRET }}" \
+            -H "Content-Type: application/json" \
+            -d '{
+              "build_id": "${{ steps.build_info.outputs.build_id }}",
+              "status": "'$STATUS'"
+            }'
