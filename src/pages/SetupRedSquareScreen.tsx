@@ -253,7 +253,7 @@ const SetupRedSquareScreen = () => {
             <div className="text-center mb-12">
               <div className="flex justify-center mb-6">
                 <div className="p-4 bg-primary/10 rounded-2xl">
-                  <Cast className="h-12 w-12 text-primary" />
+                  <Cast className="h-12 w-12 text-primary animate-logo-pulse-slow" />
                 </div>
               </div>
               <h1 className="text-4xl md:text-5xl font-bold mb-4">
