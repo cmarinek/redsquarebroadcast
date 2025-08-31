@@ -36,7 +36,7 @@ interface AppRelease {
   build_id?: string;
 }
 
-type Platform = 'redsquare_android' | 'redsquare_ios' | 'redsquare_web' | 'screens_android_tv' | 'screens_android_mobile' | 'screens_ios' | 'screens_windows' | 'screens_macos' | 'screens_linux' | 'system_test';
+type Platform = 'redsquare_android' | 'redsquare_ios' | 'redsquare_web' | 'screens_android_tv' | 'screens_android_mobile' | 'screens_ios' | 'screens_windows' | 'screens_macos' | 'screens_linux' | 'screens_amazon_fire' | 'screens_roku' | 'screens_samsung_tizen' | 'screens_lg_webos' | 'system_test';
 
 interface UploadState {
   isUploading: boolean;
@@ -154,6 +154,54 @@ const PLATFORM_CONFIG = {
       'Build the content display app for Linux devices.',
       'Use the automated build system.'
     ]
+  },
+  screens_amazon_fire: {
+    icon: Tv,
+    name: 'RedSquare Screens (Amazon Fire TV)',
+    description: 'Content display app for Amazon Fire TV devices',
+    fileExtension: 'apk',
+    bucket: 'tv-files',
+    acceptedFiles: '.apk',
+    buildInstructions: [
+      'Build the content display app for Amazon Fire TV.',
+      'Use the automated build system.'
+    ]
+  },
+  screens_roku: {
+    icon: Tv,
+    name: 'RedSquare Screens (Roku)',
+    description: 'Content display app for Roku streaming devices',
+    fileExtension: 'zip',
+    bucket: 'tv-files',
+    acceptedFiles: '.zip',
+    buildInstructions: [
+      'Build the content display app for Roku devices.',
+      'Use the automated build system.'
+    ]
+  },
+  screens_samsung_tizen: {
+    icon: Tv,
+    name: 'RedSquare Screens (Samsung Smart TV)',
+    description: 'Content display app for Samsung Tizen smart TVs (future)',
+    fileExtension: 'tpk',
+    bucket: 'tv-files',
+    acceptedFiles: '.tpk',
+    buildInstructions: [
+      'Build the content display app for Samsung Tizen TVs.',
+      'Future platform - automated build system under development.'
+    ]
+  },
+  screens_lg_webos: {
+    icon: Tv,
+    name: 'RedSquare Screens (LG Smart TV)',
+    description: 'Content display app for LG webOS smart TVs (future)',
+    fileExtension: 'ipk',
+    bucket: 'tv-files',
+    acceptedFiles: '.ipk',
+    buildInstructions: [
+      'Build the content display app for LG webOS TVs.',
+      'Future platform - automated build system under development.'
+    ]
   }
 } as const;
 
@@ -247,7 +295,11 @@ export const AppManager = () => {
           'screens_ios': 'screens_ios',
           'screens_windows': 'screens_windows',
           'screens_macos': 'screens_macos',
-          'screens_linux': 'screens_linux'
+          'screens_linux': 'screens_linux',
+          'screens_amazon_fire': 'screens_amazon_fire',
+          'screens_roku': 'screens_roku',
+          'screens_samsung_tizen': 'screens_samsung_tizen',
+          'screens_lg_webos': 'screens_lg_webos'
         };
 
         const platform = platformMap[build.app_type] || 'redsquare_android';
@@ -549,7 +601,7 @@ export const AppManager = () => {
     return releases.filter(release => release.platform === platform);
   };
 
-  const handleTriggerBuild = async (app_type: 'redsquare_android' | 'redsquare_ios' | 'redsquare_web' | 'screens_android_tv' | 'screens_android_mobile' | 'screens_ios' | 'screens_windows' | 'screens_macos' | 'screens_linux') => {
+  const handleTriggerBuild = async (app_type: 'redsquare_android' | 'redsquare_ios' | 'redsquare_web' | 'screens_android_tv' | 'screens_android_mobile' | 'screens_ios' | 'screens_windows' | 'screens_macos' | 'screens_linux' | 'screens_amazon_fire' | 'screens_roku' | 'screens_samsung_tizen' | 'screens_lg_webos') => {
     setIsTriggeringBuild(true);
     setBuildSuccessfullyStarted(null); // Reset previous success state
     toast({
@@ -903,8 +955,40 @@ export const AppManager = () => {
                 size="sm" 
                 onClick={() => setActivePlatform('screens_linux')}
               >
-                <Monitor className="h-4 w-4 mr-1" />
+                 <Monitor className="h-4 w-4 mr-1" />
                 Linux
+              </Button>
+              <Button 
+                variant={activePlatform === 'screens_amazon_fire' ? 'default' : 'outline'} 
+                size="sm" 
+                onClick={() => setActivePlatform('screens_amazon_fire')}
+              >
+                <Tv className="h-4 w-4 mr-1" />
+                Amazon Fire TV
+              </Button>
+              <Button 
+                variant={activePlatform === 'screens_roku' ? 'default' : 'outline'} 
+                size="sm" 
+                onClick={() => setActivePlatform('screens_roku')}
+              >
+                <Tv className="h-4 w-4 mr-1" />
+                Roku
+              </Button>
+              <Button 
+                variant={activePlatform === 'screens_samsung_tizen' ? 'default' : 'outline'} 
+                size="sm" 
+                onClick={() => setActivePlatform('screens_samsung_tizen')}
+              >
+                <Tv className="h-4 w-4 mr-1" />
+                Samsung TV
+              </Button>
+              <Button 
+                variant={activePlatform === 'screens_lg_webos' ? 'default' : 'outline'} 
+                size="sm" 
+                onClick={() => setActivePlatform('screens_lg_webos')}
+              >
+                <Tv className="h-4 w-4 mr-1" />
+                LG TV
               </Button>
             </div>
           </div>

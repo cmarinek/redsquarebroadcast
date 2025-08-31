@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Download, Monitor, Tv, Smartphone, Laptop, Eye, Shield, Zap, CheckCircle, HelpCircle, ArrowRight, Cast, QrCode, AlertCircle, ExternalLink, Book, MessageCircle, Chrome, Apple } from "lucide-react";
+import { Download, Monitor, Tv, Smartphone, Laptop, Eye, Shield, Zap, CheckCircle, HelpCircle, ArrowRight, Cast, QrCode, AlertCircle, ExternalLink, Book, MessageCircle, Chrome, Apple, Tv2 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -27,7 +27,7 @@ interface ScreenAppRelease {
   created_at: string;
 }
 
-type ScreenType = 'android_tv' | 'android_mobile' | 'windows' | 'ios' | 'unknown';
+type ScreenType = 'android_tv' | 'android_mobile' | 'windows' | 'ios' | 'amazon_fire' | 'roku' | 'samsung_tizen' | 'lg_webos' | 'unknown';
 
 const SetupRedSquareScreen = () => {
   const { toast } = useToast();
@@ -122,6 +122,38 @@ const SetupRedSquareScreen = () => {
       description: 'iPads and iPhones used as digital displays',
       compatibility: 'screens_ios',
       examples: ['iPad Pro', 'iPad Air', 'iPad Mini', 'iPhone (landscape mode)']
+    },
+    {
+      id: 'amazon_fire' as ScreenType,
+      name: 'Amazon Fire TV',
+      icon: Tv2,
+      description: 'Amazon Fire TV sticks and Fire TV devices',
+      compatibility: 'screens_amazon_fire',
+      examples: ['Fire TV Stick 4K', 'Fire TV Cube', 'Fire TV Stick Lite']
+    },
+    {
+      id: 'roku' as ScreenType,
+      name: 'Roku',
+      icon: Tv2,
+      description: 'Roku streaming devices and Roku TVs',
+      compatibility: 'screens_roku',
+      examples: ['Roku Ultra', 'Roku Streaming Stick 4K+', 'Roku TV', 'Roku Express']
+    },
+    {
+      id: 'samsung_tizen' as ScreenType,
+      name: 'Samsung Smart TV',
+      icon: Tv,
+      description: 'Samsung smart TVs with Tizen OS (future)',
+      compatibility: 'screens_samsung_tizen',
+      examples: ['Samsung QLED', 'Samsung Crystal UHD', 'Samsung The Frame', 'Samsung Neo QLED']
+    },
+    {
+      id: 'lg_webos' as ScreenType,
+      name: 'LG Smart TV',
+      icon: Tv,
+      description: 'LG smart TVs with webOS (future)',
+      compatibility: 'screens_lg_webos',
+      examples: ['LG OLED', 'LG NanoCell', 'LG UltraFine', 'LG UP Series']
     }
   ];
 
@@ -185,6 +217,60 @@ const SetupRedSquareScreen = () => {
           'Sign up for a new account or log in',
           'Register your screen with location details',
           'Configure display settings and monetization options'
+        ]
+      },
+      'screens_amazon_fire': {
+        name: 'Amazon Fire TV',
+        icon: Tv2,
+        bucket: 'tv-files',
+        description: 'For Amazon Fire TV devices and sticks',
+        instructions: [
+          'Enable "Apps from Unknown Sources" in Fire TV settings',
+          'Download the APK file using Fire TV browser or transfer via USB',
+          'Install using a file manager app like ES File Explorer',
+          'Launch RedSquare Screens from Apps & Channels',
+          'Sign in or create your screen owner account',
+          'Register your Fire TV as a display screen',
+          'Configure availability and pricing settings'
+        ]
+      },
+      'screens_roku': {
+        name: 'Roku',
+        icon: Tv2,
+        bucket: 'tv-files',
+        description: 'For Roku streaming devices and Roku TVs',
+        instructions: [
+          'Enable Developer Mode on your Roku device',
+          'Install the RedSquare Screens channel from the private channel store',
+          'Use the channel access code provided in your account',
+          'Launch RedSquare Screens from your Roku home screen',
+          'Sign in with your screen owner credentials',
+          'Complete the screen registration process',
+          'Set your display preferences and availability'
+        ]
+      },
+      'screens_samsung_tizen': {
+        name: 'Samsung Smart TV',
+        icon: Tv,
+        bucket: 'tv-files',
+        description: 'For Samsung smart TVs with Tizen OS (coming soon)',
+        instructions: [
+          'Future platform - app is currently in development',
+          'Samsung Smart TVs will be supported in a future update',
+          'For now, use a Fire TV Stick or Roku device with your Samsung TV',
+          'Join the waitlist to be notified when Samsung support is available'
+        ]
+      },
+      'screens_lg_webos': {
+        name: 'LG Smart TV',
+        icon: Tv,
+        bucket: 'tv-files',
+        description: 'For LG smart TVs with webOS (coming soon)',
+        instructions: [
+          'Future platform - app is currently in development',
+          'LG webOS TVs will be supported in a future update',
+          'For now, use a Fire TV Stick or Roku device with your LG TV',
+          'Join the waitlist to be notified when LG webOS support is available'
         ]
       }
     };
