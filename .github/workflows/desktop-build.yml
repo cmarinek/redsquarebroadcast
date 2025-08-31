@@ -68,7 +68,7 @@ jobs:
       - name: Build Desktop App
         run: |
           # Build with optimizations to reduce file size
-          npm run electron:build -- --win --x64 --config.compression=maximum --config.nsis.differentialPackage=false
+          npm run electron:build -- --win --x64 --config electron-builder.json --config.compression=maximum --config.nsis.differentialPackage=false
           
           # Check if build was successful
           $file = Get-ChildItem -Path release -Filter "*.exe" | Select-Object -First 1

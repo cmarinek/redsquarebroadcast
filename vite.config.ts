@@ -16,25 +16,50 @@ export default defineConfig(({ mode }) => ({
     componentTagger(),
   ].filter(Boolean),
   build: {
+    target: 'esnext',
+    minify: 'terser',
+    sourcemap: false, // Disable source maps in production
     rollupOptions: {
       output: {
-        manualChunks: {
-          // Separate vendor libraries into their own chunks
-          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
-          'ui-vendor': ['@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu', '@radix-ui/react-select', '@radix-ui/react-accordion', '@radix-ui/react-tabs'],
-          'map-vendor': ['mapbox-gl', 'leaflet', 'react-leaflet'],
-          'form-vendor': ['react-hook-form', '@hookform/resolvers', 'zod'],
-          'chart-vendor': ['recharts'],
-          'supabase-vendor': ['@supabase/supabase-js'],
-          'media-vendor': ['hls.js', 'dashjs'],
-          'i18n-vendor': ['i18next', 'react-i18next', 'i18next-browser-languagedetector'],
-          'query-vendor': ['@tanstack/react-query'],
-          'qr-vendor': ['@yudiel/react-qr-scanner', 'react-qr-code'],
-          'date-vendor': ['date-fns', 'react-day-picker'],
+        compact: true,
+        // Reduce function names and variable names
+        generatedCode: {
+          arrowFunctions: true,
+          constBindings: true,
+          objectShorthand: true,
         },
       },
+      treeshake: {
+        preset: 'recommended',
+        moduleSideEffects: false,
+      },
     },
-    chunkSizeWarningLimit: 2000, // Increase limit to 2MB for mobile builds
+    terserOptions: {
+      compress: {
+        drop_console: true, // Remove console.log statements
+        drop_debugger: true,
+        pure_funcs: ['console.log', 'console.info', 'console.debug', 'console.trace'],
+        passes: 3, // Multiple compression passes
+        unsafe: true,
+        unsafe_comps: true,
+        unsafe_Function: true,
+        unsafe_math: true,
+        unsafe_symbols: true,
+        unsafe_methods: true,
+        unsafe_proto: true,
+        unsafe_regexp: true,
+        unsafe_undefined: true,
+      },
+      mangle: {
+        toplevel: true,
+        safari10: true,
+      },
+      format: {
+        beautify: false,
+        comments: false,
+      },
+    },
+    chunkSizeWarningLimit: 1000, // Reduce chunk size warning
   },
   test: {
     globals: true,

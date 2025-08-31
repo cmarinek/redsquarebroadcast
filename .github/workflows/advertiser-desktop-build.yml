@@ -73,7 +73,7 @@ jobs:
         shell: pwsh
 
       - name: Build Advertiser Desktop App
-        run: npm run electron:build -- --win --x64
+        run: npm run electron:build -- --win --x64 --config electron-builder.json
         env:
           VITE_APP_TYPE: advertiser
           VITE_PLATFORM: desktop

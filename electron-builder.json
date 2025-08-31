@@ -1,0 +1,59 @@
+{
+  "appId": "com.redsquare.desktop",
+  "productName": "RedSquare Desktop",
+  "compression": "maximum",
+  "removePackageScripts": true,
+  "files": [
+    "dist/**/*",
+    "dist-electron/**/*",
+    "!dist/**/*.map",
+    "!**/*.ts",
+    "!src",
+    "!electron/tsconfig.json",
+    "!**/*.test.*",
+    "!**/*.spec.*",
+    "!node_modules/.cache",
+    "!node_modules/@types",
+    "!**/README.md",
+    "!**/CHANGELOG.md", 
+    "!**/LICENSE*",
+    "!**/*.d.ts"
+  ],
+  "asarUnpack": [],
+  "directories": {
+    "buildResources": "assets",
+    "output": "release"
+  },
+  "win": {
+    "target": {
+      "target": "nsis",
+      "arch": ["x64"]
+    },
+    "compression": "maximum",
+    "requestedExecutionLevel": "asInvoker"
+  },
+  "mac": {
+    "target": {
+      "target": "dmg", 
+      "arch": ["x64", "arm64"]
+    },
+    "compression": "maximum"
+  },
+  "linux": {
+    "target": {
+      "target": "AppImage",
+      "arch": ["x64"]
+    },
+    "compression": "maximum"
+  },
+  "nsis": {
+    "compression": "lzma",
+    "compressLevel": 9,
+    "oneClick": false,
+    "allowToChangeInstallationDirectory": true,
+    "differentialPackage": false
+  },
+  "extraMetadata": {
+    "devDependencies": {}
+  }
+}
