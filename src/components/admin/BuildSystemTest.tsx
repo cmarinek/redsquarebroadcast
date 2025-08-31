@@ -42,7 +42,8 @@ export const BuildSystemTest = () => {
       try {
         const { data, error } = await supabase.rpc('get_my_claim', { claim: 'is_admin' });
         if (error) throw error;
-        if (data?.is_admin) {
+        const adminCheck = data as { is_admin?: boolean } | null;
+        if (adminCheck?.is_admin) {
           testResults[1] = { name: "Admin Permissions", status: 'pass', message: "User has admin access" };
         } else {
           testResults[1] = { name: "Admin Permissions", status: 'fail', message: "User does not have admin permissions" };

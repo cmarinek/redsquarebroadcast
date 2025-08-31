@@ -126,15 +126,13 @@ jobs:
           
           # Read the result URL
           $result = Get-Content "upload-result.txt"
-          if ($result -eq "UPLOAD_FAILED") {
-            Write-Error "Upload failed - check logs for details"
+          if ($result -eq "UPLOAD_FAILED" -or $result -eq "SIZE_LIMIT_EXCEEDED") {
+            Write-Error "Build artifact upload failed. File size: 107MB exceeds storage limits."
+            Write-Host "Consider reducing build size by:"
+            Write-Host "- Excluding debug symbols"
+            Write-Host "- Using better compression" 
+            Write-Host "- Removing unnecessary dependencies"
             exit 1
-          } elseif ($result -eq "SIZE_LIMIT_EXCEEDED") {
-            Write-Warning "File exceeds storage limits. Build completed but artifact not uploaded."
-            Write-Host "Consider optimizing build size or using external storage for large files."
-            echo "artifact_url=SIZE_LIMIT_EXCEEDED" >> $env:GITHUB_OUTPUT
-            # Don't exit with error for size limit - build was successful
-            return
           }
           
           echo "artifact_url=$result" >> $env:GITHUB_OUTPUT

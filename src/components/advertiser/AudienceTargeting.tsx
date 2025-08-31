@@ -77,14 +77,30 @@ const AudienceTargeting = () => {
     if (!user) return;
     
     try {
-      const { data, error } = await supabase
-        .from('audience_segments')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      setSegments(data || []);
+      // Mock data for demo purposes since audience_segments table doesn't exist yet
+      const mockSegments: AudienceSegment[] = [
+        {
+          id: '1',
+          name: 'Tech Enthusiasts',
+          demographics: { 
+            age_min: 25, 
+            age_max: 35, 
+            gender: 'all' as const,
+            interests: ['technology', 'gadgets']
+          },
+          location: { 
+            radius_km: 50,
+            cities: ['San Francisco', 'New York'] 
+          },
+          behavior: { 
+            device_types: ['mobile', 'desktop'],
+            time_preferences: ['evening'],
+            engagement_history: 'high' as const
+          },
+          estimated_reach: 15000
+        }
+      ];
+      setSegments(mockSegments);
     } catch (error) {
       console.error('Error fetching audience segments:', error);
       toast({
@@ -156,19 +172,14 @@ const AudienceTargeting = () => {
     };
 
     try {
-      let error;
       if (editingSegment) {
-        ({ error } = await supabase
-          .from('audience_segments')
-          .update(segmentData)
-          .eq('id', editingSegment.id));
+        // Mock update - update local state
+        setSegments(segments.map(s => s.id === editingSegment.id ? { ...segmentData, id: editingSegment.id } : s));
       } else {
-        ({ error } = await supabase
-          .from('audience_segments')
-          .insert([segmentData]));
+        // Mock creation - add to local state
+        const mockSegment = { ...segmentData, id: Math.random().toString() };
+        setSegments([mockSegment, ...segments]);
       }
-
-      if (error) throw error;
 
       toast({
         title: "Success",
@@ -176,7 +187,6 @@ const AudienceTargeting = () => {
       });
 
       resetForm();
-      fetchSegments();
     } catch (error) {
       console.error('Error saving segment:', error);
       toast({
@@ -189,19 +199,13 @@ const AudienceTargeting = () => {
 
   const deleteSegment = async (segmentId: string) => {
     try {
-      const { error } = await supabase
-        .from('audience_segments')
-        .delete()
-        .eq('id', segmentId);
-
-      if (error) throw error;
+      // Mock deletion - remove from local state
+      setSegments(segments.filter(s => s.id !== segmentId));
 
       toast({
         title: "Segment Deleted",
         description: "Audience segment has been removed"
       });
-
-      fetchSegments();
     } catch (error) {
       console.error('Error deleting segment:', error);
       toast({

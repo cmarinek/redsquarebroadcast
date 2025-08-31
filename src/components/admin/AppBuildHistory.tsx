@@ -87,7 +87,7 @@ export const AppBuildHistory = () => {
 
       if (error) throw error;
       
-      setBuilds(data || []);
+      setBuilds((data || []) as AppBuild[]);
       setTotalCount(count || 0);
     } catch (error) {
       console.error("Error fetching app builds:", error);

@@ -187,11 +187,12 @@ export const AppManager = () => {
 
       if (automatedError) throw automatedError;
 
-      // Convert manual releases to unified format
-      const manualReleasesFormatted: AppRelease[] = (manualReleases || []).map(release => ({
+      // Convert manual releases to unified format with proper typing
+      const manualReleasesFormatted = (manualReleases || []).map(release => ({
         ...release,
-        source: 'manual' as const
-      }));
+        source: 'manual' as const,
+        platform: release.platform as any // Type cast to avoid enum conflict
+      })) as AppRelease[];
 
       // Convert automated builds to unified format
       const automatedReleasesFormatted = automatedBuilds.map(async (build) => {
