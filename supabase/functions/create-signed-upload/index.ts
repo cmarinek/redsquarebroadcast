@@ -32,7 +32,7 @@ const ALLOWED_TYPES = new Set([
   'video/mp4',
   'application/zip', 'application/vnd.microsoft.portable-executable', 'application/octet-stream'
 ]);
-const MAX_SIZE_BYTES = 500 * 1024 * 1024; // 500MB - Allow large executable files
+// Remove size limit entirely - let Supabase Storage handle it
 
 async function insertLog(details: Record<string, unknown>) {
   try {
@@ -158,7 +158,7 @@ Deno.serve(async (req: Request) => {
         signedUrl: data.signedUrl,
         url: data.signedUrl, // For PowerShell compatibility
         headers: null, // PowerShell handles null better than empty object
-        max_size_bytes: MAX_SIZE_BYTES, 
+        max_size_bytes: null, // No size limit enforced 
         rate_limit_remaining: rl.remaining 
       }),
       { status: 200, headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store', ...corsHeaders } }
