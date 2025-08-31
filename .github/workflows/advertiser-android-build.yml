@@ -78,8 +78,35 @@ jobs:
             exit 1
           fi
 
+      - name: Setup Capacitor Android Platform
+        run: |
+          # Check if Android platform exists and is complete
+          if [ ! -f "android/gradlew" ] || [ ! -f "android/build.gradle" ]; then
+            echo "Android project incomplete, removing and re-adding platform"
+            rm -rf android
+            npx cap add android
+            
+            # Verify the platform was added successfully
+            if [ ! -f "android/gradlew" ]; then
+              echo "ERROR: Failed to create Android platform"
+              exit 1
+            fi
+          else
+            echo "Android platform properly configured, skipping add"
+          fi
+
       - name: Sync Capacitor Project
-        run: npx cap sync android
+        run: |
+          npx cap sync android
+          
+          # Ensure gradlew is executable
+          if [ -f "android/gradlew" ]; then
+            chmod +x android/gradlew
+            echo "Android gradlew found and made executable"
+          else
+            echo "ERROR: gradlew still not found after sync"
+            exit 1
+          fi
 
       - name: Configure Android Manifest for Advertiser
         run: |
@@ -105,6 +132,14 @@ jobs:
       - name: Build Advertiser Android APK
         run: |
           cd android
+          # Verify gradlew exists before attempting to use it
+          if [ ! -f "./gradlew" ]; then
+            echo "ERROR: gradlew not found in android directory"
+            echo "Contents of android directory:"
+            ls -la
+            exit 1
+          fi
+          
           ./gradlew assembleRelease
           echo "Listing build outputs:"
           find . -name "*.apk" -type f
