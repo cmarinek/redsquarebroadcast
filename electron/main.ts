@@ -35,8 +35,9 @@ const createWindow = () => {
     console.error('Failed to load:', errorCode, errorDescription);
   });
 
-  mainWindow.webContents.on('crashed', () => {
-    console.error('Renderer process crashed');
+  // Handle renderer process events
+  mainWindow.webContents.on('render-process-gone', (event, details) => {
+    console.error('Renderer process gone:', details.reason);
   });
 
   mainWindow.webContents.on('unresponsive', () => {
@@ -91,15 +92,20 @@ const createWindow = () => {
   }
 };
 
-app.on('ready', createWindow);
+app.on('ready', () => {
+  console.log('Electron app ready');
+  createWindow();
+});
 
 app.on('window-all-closed', () => {
+  console.log('All windows closed');
   if (process.platform !== 'darwin') {
     app.quit();
   }
 });
 
 app.on('activate', () => {
+  console.log('Electron app activated');
   if (BrowserWindow.getAllWindows().length === 0) {
     createWindow();
   }

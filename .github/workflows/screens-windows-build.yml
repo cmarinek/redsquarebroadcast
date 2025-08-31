@@ -69,27 +69,58 @@ jobs:
 
       - name: Build Desktop App
         run: |
-          # Build with optimizations to reduce file size
-          npm run electron:build -- --win --x64 --config electron-builder.json --config.compression=maximum --config.nsis.differentialPackage=false
+          Write-Host "Building Electron app with optimizations..."
           
-          # Check if build was successful
-          $file = Get-ChildItem -Path release -Filter "*.exe" | Select-Object -First 1
-          if (-not $file) {
-            Write-Error "No executable file found in release directory"
-            exit 1
+          # Ensure release directory exists
+          if (-not (Test-Path "release")) {
+            New-Item -ItemType Directory -Path "release" -Force
+            Write-Host "Created release directory"
           }
           
-          # Check file size (500MB limit)
-          $fileSizeMB = [math]::Round($file.Length / 1MB, 2)
-          Write-Host "Built executable size: $fileSizeMB MB"
-          
-          if ($file.Length -gt 500000000) {
-            Write-Warning "File size ($fileSizeMB MB) exceeds 500MB limit. Consider optimizing the build."
-            # List largest files in the app for debugging
-            Write-Host "Analyzing app directory structure..."
-            if (Test-Path "release\win-unpacked") {
-              Get-ChildItem -Path "release\win-unpacked" -Recurse | Sort-Object Length -Descending | Select-Object -First 10 | Format-Table Name, @{Name="Size(MB)";Expression={[math]::Round($_.Length/1MB,2)}}
+          try {
+            # Build with optimizations to reduce file size
+            npm run electron:build -- --win --x64 --config electron-builder.json --config.compression=maximum --config.nsis.differentialPackage=false
+            
+            Write-Host "Build command completed. Checking output..."
+            
+            # List all files in release directory for debugging
+            if (Test-Path "release") {
+              Write-Host "Contents of release directory:"
+              Get-ChildItem -Path "release" -Recurse | ForEach-Object {
+                Write-Host "  $($_.FullName) ($(if($_.PSIsContainer){'Directory'}else{[math]::Round($_.Length/1MB,2).ToString() + ' MB'}))"
+              }
+            } else {
+              Write-Error "Release directory was not created by build process"
+              exit 1
             }
+            
+            # Check if build was successful
+            $file = Get-ChildItem -Path release -Filter "*.exe" | Select-Object -First 1
+            if (-not $file) {
+              Write-Error "No executable file found in release directory. Build may have failed."
+              Write-Host "Available files:"
+              Get-ChildItem -Path release -File | ForEach-Object { Write-Host "  $($_.Name)" }
+              exit 1
+            }
+            
+            # Check file size (500MB limit)
+            $fileSizeMB = [math]::Round($file.Length / 1MB, 2)
+            Write-Host "Built executable: $($file.Name) - Size: $fileSizeMB MB"
+            
+            if ($file.Length -gt 500000000) {
+              Write-Warning "File size ($fileSizeMB MB) exceeds 500MB limit. Consider optimizing the build."
+              # List largest files in the app for debugging
+              Write-Host "Analyzing app directory structure..."
+              if (Test-Path "release\win-unpacked") {
+                Get-ChildItem -Path "release\win-unpacked" -Recurse | Sort-Object Length -Descending | Select-Object -First 10 | Format-Table Name, @{Name="Size(MB)";Expression={[math]::Round($_.Length/1MB,2)}}
+              }
+            }
+          }
+          catch {
+            Write-Error "Build failed with error: $($_.Exception.Message)"
+            Write-Host "Stack trace:"
+            Write-Host $_.ScriptStackTrace
+            exit 1
           }
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }} # electron-builder may need this to download binaries
