@@ -1,5 +1,6 @@
 name: Build RedSquare Screens (Android TV)
 
+# This workflow builds the Android TV version of RedSquare Screens
 on:
   repository_dispatch:
     types: [trigger-screens-android-tv-build]
