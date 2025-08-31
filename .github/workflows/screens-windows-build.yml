@@ -18,7 +18,6 @@ jobs:
     runs-on: windows-latest
     permissions:
       contents: write
-      releases: write
       actions: write
     steps:
       - name: Get Build Info from Dispatch
