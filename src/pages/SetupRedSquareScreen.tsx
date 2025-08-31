@@ -27,7 +27,7 @@ interface ScreenAppRelease {
   created_at: string;
 }
 
-type ScreenType = 'screens_android_tv' | 'screens_android_mobile' | 'screens_windows' | 'screens_ios' | 'screens_amazon_fire' | 'screens_roku' | 'screens_samsung_tizen' | 'screens_lg_webos' | 'unknown';
+type ScreenType = 'screens_android_mobile' | 'screens_ios' | 'screens_windows' | 'screens_macos' | 'screens_linux' | 'screens_android_tv' | 'screens_amazon_fire' | 'screens_roku' | 'screens_samsung_tizen' | 'screens_lg_webos' | 'unknown';
 
 const SetupRedSquareScreen = () => {
   const { toast } = useToast();
@@ -53,8 +53,12 @@ const SetupRedSquareScreen = () => {
       }
     } else if (userAgent.includes('iphone') || userAgent.includes('ipad') || userAgent.includes('ipod')) {
       setDetectedPlatform('screens_ios');
+    } else if (userAgent.includes('mac os')) {
+      setDetectedPlatform('screens_macos');
     } else if (userAgent.includes('windows')) {
       setDetectedPlatform('screens_windows');
+    } else if (userAgent.includes('linux')) {
+      setDetectedPlatform('screens_linux');
     }
   };
 
@@ -92,36 +96,52 @@ const SetupRedSquareScreen = () => {
 
   const screenTypes = [
     {
-      id: 'screens_android_tv' as ScreenType,
-      name: 'Android TV',
-      icon: Tv,
-      description: 'Smart TVs, Android TV boxes, and streaming devices',
-      compatibility: 'screens_android_tv',
-      examples: ['Samsung Smart TV', 'Sony Android TV', 'Nvidia Shield', 'Chromecast with Google TV']
-    },
-    {
       id: 'screens_android_mobile' as ScreenType,
-      name: 'Android Tablet/Phone',
+      name: 'Android Mobile',
       icon: Smartphone,
       description: 'Android tablets and phones used as digital displays',
       compatibility: 'screens_android_mobile',
       examples: ['Samsung Galaxy Tab', 'Google Pixel Tablet', 'Any Android phone/tablet']
     },
     {
+      id: 'screens_ios' as ScreenType,
+      name: 'iOS',
+      icon: Apple,
+      description: 'iPads and iPhones used as digital displays',
+      compatibility: 'screens_ios',
+      examples: ['iPad Pro', 'iPad Air', 'iPad Mini', 'iPhone (landscape mode)']
+    },
+    {
       id: 'screens_windows' as ScreenType,
-      name: 'Windows PC',
+      name: 'Windows',
       icon: Laptop,
       description: 'Windows computers, laptops, and digital signage displays',
       compatibility: 'screens_windows',
       examples: ['Windows 10/11 PC', 'Surface Pro', 'Digital signage computer']
     },
     {
-      id: 'screens_ios' as ScreenType,
-      name: 'iPad/iPhone',
+      id: 'screens_macos' as ScreenType,
+      name: 'macOS',
       icon: Apple,
-      description: 'iPads and iPhones used as digital displays',
-      compatibility: 'screens_ios',
-      examples: ['iPad Pro', 'iPad Air', 'iPad Mini', 'iPhone (landscape mode)']
+      description: 'Mac computers and MacBooks used as digital displays',
+      compatibility: 'screens_macos',
+      examples: ['MacBook Pro', 'iMac', 'Mac Studio', 'Mac Mini']
+    },
+    {
+      id: 'screens_linux' as ScreenType,
+      name: 'Linux',
+      icon: Monitor,
+      description: 'Linux computers and embedded displays',
+      compatibility: 'screens_linux',
+      examples: ['Ubuntu Desktop', 'Raspberry Pi', 'Linux signage systems']
+    },
+    {
+      id: 'screens_android_tv' as ScreenType,
+      name: 'Android TV',
+      icon: Tv,
+      description: 'Smart TVs, Android TV boxes, and streaming devices',
+      compatibility: 'screens_android_tv',
+      examples: ['Samsung Smart TV', 'Sony Android TV', 'Nvidia Shield', 'Chromecast with Google TV']
     },
     {
       id: 'screens_amazon_fire' as ScreenType,
@@ -141,17 +161,17 @@ const SetupRedSquareScreen = () => {
     },
     {
       id: 'screens_samsung_tizen' as ScreenType,
-      name: 'Samsung Smart TV',
+      name: 'Samsung TV',
       icon: Tv,
-      description: 'Samsung smart TVs with Tizen OS (future)',
+      description: 'Samsung smart TVs with Tizen OS',
       compatibility: 'screens_samsung_tizen',
       examples: ['Samsung QLED', 'Samsung Crystal UHD', 'Samsung The Frame', 'Samsung Neo QLED']
     },
     {
       id: 'screens_lg_webos' as ScreenType,
-      name: 'LG Smart TV',
+      name: 'LG TV',
       icon: Tv,
-      description: 'LG smart TVs with webOS (future)',
+      description: 'LG smart TVs with webOS',
       compatibility: 'screens_lg_webos',
       examples: ['LG OLED', 'LG NanoCell', 'LG UltraFine', 'LG UP Series']
     }
