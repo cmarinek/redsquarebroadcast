@@ -307,9 +307,11 @@ export const AppManager = () => {
         
         console.log('Mapped platform:', { app_type: build.app_type, platform, hasConfig: !!config });
         
-        // Fetch actual file size for successful automated builds with artifacts
-        const fileSize = (build.status === 'success' && build.artifact_url) ? 
-          await fetchFileSizeFromUrl(build.artifact_url) : 0;
+        // For successful builds with artifacts, fetch file size with retry logic
+        let fileSize = 0;
+        if (build.status === 'success' && build.artifact_url) {
+          fileSize = await fetchFileSizeWithRetry(build.artifact_url, 3);
+        }
           
         console.log('File size fetched:', { artifact_url: build.artifact_url, fileSize });
 
@@ -355,8 +357,12 @@ export const AppManager = () => {
     }
   };
 
-  const formatFileSize = (bytes: number, isAutomated = false) => {
+  const formatFileSize = (bytes: number, isAutomated = false, status?: string) => {
     if (bytes === 0) {
+      // For successful automated builds, show "Size unknown" instead of "Calculating..."
+      if (isAutomated && status === 'success') {
+        return 'Size unknown';
+      }
       return isAutomated ? 'Calculating...' : '0 Bytes';
     }
     const k = 1024;
@@ -365,24 +371,41 @@ export const AppManager = () => {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
-  const fetchFileSizeFromUrl = async (url: string): Promise<number> => {
-    try {
-      // Add timeout and faster HEAD request
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 3000); // 3 second timeout
-      
-      const response = await fetch(url, { 
-        method: 'HEAD',
-        signal: controller.signal
-      });
-      
-      clearTimeout(timeoutId);
-      const contentLength = response.headers.get('content-length');
-      return contentLength ? parseInt(contentLength, 10) : 0;
-    } catch (error) {
-      console.error('Error fetching file size (timeout/network):', error);
-      return 0; // Return 0 instead of hanging
+  const fetchFileSizeWithRetry = async (url: string, maxRetries: number): Promise<number> => {
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        console.log(`Fetching file size (attempt ${attempt}/${maxRetries}):`, url);
+        
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+        
+        const response = await fetch(url, { 
+          method: 'HEAD',
+          signal: controller.signal
+        });
+        
+        clearTimeout(timeoutId);
+        
+        if (response.ok) {
+          const contentLength = response.headers.get('content-length');
+          const size = contentLength ? parseInt(contentLength, 10) : 0;
+          console.log(`File size fetched successfully on attempt ${attempt}:`, size);
+          return size;
+        } else {
+          console.warn(`HTTP ${response.status} on attempt ${attempt}`);
+        }
+      } catch (error) {
+        console.warn(`Error fetching file size (attempt ${attempt}/${maxRetries}):`, error);
+        
+        // If this isn't the last attempt, wait before retrying
+        if (attempt < maxRetries) {
+          await new Promise(resolve => setTimeout(resolve, 1000 * attempt)); // Exponential backoff
+        }
+      }
     }
+    
+    console.error(`Failed to fetch file size after ${maxRetries} attempts`);
+    return 0; // Return 0 after all retries failed
   };
 
   const getCurrentPlatformConfig = () => PLATFORM_CONFIG[activePlatform];
@@ -787,7 +810,7 @@ export const AppManager = () => {
                           )}
                         </TableCell>
                         <TableCell>
-                          {formatFileSize(release.file_size, true)}
+                          {formatFileSize(release.file_size, release.source === 'automated', release.status)}
                         </TableCell>
                         <TableCell>
                           <div className="text-sm">
@@ -930,7 +953,7 @@ export const AppManager = () => {
                          )}
                        </TableCell>
                        <TableCell>
-                         {formatFileSize(release.file_size, release.source === 'automated')}
+                         {formatFileSize(release.file_size, release.source === 'automated', release.status)}
                        </TableCell>
                       <TableCell>
                         {release.download_count}
