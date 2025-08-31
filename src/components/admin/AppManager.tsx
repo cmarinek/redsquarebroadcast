@@ -902,9 +902,12 @@ export const AppManager = () => {
                                 release.status === 'pending' ? 'Queued' : 
                                 release.status?.charAt(0).toUpperCase() + release.status?.slice(1)}
                              </Badge>
-                             <Badge variant={release.is_active ? "default" : "secondary"} className="text-xs">
-                               {release.is_active ? "Active" : "Inactive"}
-                             </Badge>
+                              <Badge 
+                                variant={release.is_active ? "default" : "secondary"} 
+                                className={`text-xs ${release.is_active ? 'bg-green-600 text-white hover:bg-green-700' : 'bg-red-600 text-white hover:bg-red-700'}`}
+                              >
+                                {release.is_active ? "Active" : "Inactive"}
+                              </Badge>
                            </div>
                          ) : (
                            <Badge variant={release.is_active ? "default" : "secondary"}>
