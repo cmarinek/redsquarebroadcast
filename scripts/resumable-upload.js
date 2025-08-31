@@ -15,6 +15,8 @@ if (!filePath || !bucket || !fileName || !supabaseUrl || !serviceKey) {
 const supabase = createClient(supabaseUrl, serviceKey);
 
 async function uploadWithResumable() {
+  let uploadResult = 'UPLOAD_FAILED';
+  
   try {
     console.log(`Starting resumable upload: ${fileName}`);
     console.log(`File path: ${filePath}`);
@@ -29,6 +31,12 @@ async function uploadWithResumable() {
     const stats = fs.statSync(filePath);
     const fileSizeMB = Math.round(stats.size / (1024 * 1024) * 100) / 100;
     console.log(`File size: ${fileSizeMB} MB`);
+    
+    // Check if file exceeds common limits before attempting upload
+    if (stats.size > 100 * 1024 * 1024) { // 100MB limit
+      console.error(`File size (${fileSizeMB}MB) exceeds 100MB limit. Consider build optimization.`);
+      throw new Error(`File too large: ${fileSizeMB}MB exceeds storage limits`);
+    }
     
     // Read file as buffer
     const fileBuffer = fs.readFileSync(filePath);
@@ -52,7 +60,16 @@ async function uploadWithResumable() {
     
     if (error) {
       console.error('Upload error:', error);
-      process.exit(1);
+      
+      // Check for specific error types
+      if (error.statusCode === '413' || error.message?.includes('exceeded the maximum allowed size')) {
+        console.error('File exceeds Supabase storage limits. Consider reducing build size or using external storage.');
+        uploadResult = 'SIZE_LIMIT_EXCEEDED';
+      } else {
+        uploadResult = 'UPLOAD_FAILED';
+      }
+      
+      throw error;
     }
     
     console.log('Upload successful!');
@@ -62,14 +79,22 @@ async function uploadWithResumable() {
     const publicUrl = `${supabaseUrl}/storage/v1/object/public/${bucket}/${fileName}`;
     console.log(`Public URL: ${publicUrl}`);
     
-    // Write the URL to a file for the workflow to pick up
-    fs.writeFileSync('upload-result.txt', publicUrl);
+    uploadResult = publicUrl;
     
   } catch (error) {
-    console.error('Upload failed:', error);
-    
-    // Write error result for the workflow to handle gracefully
-    fs.writeFileSync('upload-result.txt', 'UPLOAD_FAILED');
+    console.error('Upload failed:', error.message || error);
+  } finally {
+    // Always write the result file
+    try {
+      fs.writeFileSync('upload-result.txt', uploadResult);
+      console.log(`Result written to upload-result.txt: ${uploadResult}`);
+    } catch (writeError) {
+      console.error('Failed to write result file:', writeError);
+    }
+  }
+  
+  // Exit with error code if upload failed
+  if (uploadResult === 'UPLOAD_FAILED' || uploadResult === 'SIZE_LIMIT_EXCEEDED') {
     process.exit(1);
   }
 }
