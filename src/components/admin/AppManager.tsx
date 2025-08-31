@@ -561,39 +561,57 @@ export const AppManager = () => {
   };
 
   const deleteRelease = async (release: AppRelease) => {
-    // Only allow deleting manual releases
-    if (release.source === 'automated') {
-      toast({
-        title: "Cannot delete automated builds",
-        description: "Automated builds cannot be deleted from this interface.",
-        variant: "destructive"
-      });
-      return;
-    }
-
     const config = PLATFORM_CONFIG[release.platform];
+    const isAutomated = release.source === 'automated';
     
     if (!confirm(`Are you sure you want to delete ${config.name} version ${release.version_name}?`)) {
       return;
     }
 
     try {
-      const { error: storageError } = await supabase.storage
-        .from(config.bucket)
-        .remove([release.file_path]);
+      if (isAutomated) {
+        // For automated builds, delete from app_builds table and remove artifact
+        if (release.file_path) {
+          // Extract filename from full URL for storage deletion
+          const urlParts = release.file_path.split('/');
+          const fileName = urlParts[urlParts.length - 1];
+          
+          const { error: storageError } = await supabase.storage
+            .from(config.bucket)
+            .remove([fileName]);
 
-      if (storageError) throw storageError;
+          if (storageError) {
+            console.warn('Storage deletion failed:', storageError);
+            // Continue with database deletion even if storage fails
+          }
+        }
 
-      const { error: dbError } = await supabase
-        .from('app_releases')
-        .delete()
-        .eq('id', release.id);
+        // Delete from app_builds table
+        const { error: dbError } = await supabase
+          .from('app_builds')
+          .delete()
+          .eq('id', release.build_id);
 
-      if (dbError) throw dbError;
+        if (dbError) throw dbError;
+      } else {
+        // For manual releases, delete from app_releases table
+        const { error: storageError } = await supabase.storage
+          .from(config.bucket)
+          .remove([release.file_path]);
+
+        if (storageError) throw storageError;
+
+        const { error: dbError } = await supabase
+          .from('app_releases')
+          .delete()
+          .eq('id', release.id);
+
+        if (dbError) throw dbError;
+      }
 
       toast({
         title: "Release deleted",
-        description: `${config.name} version ${release.version_name} has been removed.`,
+        description: `${config.name} version ${release.version_name} has been deleted successfully.`,
       });
 
       fetchReleases();
@@ -858,15 +876,9 @@ export const AppManager = () => {
                           <Button size="sm" variant={release.is_active ? "secondary" : "default"} onClick={() => toggleReleaseStatus(release.id, release.is_active)}>
                             {release.is_active ? "Deactivate" : "Activate"}
                           </Button>
-                          {release.source === 'manual' ? (
-                            <Button size="sm" variant="destructive" onClick={() => deleteRelease(release)}>
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          ) : (
-                            <Badge variant="outline" className="text-xs">
-                              Auto
-                            </Badge>
-                          )}
+                          <Button size="sm" variant="destructive" onClick={() => deleteRelease(release)}>
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
                         </div>
                       </TableCell>
                     </TableRow>
