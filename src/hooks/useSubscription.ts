@@ -1,29 +1,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-
-interface SubscriptionPlan {
-  id: string;
-  name: string;
-  description: string;
-  price_cents: number;
-  currency: string;
-  interval_type: 'month' | 'year';
-  features: string[];
-  max_screens: number | null;
-  max_campaigns: number | null;
-  analytics_retention_days: number;
-}
-
-interface UserSubscription {
-  id: string;
-  plan_id: string;
-  status: 'active' | 'canceled' | 'past_due' | 'paused';
-  current_period_start: string | null;
-  current_period_end: string | null;
-  trial_end: string | null;
-  plan?: SubscriptionPlan;
-}
+import { SubscriptionPlan, UserSubscription, IntervalType } from "@/types";
 
 export const useSubscription = () => {
   const { user } = useAuth();
@@ -71,9 +49,19 @@ export const useSubscription = () => {
 
       setSubscription(subData ? {
         ...subData,
-        plan: subData.subscription_plans
-      } : null);
-      setPlans(plansData || []);
+        plan: subData.subscription_plans ? {
+          ...subData.subscription_plans,
+          interval_type: subData.subscription_plans.interval_type as IntervalType,
+          features: Array.isArray(subData.subscription_plans.features) 
+            ? subData.subscription_plans.features as string[]
+            : []
+        } : undefined
+      } as UserSubscription : null);
+      setPlans((plansData || []).map(plan => ({
+        ...plan,
+        interval_type: plan.interval_type as IntervalType,
+        features: Array.isArray(plan.features) ? plan.features as string[] : []
+      })));
 
     } catch (error) {
       console.error('Error fetching subscription data:', error);

@@ -3,6 +3,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { castToBookingStatus, castToPaymentStatus } from "@/types";
 import { Button } from "@/components/ui/button";
 import { Calendar, Clock, DollarSign, Eye, Play, Target, BarChart3, Settings, Zap, Users, TrendingUp, Upload, Smartphone } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -102,7 +103,11 @@ const AdvertiserDashboard = () => {
           variant: "destructive",
         });
       } else {
-        setBookings(bookingsData || []);
+        setBookings((bookingsData || []).map(booking => ({
+          ...booking,
+          status: castToBookingStatus(booking.status),
+          payment_status: castToPaymentStatus(booking.payment_status)
+        })));
       }
 
       const { data: screensData, error: screensError } = await supabase
@@ -117,7 +122,11 @@ const AdvertiserDashboard = () => {
           variant: "destructive",
         });
       } else {
-        setScreens(screensData || []);
+        setScreens((screensData || []).map(screen => ({
+          ...screen,
+          name: screen.name || `Screen ${screen.id.slice(-4)}`,
+          size: screen.size || 'Large'
+        })));
       }
 
       const { data: contentUploadsData, error: contentUploadsError } = await supabase
@@ -133,7 +142,10 @@ const AdvertiserDashboard = () => {
           variant: "destructive",
         });
       } else {
-        setContentUploads(contentUploadsData || []);
+        setContentUploads((contentUploadsData || []).map(content => ({
+          ...content,
+          file_url: content.file_path
+        })));
       }
     } finally {
       setLoading(false);

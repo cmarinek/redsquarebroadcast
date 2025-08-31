@@ -1,46 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
-
-interface Language {
-  id: string;
-  code: string;
-  name: string;
-  display_name: string;
-  direction: 'ltr' | 'rtl';
-  is_active: boolean;
-}
-
-interface Region {
-  id: string;
-  name: string;
-  code: string;
-  display_name: string;
-  timezone: string;
-  is_active: boolean;
-}
-
-interface Country {
-  id: string;
-  region_id: string;
-  name: string;
-  code: string;
-  display_name: string;
-  currency_code: string;
-  phone_prefix: string;
-  tax_rate: number;
-  is_active: boolean;
-}
-
-interface Currency {
-  id: string;
-  code: string;
-  name: string;
-  symbol: string;
-  decimal_places: number;
-  exchange_rate: number;
-  is_active: boolean;
-}
+import { Language, Region, Country, Currency, DirectionType } from '@/types';
 
 interface LanguageContextType {
   currentLanguage: string;
@@ -102,7 +63,10 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
         supabase.from('currencies').select('*').eq('is_active', true)
       ]);
 
-      if (languagesData) setLanguages(languagesData);
+        setLanguages((languagesData || []).map(lang => ({
+          ...lang,
+          direction: lang.direction as DirectionType
+        })));
       if (regionsData) setRegions(regionsData);
       if (countriesData) setCountries(countriesData);
       if (currenciesData) setCurrencies(currenciesData);

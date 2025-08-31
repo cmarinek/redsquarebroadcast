@@ -24,12 +24,14 @@ interface AppRelease {
   created_at: string;
 }
 
-interface AppBuild {
+import { AppBuild, BuildStatus } from "@/types";
+
+interface LocalAppBuild {
   id: string;
   created_at: string;
   app_type: string;
   version: string | null;
-  status: 'pending' | 'in_progress' | 'success' | 'failed' | 'cancelled';
+  status: BuildStatus;
   artifact_url: string | null;
   logs_url: string | null;
   commit_hash: string | null;
@@ -119,7 +121,10 @@ export const ScreenOwnerDownloads = ({ screenCount }: ScreenOwnerDownloadsProps)
 
       if (error) throw error;
 
-      const builds: AppBuild[] = data || [];
+      const builds = (data || []).map(build => ({
+        ...build,
+        status: build.status as BuildStatus
+      }));
       const latestBuilds: Record<string, AppRelease> = {};
 
       for (const build of builds) {
