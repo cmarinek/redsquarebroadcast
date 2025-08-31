@@ -93,6 +93,15 @@ jobs:
           sed -i.bak 's/redsquarebroadcast/RedSquare Advertiser/' App/Info.plist
           # Update bundle identifier  
           sed -i.bak 's/com\.redsquare\.broadcast/app.redsquare.advertiser/' App.xcodeproj/project.pbxproj
+          
+          # Remove any team configuration to ensure unsigned build
+          echo "Removing team configuration for unsigned build..."
+          sed -i.bak '/DEVELOPMENT_TEAM/d' App.xcodeproj/project.pbxproj
+          sed -i.bak '/DevelopmentTeam/d' App.xcodeproj/project.pbxproj
+          sed -i.bak '/ProvisioningStyle/d' App.xcodeproj/project.pbxproj
+          
+          # Set manual provisioning style
+          sed -i.bak 's/ProvisioningStyle = Automatic;/ProvisioningStyle = Manual;/g' App.xcodeproj/project.pbxproj
 
       - name: Install CocoaPods
         run: |
