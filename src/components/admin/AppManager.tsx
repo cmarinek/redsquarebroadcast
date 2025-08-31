@@ -357,12 +357,21 @@ export const AppManager = () => {
 
   const fetchFileSizeFromUrl = async (url: string): Promise<number> => {
     try {
-      const response = await fetch(url, { method: 'HEAD' });
+      // Add timeout and faster HEAD request
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 3000); // 3 second timeout
+      
+      const response = await fetch(url, { 
+        method: 'HEAD',
+        signal: controller.signal
+      });
+      
+      clearTimeout(timeoutId);
       const contentLength = response.headers.get('content-length');
       return contentLength ? parseInt(contentLength, 10) : 0;
     } catch (error) {
-      console.error('Error fetching file size:', error);
-      return 0;
+      console.error('Error fetching file size (timeout/network):', error);
+      return 0; // Return 0 instead of hanging
     }
   };
 
