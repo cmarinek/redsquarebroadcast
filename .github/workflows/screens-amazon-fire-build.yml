@@ -90,15 +90,37 @@ jobs:
 
       - name: Configure Android Build for Fire TV
         run: |
-          # Configure for Fire TV (TV interface, no touchscreen required)
-          if [ -f "android/app/src/main/AndroidManifest.xml" ]; then
-            # Add Fire TV specific configurations
-            sed -i 's/android:required="true"/android:required="false"/' android/app/src/main/AndroidManifest.xml || echo "Touchscreen already configured for TV"
-            # Add leanback launcher support if not present
-            if ! grep -q "android.intent.category.LEANBACK_LAUNCHER" android/app/src/main/AndroidManifest.xml; then
-              sed -i '/<category android:name="android.intent.category.LAUNCHER"\/>/a\                <category android:name="android.intent.category.LEANBACK_LAUNCHER" />' android/app/src/main/AndroidManifest.xml
-            fi
+          set -e  # Exit on any error
+          echo "Configuring Android build for Amazon Fire TV..."
+          
+          # Ensure Android project exists
+          if [ ! -f "android/app/src/main/AndroidManifest.xml" ]; then
+            echo "❌ Android manifest not found"
+            exit 1
           fi
+          
+          # Configure for Fire TV (TV interface, no touchscreen required)
+          echo "Setting up TV-specific configurations..."
+          
+          # Remove touchscreen requirement for TV
+          sed -i 's/android:required="true"/android:required="false"/' android/app/src/main/AndroidManifest.xml || echo "Touchscreen already configured for TV"
+          
+          # Add Fire TV launcher support
+          if ! grep -q "android.intent.category.LEANBACK_LAUNCHER" android/app/src/main/AndroidManifest.xml; then
+            sed -i '/<category android:name="android.intent.category.LAUNCHER"\/>/a\                <category android:name="android.intent.category.LEANBACK_LAUNCHER" />' android/app/src/main/AndroidManifest.xml
+            echo "✅ Added LEANBACK_LAUNCHER category for Fire TV"
+          fi
+          
+          # Add TV feature requirements
+          if ! grep -q 'android:name="android.software.leanback"' android/app/src/main/AndroidManifest.xml; then
+            sed -i '/<\/application>/i\    <uses-feature android:name="android.software.leanback" android:required="true" />\n    <uses-feature android:name="android.hardware.touchscreen" android:required="false" />' android/app/src/main/AndroidManifest.xml
+            echo "✅ Added TV feature requirements"
+          fi
+          
+          # Configure landscape orientation for TV
+          sed -i 's/android:screenOrientation="[^"]*"/android:screenOrientation="landscape"/' android/app/src/main/AndroidManifest.xml || echo "Orientation already configured"
+          
+          echo "✅ Fire TV configuration completed successfully"
 
       - name: Create Android Keystore
         env:
@@ -112,10 +134,34 @@ jobs:
 
       - name: Build RedSquare Screens Amazon Fire TV APK
         run: |
+          set -e  # Exit on any error
+          echo "Building RedSquare Screens for Amazon Fire TV..."
+          
           cd android
+          
+          # Ensure gradlew is executable
+          chmod +x ./gradlew
+          
+          # Clean previous builds
+          ./gradlew clean
+          
+          # Build release APK
           ./gradlew assembleRelease
+          
+          echo "✅ APK build completed successfully"
           echo "Listing build outputs:"
           find . -name "*.apk" -type f
+          
+          # Validate APK was created
+          APK_COUNT=$(find ./app/build/outputs/apk/release/ -name "*.apk" | wc -l)
+          if [ "$APK_COUNT" -eq 0 ]; then
+            echo "❌ No APK files were generated"
+            echo "Build directory contents:"
+            ls -la ./app/build/outputs/apk/release/ || echo "Release directory doesn't exist"
+            exit 1
+          fi
+          
+          echo "✅ Found $APK_COUNT APK file(s) ready for Fire TV"
         env:
           SIGNING_KEY_ALIAS: ${{ secrets.ANDROID_SIGNING_KEY_ALIAS }}
           SIGNING_KEY_PASSWORD: ${{ secrets.ANDROID_SIGNING_KEY_PASSWORD }}

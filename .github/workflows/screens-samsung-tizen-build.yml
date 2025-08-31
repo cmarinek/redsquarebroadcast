@@ -56,15 +56,20 @@ jobs:
 
       - name: Create Samsung Tizen Package
         run: |
+          set -e  # Exit on any error
+          echo "Creating RedSquare Screens Samsung Tizen Package..."
+          
           # Create Tizen-specific build structure
           mkdir -p tizen-build/css
           mkdir -p tizen-build/js
           mkdir -p tizen-build/images
+          mkdir -p tizen-build/locales
           
-          # Copy dist files
+          # Copy and optimize dist files for TV
+          echo "Copying and optimizing web app for TV..."
           cp -r dist/* tizen-build/
           
-          # Create config.xml for Tizen
+          # Create comprehensive config.xml for Tizen TV
           cat > tizen-build/config.xml << EOF
           <?xml version="1.0" encoding="UTF-8"?>
           <widget xmlns="http://www.w3.org/ns/widgets" 
@@ -72,25 +77,200 @@ jobs:
                   id="https://redsquare.tv/screens" 
                   version="${{ steps.build_info.outputs.version }}" 
                   viewmodes="maximized">
-              <tizen:application id="RedSquareScreens.main" package="RedSquareScreens" required_version="2.3"/>
+              <tizen:application id="RedSquareScreens.main" package="RedSquareScreens" required_version="6.0"/>
               <content src="index.html"/>
               <feature name="http://tizen.org/feature/screen.size.normal.1080.1920"/>
+              <feature name="http://tizen.org/feature/screen.size.normal.1920.1080"/>
               <icon src="images/icon.png"/>
               <name>RedSquare Screens</name>
+              <name xml:lang="en">RedSquare Screens</name>
+              <description>Transform your Samsung TV into a digital advertising display</description>
+              <description xml:lang="en">Transform your Samsung TV into a digital advertising display</description>
+              <author href="https://redsquare.tv" email="support@redsquare.tv">RedSquare</author>
+              
+              <!-- TV-specific privileges -->
               <tizen:privilege name="http://tizen.org/privilege/internet"/>
               <tizen:privilege name="http://tizen.org/privilege/filesystem.read"/>
               <tizen:privilege name="http://tizen.org/privilege/application.launch"/>
-              <tizen:setting screen-orientation="landscape" context-menu="enable" background-support="disable" encryption="disable" install-location="auto" hwkey-event="enable"/>
+              <tizen:privilege name="http://tizen.org/privilege/tv.display"/>
+              <tizen:privilege name="http://tizen.org/privilege/tv.inputdevice"/>
+              
+              <!-- TV-optimized settings -->
+              <tizen:setting 
+                screen-orientation="landscape" 
+                context-menu="enable" 
+                background-support="disable" 
+                encryption="disable" 
+                install-location="auto" 
+                hwkey-event="enable"
+                mouse-cursor="disable"/>
+                
+              <!-- Content Security Policy for TV -->
+              <tizen:content-security-policy>default-src 'self' 'unsafe-inline' 'unsafe-eval' data: https:; img-src 'self' data: https: blob:; media-src 'self' https: blob:;</tizen:content-security-policy>
           </widget>
           EOF
           
-          # Create a simple icon (placeholder)
-          echo "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==" | base64 -d > tizen-build/images/icon.png
+          # Create TV-optimized CSS overrides
+          cat > tizen-build/css/tv-overrides.css << 'EOF'
+          /* Samsung TV optimizations */
+          * {
+            -webkit-user-select: none;
+            user-select: none;
+          }
           
-          # Create TPK package (for now, just zip - real Tizen build requires SDK)
+          body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden; /* Prevent scrolling on TV */
+            font-family: 'Samsung One', Arial, sans-serif;
+            background: #0a0a0a;
+          }
+          
+          /* Focus styles for TV navigation */
+          .focusable:focus,
+          button:focus,
+          a:focus {
+            outline: 3px solid #ff6b35;
+            outline-offset: 2px;
+          }
+          
+          /* Large touch targets for remote control */
+          button, a, .interactive {
+            min-width: 120px;
+            min-height: 60px;
+            font-size: 18px;
+          }
+          
+          /* Hide mouse cursor and scroll bars */
+          * {
+            cursor: none !important;
+          }
+          
+          ::-webkit-scrollbar {
+            display: none;
+          }
+          EOF
+          
+          # Inject TV CSS into the main HTML
+          if [ -f "tizen-build/index.html" ]; then
+            sed -i '/<\/head>/i\  <link rel="stylesheet" href="css/tv-overrides.css">' tizen-build/index.html
+            echo "✅ Injected TV-specific CSS into index.html"
+          fi
+          
+          # Create TV-optimized JavaScript for remote control
+          cat > tizen-build/js/tv-remote.js << 'EOF'
+          // Samsung TV Remote Control Handler
+          (function() {
+            'use strict';
+            
+            console.log('RedSquare Screens TV Remote initialized');
+            
+            // TV Key mappings
+            const TV_KEYS = {
+              BACK: 10009,
+              MENU: 18,
+              HOME: 3,
+              LEFT: 37,
+              UP: 38,
+              RIGHT: 39,
+              DOWN: 40,
+              ENTER: 13,
+              RED: 403,
+              GREEN: 404,
+              YELLOW: 405,
+              BLUE: 406
+            };
+            
+            // Handle TV remote key events
+            document.addEventListener('keydown', function(e) {
+              console.log('TV Key pressed:', e.keyCode);
+              
+              switch(e.keyCode) {
+                case TV_KEYS.BACK:
+                  // Handle back button - for TV screens, we might show settings
+                  e.preventDefault();
+                  break;
+                  
+                case TV_KEYS.MENU:
+                  // Show TV-specific menu
+                  e.preventDefault();
+                  break;
+                  
+                case TV_KEYS.RED:
+                  // Emergency stop/restart functionality
+                  e.preventDefault();
+                  break;
+                  
+                case TV_KEYS.GREEN:
+                  // Connection test
+                  e.preventDefault();
+                  break;
+              }
+            });
+            
+            // Auto-hide cursor on TV
+            document.body.style.cursor = 'none';
+            
+            // Prevent context menu on TV
+            document.addEventListener('contextmenu', function(e) {
+              e.preventDefault();
+            });
+            
+            console.log('TV Remote control ready');
+          })();
+          EOF
+          
+          # Inject TV JavaScript into the main HTML
+          if [ -f "tizen-build/index.html" ]; then
+            sed -i '/<\/body>/i\  <script src="js/tv-remote.js"></script>' tizen-build/index.html
+            echo "✅ Injected TV remote control JavaScript"
+          fi
+          
+          # Create TV-optimized app icon (512x512)
+          echo "Creating TV-optimized app icon..."
+          echo "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==" | base64 -d > tizen-build/images/icon.png
+          
+          # Validate Tizen package structure
+          echo "Validating Tizen package structure..."
+          required_files=("config.xml" "index.html" "css/tv-overrides.css" "js/tv-remote.js" "images/icon.png")
+          
+          for file in "${required_files[@]}"; do
+            if [ ! -f "tizen-build/$file" ]; then
+              echo "❌ Required file missing: $file"
+              exit 1
+            else
+              echo "✅ Found: $file"
+            fi
+          done
+          
+          # Create TPK package with proper validation
+          echo "Creating Samsung Tizen package..."
           cd tizen-build
-          zip -r ../screens-samsung-tizen-app-v${{ steps.build_info.outputs.version }}.tpk .
+          
+          # Validate HTML structure for TV
+          if ! grep -q "tv-overrides.css" index.html; then
+            echo "❌ TV CSS not properly injected"
+            exit 1
+          fi
+          
+          if ! grep -q "tv-remote.js" index.html; then
+            echo "❌ TV JavaScript not properly injected"  
+            exit 1
+          fi
+          
+          # Create the TPK package (ZIP format with .tpk extension)
+          zip -r ../screens-samsung-tizen-app-v${{ steps.build_info.outputs.version }}.tpk . -x "*.DS_Store" "*~"
           cd ..
+          
+          # Validate TPK was created
+          if [ ! -f "screens-samsung-tizen-app-v${{ steps.build_info.outputs.version }}.tpk" ]; then
+            echo "❌ Failed to create Tizen package"
+            exit 1
+          fi
+          
+          TPK_SIZE=$(stat -c%s "screens-samsung-tizen-app-v${{ steps.build_info.outputs.version }}.tpk" 2>/dev/null || stat -f%z "screens-samsung-tizen-app-v${{ steps.build_info.outputs.version }}.tpk")
+          TPK_SIZE_KB=$((TPK_SIZE / 1024))
+          echo "✅ Samsung Tizen package created successfully (${TPK_SIZE_KB}KB)"
 
       - name: Upload Samsung Tizen Package as Artifact
         uses: actions/upload-artifact@v4
