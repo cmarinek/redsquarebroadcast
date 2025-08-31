@@ -105,20 +105,44 @@ jobs:
           $fileName = $file.Name
           $filePath = $file.FullName
           $fileSizeMB = [math]::Round($file.Length / 1MB, 2)
+          $fileSizeBytes = $file.Length
           
           Write-Host "Original file: $fileName (${fileSizeMB}MB)"
+          Write-Host "File size in bytes: $fileSizeBytes"
           
-          # Create zip file
-          $zipName = "RedSquare-Screens-Windows-v${{ steps.build_info.outputs.version }}.zip"
+          # Check file size limit (80MB = 83,886,080 bytes to be safe)
+          if ($fileSizeBytes -gt 83886080) {
+            Write-Error "File size (${fileSizeMB}MB) exceeds safe upload limit of 80MB. Build optimization needed."
+            exit 1
+          }
+          
+          # Create 7z archive for better compression
+          $zipName = "RedSquare-Screens-Windows-v${{ steps.build_info.outputs.version }}.7z"
           $zipPath = Join-Path $env:TEMP $zipName
           
-          Write-Host "Creating zip file: $zipName"
-          Compress-Archive -Path $filePath -DestinationPath $zipPath -CompressionLevel Optimal
+          Write-Host "Creating 7z archive: $zipName"
           
-          # Check zip file size
+          # Install 7-Zip if not available
+          if (-not (Get-Command "7z" -ErrorAction SilentlyContinue)) {
+            Write-Host "Installing 7-Zip..."
+            choco install 7zip -y
+            $env:PATH += ";C:\Program Files\7-Zip"
+          }
+          
+          # Create 7z archive with maximum compression
+          & 7z a -t7z -m0=lzma2 -mx=9 -mfb=64 -md=32m -ms=on "$zipPath" "$filePath"
+          
+          # Check 7z file size
           $zipFile = Get-Item $zipPath
           $zipSizeMB = [math]::Round($zipFile.Length / 1MB, 2)
-          Write-Host "Zip file created: $zipName (${zipSizeMB}MB) - Compression ratio: $([math]::Round((1 - $zipFile.Length / $file.Length) * 100, 1))%"
+          $compressionRatio = [math]::Round((1 - $zipFile.Length / $file.Length) * 100, 1)
+          Write-Host "7z archive created: $zipName (${zipSizeMB}MB) - Compression ratio: ${compressionRatio}%"
+          
+          # Final size check for 7z file (75MB = 78,643,200 bytes to be extra safe)
+          if ($zipFile.Length -gt 78643200) {
+            Write-Error "7z archive size (${zipSizeMB}MB) still exceeds safe limit of 75MB. Further optimization needed."
+            exit 1
+          }
           
           # Upload using resumable upload script
           Write-Host "Uploading with resumable upload..."
@@ -127,22 +151,22 @@ jobs:
           # Read the result URL
           $result = Get-Content "upload-result.txt"
           if ($result -eq "UPLOAD_FAILED" -or $result -eq "SIZE_LIMIT_EXCEEDED") {
-            Write-Error "Build artifact upload failed. File size: 107MB exceeds storage limits."
-            Write-Host "Consider reducing build size by:"
-            Write-Host "- Excluding debug symbols"
+            Write-Error "Build artifact upload failed. File size: ${zipSizeMB}MB may exceed storage limits."
+            Write-Host "Consider further reducing build size by:"
+            Write-Host "- Excluding more node_modules content"
             Write-Host "- Using better compression" 
             Write-Host "- Removing unnecessary dependencies"
             exit 1
           }
           
           echo "artifact_url=$result" >> $env:GITHUB_OUTPUT
-          Write-Host "Zip file uploaded successfully using resumable upload!"
+          Write-Host "7z archive uploaded successfully using resumable upload!"
           Write-Host "Artifact URL: $result"
           
           # Clean up temp files
           if (Test-Path $zipPath) {
             Remove-Item $zipPath -Force
-            Write-Host "Temporary zip file cleaned up"
+            Write-Host "Temporary 7z file cleaned up"
           }
           if (Test-Path "upload-result.txt") {
             Remove-Item "upload-result.txt" -Force

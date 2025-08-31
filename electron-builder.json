@@ -25,6 +25,13 @@
     "!node_modules/**/tests/**",
     "!node_modules/**/*.test.js",
     "!node_modules/**/*.spec.js",
+    "!node_modules/**/example/**",
+    "!node_modules/**/examples/**",
+    "!node_modules/**/.github/**",
+    "!node_modules/**/coverage/**",
+    "!node_modules/**/*.nyc_output",
+    "!node_modules/**/benchmark/**",
+    "!node_modules/**/benchmarks/**",
     "!**/README.md",
     "!**/CHANGELOG.md", 
     "!**/LICENSE*",
@@ -60,9 +67,14 @@
   "nsis": {
     "oneClick": false,
     "allowToChangeInstallationDirectory": true,
-    "differentialPackage": false
+    "differentialPackage": false,
+    "createDesktopShortcut": false,
+    "createStartMenuShortcut": false
   },
   "extraMetadata": {
     "devDependencies": {}
-  }
+  },
+  "buildDependenciesFromSource": false,
+  "nodeGypRebuild": false,
+  "buildVersion": "0.0.1"
 }
