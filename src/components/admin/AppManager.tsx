@@ -613,7 +613,9 @@ export const AppManager = () => {
   };
 
   const getPlatformReleases = (platform: Platform) => {
-    return releases.filter(release => release.platform === platform);
+    const filteredReleases = releases.filter(release => release.platform === platform);
+    console.log(`getPlatformReleases for ${platform}:`, filteredReleases.length, 'releases found');
+    return filteredReleases;
   };
 
   const handleTriggerBuild = async (app_type: 'redsquare_android' | 'redsquare_ios' | 'redsquare_web' | 'screens_android_tv' | 'screens_android_mobile' | 'screens_ios' | 'screens_windows' | 'screens_macos' | 'screens_linux' | 'screens_amazon_fire' | 'screens_roku' | 'screens_samsung_tizen' | 'screens_lg_webos') => {
@@ -672,27 +674,107 @@ export const AppManager = () => {
     // Desktop/Screen apps that are build-only (no manual upload)
     if (activePlatform === 'screens_windows' || activePlatform === 'screens_macos' || activePlatform === 'screens_linux' || activePlatform === 'redsquare_web') {
       return (
-        <Card>
-          <CardHeader>
-              <div className="flex justify-between items-start">
-                  <div>
-                      <CardTitle>Automated {currentConfig.name} Build</CardTitle>
-                      <CardDescription>{currentConfig.description}. Use the automated build system to create the latest version.</CardDescription>
-                  </div>
-                  <Button 
-                    onClick={() => handleTriggerBuild(activePlatform)} 
-                    disabled={isTriggeringBuild}
-                    variant={buildSuccessfullyStarted === activePlatform ? 'default' : 'outline'}
-                    className={buildSuccessfullyStarted === activePlatform ? 'bg-green-600 hover:bg-green-700 text-white' : ''}
-                  >
-                      <Upload className="mr-2 h-4 w-4" />
-                      {isTriggeringBuild ? 'Starting...' : 
-                       buildSuccessfullyStarted === activePlatform ? '✓ Build Started Successfully!' : 
-                       `Start Automated Build`}
-                  </Button>
-              </div>
-          </CardHeader>
-        </Card>
+        <>
+          {/* Available Releases Section - Show successful builds */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Download className="h-5 w-5" />
+                Available {currentConfig.name} Releases
+              </CardTitle>
+              <CardDescription>{currentConfig.description}</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {getPlatformReleases(activePlatform).length === 0 ? (
+                <p className="text-center text-muted-foreground py-8">
+                  No {currentConfig.name} releases found. Trigger an automated build to create your first release.
+                </p>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Version</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Size</TableHead>
+                      <TableHead>Created</TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {getPlatformReleases(activePlatform).map((release) => (
+                      <TableRow key={release.id}>
+                        <TableCell className="font-medium">
+                          <div className="flex items-center gap-2">
+                            {getPlatformIcon(release.platform)}
+                            <div>
+                              <div className="flex items-center gap-2">
+                                <span className="font-semibold">v{release.version_name}</span>
+                                <Badge variant="secondary" className="text-xs">Auto</Badge>
+                              </div>
+                              <div className="text-xs text-muted-foreground">
+                                Build ID: {release.build_id?.slice(0, 8)}...
+                              </div>
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant={release.is_active ? "default" : "secondary"}>
+                            {release.is_active ? "Active" : "Inactive"}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          {formatFileSize(release.file_size, true)}
+                        </TableCell>
+                        <TableCell>
+                          <div className="text-sm">
+                            {format(new Date(release.created_at), 'MMM d, yyyy')}
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            Commit: {release.release_notes?.split('commit ')[1]?.slice(0, 7) || 'unknown'}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex justify-end gap-2">
+                            <Button size="sm" variant="outline" onClick={() => handleDownload(release)}>
+                              <Download className="h-4 w-4 mr-1" />
+                              Download
+                            </Button>
+                            <Button size="sm" variant={release.is_active ? "secondary" : "default"} onClick={() => toggleReleaseStatus(release.id, release.is_active)}>
+                              {release.is_active ? "Deactivate" : "Activate"}
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Automated Build Section */}
+          <Card>
+            <CardHeader>
+                <div className="flex justify-between items-start">
+                    <div>
+                        <CardTitle>Automated {currentConfig.name} Build</CardTitle>
+                        <CardDescription>{currentConfig.description}. Use the automated build system to create the latest version.</CardDescription>
+                    </div>
+                    <Button 
+                      onClick={() => handleTriggerBuild(activePlatform)} 
+                      disabled={isTriggeringBuild}
+                      variant={buildSuccessfullyStarted === activePlatform ? 'default' : 'outline'}
+                      className={buildSuccessfullyStarted === activePlatform ? 'bg-green-600 hover:bg-green-700 text-white' : ''}
+                    >
+                        <Upload className="mr-2 h-4 w-4" />
+                        {isTriggeringBuild ? 'Starting...' : 
+                         buildSuccessfullyStarted === activePlatform ? '✓ Build Started Successfully!' : 
+                         `Start Automated Build`}
+                    </Button>
+                </div>
+            </CardHeader>
+          </Card>
+        </>
       );
     }
 
