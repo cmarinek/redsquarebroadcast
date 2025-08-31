@@ -24,10 +24,9 @@ jobs:
       - name: Get Build Info from Dispatch
         id: build_info
         run: |
-          if ($env:GITHUB_EVENT_NAME -eq "repository_dispatch") {
-            $payload = Get-Content $env:GITHUB_EVENT_PATH | ConvertFrom-Json
-            echo "build_id=$($payload.client_payload.build_id)" >> $env:GITHUB_OUTPUT
-            echo "version=$($payload.client_payload.version)" >> $env:GITHUB_OUTPUT
+          if ("${{ github.event.client_payload.build_id }}" -ne "") {
+            echo "build_id=${{ github.event.client_payload.build_id }}" >> $env:GITHUB_OUTPUT
+            echo "version=${{ github.event.client_payload.version }}" >> $env:GITHUB_OUTPUT
           } else {
             echo "build_id=${{ github.event.inputs.build_id }}" >> $env:GITHUB_OUTPUT
             echo "version=${{ github.event.inputs.version }}" >> $env:GITHUB_OUTPUT
