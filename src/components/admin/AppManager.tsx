@@ -45,7 +45,7 @@ interface UploadState {
 const PLATFORM_CONFIG = {
   android: {
     icon: Smartphone,
-    name: 'Android',
+    name: 'Android Mobile',
     fileExtension: 'apk',
     bucket: 'apk-files',
     acceptedFiles: '.apk',
@@ -727,7 +727,7 @@ export const AppManager = () => {
         <TabsList className="grid w-full grid-cols-8">
           <TabsTrigger value="android" className="flex items-center gap-2">
             <Smartphone className="h-4 w-4" />
-            Android
+            Android Mobile
           </TabsTrigger>
           <TabsTrigger value="ios" className="flex items-center gap-2">
             <Smartphone className="h-4 w-4" />
