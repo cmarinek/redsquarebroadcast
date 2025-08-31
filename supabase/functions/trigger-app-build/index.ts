@@ -7,6 +7,10 @@ const corsHeaders = {
 };
 
 serve(async (req) => {
+  console.log("🚀 Trigger app build function called");
+  console.log("Request method:", req.method);
+  console.log("Request URL:", req.url);
+
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
@@ -19,19 +23,31 @@ serve(async (req) => {
     const githubRepoOwner = Deno.env.get("GITHUB_REPO_OWNER");
     const githubRepoName = Deno.env.get("GITHUB_REPO_NAME");
 
+    console.log("Environment check:", {
+      hasSupabaseUrl: !!supabaseUrl,
+      hasAnonKey: !!anonKey,
+      hasServiceKey: !!serviceKey,
+      hasGithubToken: !!githubToken,
+      hasGithubRepoOwner: !!githubRepoOwner,
+      hasGithubRepoName: !!githubRepoName
+    });
+
     if (!supabaseUrl || !anonKey || !serviceKey) {
+      console.error("❌ Missing Supabase configuration");
       throw new Error("Internal server error: Missing Supabase configuration.");
     }
 
     if (!githubToken || !githubRepoOwner || !githubRepoName) {
-        return new Response(JSON.stringify({
-            error: "Configuration Error: The following environment variables must be set in your Supabase project's settings (Settings > Configuration > Environment Variables): GITHUB_REPO_OWNER, GITHUB_REPO_NAME, GITHUB_ACCESS_TOKEN."
-        }), {
-            status: 500,
-            headers: { ...corsHeaders, "Content-Type": "application/json" }
-        });
+      console.error("❌ Missing GitHub configuration");
+      return new Response(JSON.stringify({
+        error: "Configuration Error: The following environment variables must be set in your Supabase project's settings (Settings > Configuration > Environment Variables): GITHUB_REPO_OWNER, GITHUB_REPO_NAME, GITHUB_ACCESS_TOKEN."
+      }), {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" }
+      });
     }
 
+    console.log("🔐 Authenticating user...");
     // 1. Authenticate user and check for admin role
     const supabaseUserClient = createClient(supabaseUrl, anonKey, {
       global: { headers: { Authorization: req.headers.get("Authorization")! } },
@@ -39,23 +55,41 @@ serve(async (req) => {
 
     const { data: { user } } = await supabaseUserClient.auth.getUser();
     if (!user) {
-        return new Response(JSON.stringify({ error: "Authentication failed" }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      console.error("❌ Authentication failed");
+      return new Response(JSON.stringify({ error: "Authentication failed" }), { 
+        status: 401, 
+        headers: { ...corsHeaders, "Content-Type": "application/json" } 
+      });
     }
+
+    console.log("✅ User authenticated:", user.id);
 
     const { data: claims, error: claimsError } = await supabaseUserClient.rpc('get_my_claim', { claim: 'is_admin' }) as { data: { is_admin: boolean } | null, error: Error | null };
     if (claimsError || !claims?.is_admin) {
-      return new Response(JSON.stringify({ error: "Admin access required" }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      console.error("❌ Admin access required");
+      return new Response(JSON.stringify({ error: "Admin access required" }), { 
+        status: 403, 
+        headers: { ...corsHeaders, "Content-Type": "application/json" } 
+      });
     }
+
+    console.log("✅ Admin access confirmed");
 
     const allowedAppTypes = ['redsquare_android', 'redsquare_ios', 'redsquare_web', 'screens_android_tv', 'screens_android_mobile', 'screens_ios', 'screens_windows', 'screens_macos', 'screens_linux', 'screens_amazon_fire', 'screens_roku', 'screens_samsung_tizen', 'screens_lg_webos'] as const;
     type AppType = typeof allowedAppTypes[number];
 
     const { app_type }: { app_type: AppType } = await req.json();
+    console.log("📱 App type requested:", app_type);
 
     if (!app_type || !allowedAppTypes.includes(app_type)) {
-      return new Response(JSON.stringify({ error: `A valid app_type (${allowedAppTypes.join(', ')}) is required.` }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      console.error("❌ Invalid app type:", app_type);
+      return new Response(JSON.stringify({ error: `A valid app_type (${allowedAppTypes.join(', ')}) is required.` }), { 
+        status: 400, 
+        headers: { ...corsHeaders, "Content-Type": "application/json" } 
+      });
     }
 
+    console.log("🗄️ Creating build record...");
     // 2. Create a new build record in the database
     const supabaseAdminClient = createClient(supabaseUrl, serviceKey);
     const version = `1.0.${Math.floor(Date.now() / 1000)}`; // Simple timestamp-based version
@@ -71,7 +105,12 @@ serve(async (req) => {
       .select()
       .single();
 
-    if (insertError) throw insertError;
+    if (insertError) {
+      console.error("❌ Failed to create build record:", insertError);
+      throw insertError;
+    }
+
+    console.log("✅ Build record created:", newBuild.id);
 
     // 3. Dispatch GitHub Action workflow using workflow_dispatch (more reliable than repository_dispatch)
     const workflowFileMap = {
@@ -95,11 +134,15 @@ serve(async (req) => {
     
     const workflowFile = workflowFileMap[app_type];
     if (!workflowFile) {
+      console.error("❌ No workflow configured for app type:", app_type);
       throw new Error(`No workflow configured for app type: ${app_type}`);
     }
 
+    console.log("🔧 Workflow file:", workflowFile);
+
     // Use workflow_dispatch instead of repository_dispatch for better reliability
     const dispatchUrl = `https://api.github.com/repos/${githubRepoOwner}/${githubRepoName}/actions/workflows/${workflowFile}/dispatches`;
+    console.log("🚀 Dispatch URL:", dispatchUrl);
 
     const dispatchPayload = {
       ref: 'main', // or 'master' depending on your default branch
@@ -109,26 +152,34 @@ serve(async (req) => {
       },
     };
 
+    console.log("📦 Dispatch payload:", JSON.stringify(dispatchPayload, null, 2));
+
     const ghResponse = await fetch(dispatchUrl, {
       method: "POST",
       headers: {
-        Authorization: `token ${githubToken}`,
+        Authorization: `Bearer ${githubToken}`,
         Accept: "application/vnd.github.v3+json",
         "Content-Type": "application/json",
+        "User-Agent": "Supabase-Edge-Function"
       },
       body: JSON.stringify(dispatchPayload),
     });
 
+    console.log("📡 GitHub API response status:", ghResponse.status);
+    console.log("📡 GitHub API response headers:", Object.fromEntries(ghResponse.headers.entries()));
+
     if (!ghResponse.ok) {
-        const errorBody = await ghResponse.text();
-        console.error("GitHub API Error:", errorBody);
-        // If GitHub dispatch fails, update the build status to 'failed'
-        await supabaseAdminClient
-            .from('app_builds')
-            .update({ status: 'failed' })
-            .eq('id', newBuild.id);
-      throw new Error(`GitHub API request failed: ${ghResponse.statusText}`);
+      const errorBody = await ghResponse.text();
+      console.error("❌ GitHub API Error:", errorBody);
+      // If GitHub dispatch fails, update the build status to 'failed'
+      await supabaseAdminClient
+        .from('app_builds')
+        .update({ status: 'failed' })
+        .eq('id', newBuild.id);
+      throw new Error(`GitHub API request failed: ${ghResponse.statusText} - ${errorBody}`);
     }
+
+    console.log("✅ GitHub workflow dispatched successfully");
 
     return new Response(JSON.stringify({ success: true, build: newBuild }), {
       status: 200,
@@ -136,7 +187,11 @@ serve(async (req) => {
     });
 
   } catch (error) {
-    return new Response(JSON.stringify({ error: error.message }), {
+    console.error("💥 Function error:", error);
+    return new Response(JSON.stringify({ 
+      error: error.message,
+      stack: error.stack 
+    }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
