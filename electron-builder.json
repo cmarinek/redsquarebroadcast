@@ -6,6 +6,7 @@
   "files": [
     "dist/**/*",
     "dist-electron/**/*",
+    "src/electron-fallback.css",
     "!dist/**/*.map",
     "!**/*.ts",
     "!src",

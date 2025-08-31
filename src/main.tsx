@@ -1,3 +1,4 @@
+import React from 'react'
 import { createRoot } from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
 import App from './App.tsx'
@@ -10,6 +11,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { initWebVitals } from '@/utils/telemetry'
 import { initErrorReporting } from '@/utils/errorReporting'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
+import { LoadingFallback } from '@/components/LoadingFallback'
 import { cleanupAuthState } from '@/utils/authCleanup'
 import { supabase, SUPABASE_PROJECT_REF } from '@/integrations/supabase/client'
 import i18n from './lib/i18n'
@@ -55,17 +57,66 @@ if (lastRef && lastRef !== SUPABASE_PROJECT_REF) {
 initWebVitals(0.1) // 10% sampling rate
 initErrorReporting(0.5) // 50% sampling rate
 
-// Detect if running on mobile device in Capacitor (only in actual mobile environment)
+// Enhanced environment detection
 const isMobileApp = !!(window as any).Capacitor && (window as any).Capacitor.isNativePlatform;
+const isElectron = !!(window as any).electronAPI || !!(window as any).require || navigator.userAgent.indexOf('Electron') !== -1;
 
-createRoot(document.getElementById("root")!).render(
+console.log('Environment detection:', {
+  isMobileApp,
+  isElectron,
+  userAgent: navigator.userAgent,
+  location: window.location.href
+});
+
+// Add error event listener for debugging
+window.addEventListener('error', (event) => {
+  console.error('Global error:', event.error, event.message, event.filename, event.lineno);
+});
+
+window.addEventListener('unhandledrejection', (event) => {
+  console.error('Unhandled promise rejection:', event.reason);
+});
+
+// Add CSS loading check for Electron
+if (isElectron) {
+  console.log('Running in Electron - checking CSS loading...');
+  const checkCSS = () => {
+    const computedStyle = getComputedStyle(document.documentElement);
+    const bgColor = computedStyle.getPropertyValue('--background');
+    console.log('CSS variables check:', {
+      background: bgColor,
+      primary: computedStyle.getPropertyValue('--primary'),
+      foreground: computedStyle.getPropertyValue('--foreground')
+    });
+    
+    if (!bgColor) {
+      console.warn('CSS variables not loaded properly');
+    }
+  };
+  
+  // Check CSS after a short delay
+  setTimeout(checkCSS, 100);
+}
+
+console.log('Rendering React application...');
+
+const rootElement = document.getElementById("root");
+if (!rootElement) {
+  console.error('Root element not found!');
+} else {
+  console.log('Root element found, creating React root...');
+}
+
+createRoot(rootElement!).render(
   <ErrorBoundary>
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
         <I18nextProvider i18n={i18n}>
           <LanguageProvider>
             <AuthProvider>
-              {isMobileApp ? <ScreenOwnerMobile /> : <App />}
+              <React.Suspense fallback={<LoadingFallback message="Loading application..." />}>
+                {isMobileApp ? <ScreenOwnerMobile /> : <App />}
+              </React.Suspense>
               <Toaster />
             </AuthProvider>
           </LanguageProvider>
@@ -74,3 +125,5 @@ createRoot(document.getElementById("root")!).render(
     </QueryClientProvider>
   </ErrorBoundary>
 );
+
+console.log('React application rendered');

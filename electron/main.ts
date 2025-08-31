@@ -1,30 +1,93 @@
 import { app, BrowserWindow } from 'electron';
 import path from 'path';
 
-// This is a boilerplate file. For a real app, you'd add more logic here.
-// For example, IPC handlers for communication between main and renderer processes.
+// Enable logging for debugging
+console.log('Electron main process starting...');
 
 const createWindow = () => {
+  console.log('Creating main window...');
+  
   const mainWindow = new BrowserWindow({
     width: 1280,
     height: 720,
+    show: false, // Don't show until ready
+    backgroundColor: '#0a0a0a', // Set a default background color
     webPreferences: {
-      // No preload script for now, but it's good practice for security.
-      // preload: path.join(__dirname, 'preload.js'),
       nodeIntegration: false,
       contextIsolation: true,
+      webSecurity: true,
+      allowRunningInsecureContent: false,
     },
+  });
+
+  // Show window when ready to prevent visual flash
+  mainWindow.once('ready-to-show', () => {
+    console.log('Window ready to show');
+    mainWindow.show();
+  });
+
+  // Debug web contents events
+  mainWindow.webContents.on('did-finish-load', () => {
+    console.log('Web contents finished loading');
+  });
+
+  mainWindow.webContents.on('did-fail-load', (event, errorCode, errorDescription) => {
+    console.error('Failed to load:', errorCode, errorDescription);
+  });
+
+  mainWindow.webContents.on('crashed', () => {
+    console.error('Renderer process crashed');
+  });
+
+  mainWindow.webContents.on('unresponsive', () => {
+    console.error('Renderer process became unresponsive');
+  });
+
+  mainWindow.webContents.on('responsive', () => {
+    console.log('Renderer process became responsive again');
   });
 
   // Vite dev server URL is passed via environment variable in dev mode.
   // In production, we load the built HTML file.
   if (process.env.VITE_DEV_SERVER_URL) {
+    console.log('Loading from dev server:', process.env.VITE_DEV_SERVER_URL);
     mainWindow.loadURL(process.env.VITE_DEV_SERVER_URL);
     mainWindow.webContents.openDevTools();
   } else {
     // The path is relative to the location of the main.js file in the build output.
-    // This will need to be configured correctly with electron-builder.
-    mainWindow.loadFile(path.join(__dirname, '..', 'dist', 'index.html'));
+    const htmlPath = path.join(__dirname, '..', 'dist', 'index.html');
+    console.log('Loading HTML file from:', htmlPath);
+    
+    // Check if file exists
+    const fs = require('fs');
+    if (fs.existsSync(htmlPath)) {
+      console.log('HTML file exists, loading...');
+      
+      // Inject fallback CSS into HTML before loading
+      const fallbackCSSPath = path.join(__dirname, '..', 'dist', 'electron-fallback.css');
+      if (fs.existsSync(fallbackCSSPath)) {
+        console.log('Fallback CSS found, will inject into page');
+        
+        mainWindow.webContents.once('dom-ready', () => {
+          console.log('DOM ready, injecting fallback CSS...');
+          const fallbackCSS = fs.readFileSync(fallbackCSSPath, 'utf-8');
+          mainWindow.webContents.insertCSS(fallbackCSS);
+        });
+      }
+      
+      mainWindow.loadFile(htmlPath);
+    } else {
+      console.error('HTML file not found at:', htmlPath);
+      console.log('Current directory:', __dirname);
+      try {
+        console.log('Available files:', fs.readdirSync(path.dirname(htmlPath)));
+      } catch (e) {
+        console.error('Could not read directory:', e);
+      }
+    }
+    
+    // Enable DevTools in production for debugging (temporary)
+    mainWindow.webContents.openDevTools();
   }
 };
 

@@ -36,9 +36,9 @@ export default defineConfig(({ mode }) => ({
     },
     terserOptions: {
       compress: {
-        drop_console: true, // Remove console.log statements
+        drop_console: false, // Keep console.log for Electron debugging
         drop_debugger: true,
-        pure_funcs: ['console.log', 'console.info', 'console.debug', 'console.trace'],
+        pure_funcs: ['console.debug', 'console.trace'], // Only remove debug/trace
         passes: 3, // Multiple compression passes
         unsafe: true,
         unsafe_comps: true,
