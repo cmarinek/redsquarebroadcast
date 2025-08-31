@@ -274,6 +274,8 @@ export const AppManager = () => {
 
       // Convert automated builds to unified format
       const automatedReleasesFormatted = automatedBuilds.map(async (build) => {
+        console.log('Processing automated build:', { id: build.id, app_type: build.app_type, status: build.status, artifact_url: build.artifact_url });
+        
         const platformMap: { [key: string]: Platform } = {
           // Legacy mappings for existing builds (for backward compatibility)
           'android_tv': 'screens_android_tv',
@@ -302,9 +304,13 @@ export const AppManager = () => {
         const platform = platformMap[build.app_type] || 'redsquare_android';
         const config = PLATFORM_CONFIG[platform];
         
+        console.log('Mapped platform:', { app_type: build.app_type, platform, hasConfig: !!config });
+        
         // Fetch actual file size for successful automated builds with artifacts
         const fileSize = (build.status === 'success' && build.artifact_url) ? 
           await fetchFileSizeFromUrl(build.artifact_url) : 0;
+          
+        console.log('File size fetched:', { artifact_url: build.artifact_url, fileSize });
 
         return {
           id: build.id,
@@ -332,6 +338,8 @@ export const AppManager = () => {
       const allReleases = [...manualReleasesFormatted, ...automatedReleasesFormattedResolved]
         .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
+      console.log('All releases processed:', allReleases.length, 'releases');
+      console.log('Platforms found:', [...new Set(allReleases.map(r => r.platform))]);
       setReleases(allReleases);
     } catch (error) {
       console.error("Error fetching app releases:", error);
