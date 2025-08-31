@@ -1,4 +1,4 @@
-import { app, BrowserWindow, Menu, shell } from 'electron';
+import { app, BrowserWindow, Menu, shell, MenuItemConstructorOptions } from 'electron';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import fs from 'fs';
@@ -11,7 +11,7 @@ console.log('RedSquare Screens starting...');
 
 // Set application menu
 const createMenu = () => {
-  const template = [
+  const template: MenuItemConstructorOptions[] = [
     {
       label: 'File',
       submenu: [
@@ -78,8 +78,7 @@ const createWindow = () => {
       nodeIntegration: false,
       contextIsolation: true,
       webSecurity: true,
-      allowRunningInsecureContent: false,
-      enableRemoteModule: false
+      allowRunningInsecureContent: false
     }
   });
 
@@ -253,8 +252,8 @@ if (!gotTheLock) {
 
 // Security: Prevent new window creation
 app.on('web-contents-created', (event, contents) => {
-  contents.on('new-window', (navigationEvent, navigationUrl) => {
-    navigationEvent.preventDefault();
-    shell.openExternal(navigationUrl);
+  contents.setWindowOpenHandler(({ url }) => {
+    shell.openExternal(url);
+    return { action: 'deny' };
   });
 });
