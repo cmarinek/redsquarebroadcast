@@ -1,13 +1,15 @@
 {
   "appId": "com.redsquare.screens",
   "productName": "RedSquare Screens",
-  "description": "Display and manage RedSquare digital advertising screens",
-  "author": {
-    "name": "RedSquare",
-    "email": "support@redsquare.app"
-  },
   "compression": "maximum",
   "removePackageScripts": true,
+  "extraMetadata": {
+    "description": "Display and manage RedSquare digital advertising screens",
+    "author": {
+      "name": "RedSquare",
+      "email": "support@redsquare.app"
+    }
+  },
   "files": [
     "dist/**/*",
     "dist-electron/**/*",
