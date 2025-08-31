@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Download, Smartphone, Star, Shield, Zap, Monitor, Tv, Apple, Users, Eye, ArrowRight, CheckCircle, HelpCircle, PlayCircle, Cast } from "lucide-react";
+import { Download, Smartphone, Star, Shield, Zap, Monitor, Tv, Apple, Users, Eye, ArrowRight, CheckCircle, HelpCircle, PlayCircle, Cast, Settings, Cpu, Globe } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -11,6 +11,8 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 import SEO from "@/components/SEO";
+import { DownloadManager } from "@/components/DownloadManager";
+import { InstallationWizard } from "@/components/InstallationWizard";
 import { castToPlatformType, type AppRelease, type PlatformType } from "@/types";
 const DownloadApp = () => {
   const {
@@ -24,9 +26,32 @@ const DownloadApp = () => {
   const [loading, setLoading] = useState(true);
   const [downloading, setDownloading] = useState<string | null>(null);
   const [userChoice, setUserChoice] = useState<'advertiser' | 'owner' | null>(null);
+  const [showInstallWizard, setShowInstallWizard] = useState(false);
+  const [selectedPlatform, setSelectedPlatform] = useState<string>('');
+  const [detectedPlatform, setDetectedPlatform] = useState<string>('');
   useEffect(() => {
     fetchLatestReleases();
+    detectUserPlatform();
   }, []);
+
+  const detectUserPlatform = () => {
+    const userAgent = navigator.userAgent.toLowerCase();
+    let detected = '';
+    
+    if (/android/.test(userAgent)) {
+      detected = 'android-mobile';
+    } else if (/iphone|ipad|ipod/.test(userAgent)) {
+      detected = 'ios';
+    } else if (/macintosh|mac os x/.test(userAgent)) {
+      detected = 'macos';
+    } else if (/windows/.test(userAgent)) {
+      detected = 'windows';
+    } else if (/linux/.test(userAgent) && !/android/.test(userAgent)) {
+      detected = 'linux';
+    }
+    
+    setDetectedPlatform(detected);
+  };
   const fetchLatestReleases = async () => {
     try {
       const {
@@ -283,6 +308,42 @@ const DownloadApp = () => {
           </div>
         </div>
       </Layout>;
+  }
+
+  // Show installation wizard if requested
+  if (showInstallWizard && selectedPlatform) {
+    return (
+      <Layout>
+        <SEO title="Installation Guide | RedSquare Screens" description="Step-by-step installation guide for RedSquare Screens applications" path="/download/install" />
+        
+        <div className="min-h-screen bg-gradient-to-br from-background via-secondary/5 to-primary/5">
+          <div className="container mx-auto px-4 py-16">
+            <div className="mb-8">
+              <Button 
+                variant="outline" 
+                onClick={() => setShowInstallWizard(false)}
+                className="mb-6"
+              >
+                <ArrowRight className="h-4 w-4 mr-2 rotate-180" />
+                Back to Downloads
+              </Button>
+            </div>
+            
+            <InstallationWizard 
+              platform={selectedPlatform}
+              userType={userChoice === 'owner' ? 'screen-owner' : 'advertiser'}
+              onComplete={() => {
+                setShowInstallWizard(false);
+                toast({
+                  title: "Installation Complete!",
+                  description: "RedSquare Screens has been successfully installed."
+                });
+              }}
+            />
+          </div>
+        </div>
+      </Layout>
+    );
   }
 
   // Show platform-specific downloads based on user choice
