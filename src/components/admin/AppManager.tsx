@@ -727,11 +727,15 @@ export const AppManager = () => {
                             <div>
                               <div className="flex items-center gap-2">
                                 <span className="font-semibold">v{release.version_name}</span>
-                                <Badge variant="secondary" className="text-xs">Auto</Badge>
+                                {release.source === 'automated' && (
+                                  <Badge variant="secondary" className="text-xs">Auto</Badge>
+                                )}
                               </div>
-                              <div className="text-xs text-muted-foreground">
-                                Build ID: {release.build_id?.slice(0, 8)}...
-                              </div>
+                              {release.source === 'automated' && release.build_id && (
+                                <div className="text-xs text-muted-foreground">
+                                  Build ID: {release.build_id?.slice(0, 8)}...
+                                </div>
+                              )}
                             </div>
                           </div>
                         </TableCell>
@@ -759,6 +763,9 @@ export const AppManager = () => {
                             </Button>
                             <Button size="sm" variant={release.is_active ? "secondary" : "default"} onClick={() => toggleReleaseStatus(release.id, release.is_active)}>
                               {release.is_active ? "Deactivate" : "Activate"}
+                            </Button>
+                            <Button size="sm" variant="destructive" onClick={() => deleteRelease(release)}>
+                              <Trash2 className="h-4 w-4" />
                             </Button>
                           </div>
                         </TableCell>
