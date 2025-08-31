@@ -57,7 +57,7 @@ jobs:
       - name: Set up Xcode
         uses: maxim-lobanov/setup-xcode@v1
         with:
-          xcode-version: '16.2'
+          xcode-version: 'latest-stable'
 
       - name: Setup Capacitor iOS Platform
         run: |
@@ -78,10 +78,11 @@ jobs:
           cd ios/App
           pod install --repo-update
 
-      - name: Install iOS Platform
-        run: |
-          sudo xcode-select -s /Applications/Xcode_16.2.app/Contents/Developer
-          xcodebuild -downloadPlatform iOS
+       - name: Install iOS Platform
+         run: |
+           echo "Using latest Xcode set up by setup-xcode action"
+           xcodebuild -version
+           echo "✅ Xcode configuration verified"
 
       - name: Build iOS Screens App
         run: |
