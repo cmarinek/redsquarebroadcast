@@ -147,7 +147,7 @@ const PLATFORM_CONFIG = {
     icon: Monitor,
     name: 'RedSquare Screens (Linux)',
     description: 'Content display app for Linux-based screens',
-    fileExtension: 'appimage',
+    fileExtension: 'AppImage',
     bucket: 'app_artifacts',
     acceptedFiles: '.appimage',
     buildInstructions: [
