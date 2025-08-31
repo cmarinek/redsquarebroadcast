@@ -75,7 +75,7 @@ serve(async (req) => {
 
     console.log("✅ Admin access confirmed");
 
-    const allowedAppTypes = ['redsquare_android', 'redsquare_ios', 'redsquare_web', 'screens_android_tv', 'screens_android_mobile', 'screens_ios', 'screens_windows', 'screens_macos', 'screens_linux', 'screens_amazon_fire', 'screens_roku', 'screens_samsung_tizen', 'screens_lg_webos'] as const;
+    const allowedAppTypes = ['redsquare_android', 'redsquare_ios', 'redsquare_web', 'screens_android_tv', 'screens_android_mobile', 'screens_ios', 'screens_amazon_fire', 'screens_roku', 'screens_samsung_tizen', 'screens_lg_webos'] as const;
     type AppType = typeof allowedAppTypes[number];
 
     const { app_type }: { app_type: AppType } = await req.json();
@@ -122,9 +122,6 @@ serve(async (req) => {
       'screens_android_tv': 'screens-android-tv-build.yml',
       'screens_android_mobile': 'screens-android-mobile-build.yml',
       'screens_ios': 'screens-ios-build.yml',
-      'screens_windows': 'screens-windows-build.yml',
-      'screens_macos': 'screens-macos-build.yml',
-      'screens_linux': 'screens-linux-build.yml',
       // RedSquare Screens (streaming platforms)
       'screens_amazon_fire': 'screens-amazon-fire-build.yml',
       'screens_roku': 'screens-roku-build.yml',
