@@ -1,0 +1,266 @@
+/* Android TV Optimized Styles */
+
+/* Ensure proper TV scaling and layout */
+@media screen and (min-width: 1280px) and (orientation: landscape) {
+  .tv-interface {
+    font-size: 18px;
+    line-height: 1.6;
+  }
+  
+  /* Large touch targets for remote control */
+  .tv-button {
+    min-width: 160px;
+    min-height: 60px;
+    font-size: 20px;
+    padding: 16px 24px;
+    border-radius: 12px;
+    font-weight: 600;
+  }
+  
+  /* TV-optimized focus styles */
+  .tv-focusable {
+    transition: all 0.2s ease-in-out;
+    border: 2px solid transparent;
+  }
+  
+  .tv-focusable:focus,
+  .tv-focusable.focused {
+    outline: none;
+    border: 3px solid #ff6b35;
+    box-shadow: 0 0 20px rgba(255, 107, 53, 0.4);
+    transform: scale(1.05);
+    z-index: 10;
+  }
+  
+  /* Hide scrollbars on TV */
+  ::-webkit-scrollbar {
+    display: none;
+  }
+  
+  body {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  
+  /* TV-safe area margins */
+  .tv-safe-area {
+    padding: 48px;
+    max-width: 1800px;
+    margin: 0 auto;
+  }
+  
+  /* Large text for TV viewing distance */
+  .tv-title {
+    font-size: 3rem;
+    font-weight: 700;
+    line-height: 1.2;
+  }
+  
+  .tv-subtitle {
+    font-size: 1.5rem;
+    font-weight: 500;
+  }
+  
+  .tv-body {
+    font-size: 1.25rem;
+    line-height: 1.5;
+  }
+  
+  /* Card layouts optimized for TV */
+  .tv-card {
+    background: rgba(0, 0, 0, 0.8);
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    padding: 32px;
+    margin: 16px;
+    backdrop-filter: blur(10px);
+  }
+  
+  .tv-card:focus,
+  .tv-card.focused {
+    border-color: #ff6b35;
+    background: rgba(255, 107, 53, 0.1);
+  }
+  
+  /* Grid layouts for TV screens */
+  .tv-grid-2 {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 32px;
+  }
+  
+  .tv-grid-3 {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 32px;
+  }
+  
+  .tv-grid-4 {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 24px;
+  }
+  
+  /* Status indicators for TV */
+  .tv-status-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 1.125rem;
+    font-weight: 600;
+    padding: 12px 20px;
+    border-radius: 24px;
+    background: rgba(0, 0, 0, 0.7);
+    border: 2px solid;
+  }
+  
+  .tv-status-connected {
+    color: #22c55e;
+    border-color: #22c55e;
+    background: rgba(34, 197, 94, 0.1);
+  }
+  
+  .tv-status-connecting {
+    color: #eab308;
+    border-color: #eab308;
+    background: rgba(234, 179, 8, 0.1);
+  }
+  
+  .tv-status-disconnected {
+    color: #ef4444;
+    border-color: #ef4444;
+    background: rgba(239, 68, 68, 0.1);
+  }
+  
+  /* Navigation breadcrumbs for TV */
+  .tv-breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    font-size: 1.125rem;
+    color: rgba(255, 255, 255, 0.7);
+    margin-bottom: 32px;
+  }
+  
+  .tv-breadcrumb-current {
+    color: #ff6b35;
+    font-weight: 600;
+  }
+  
+  /* Loading states for TV */
+  .tv-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 200px;
+    font-size: 1.5rem;
+    color: rgba(255, 255, 255, 0.8);
+  }
+  
+  .tv-spinner {
+    width: 48px;
+    height: 48px;
+    border: 4px solid rgba(255, 255, 255, 0.2);
+    border-top-color: #ff6b35;
+    border-radius: 50%;
+    animation: tv-spin 1s linear infinite;
+    margin-right: 16px;
+  }
+  
+  @keyframes tv-spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+  
+  /* QR Code display for TV */
+  .tv-qr-display {
+    position: fixed;
+    top: 48px;
+    right: 48px;
+    background: white;
+    padding: 24px;
+    border-radius: 16px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  }
+  
+  /* Remote control instructions */
+  .tv-remote-help {
+    position: fixed;
+    bottom: 48px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.9);
+    color: white;
+    padding: 16px 32px;
+    border-radius: 24px;
+    font-size: 1rem;
+    text-align: center;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+  }
+  
+  /* Full screen content display */
+  .tv-fullscreen-content {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1000;
+    background: black;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .tv-fullscreen-content img,
+  .tv-fullscreen-content video {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+  }
+}
+
+/* Override default styles for better TV experience */
+@media screen and (min-width: 1280px) and (orientation: landscape) {
+  * {
+    box-sizing: border-box;
+  }
+  
+  body {
+    background: #000;
+    color: #fff;
+    font-family: 'Arial', sans-serif;
+    overflow-x: hidden;
+  }
+  
+  /* Remove hover effects on TV */
+  button:hover,
+  .hover\:bg-primary:hover {
+    background-color: inherit;
+  }
+  
+  /* Focus is more important than hover on TV */
+  button:focus,
+  .tv-focusable:focus {
+    background-color: rgba(255, 107, 53, 0.2);
+  }
+  
+  /* Ensure text is readable on TV */
+  .text-sm {
+    font-size: 1.125rem;
+  }
+  
+  .text-base {
+    font-size: 1.25rem;
+  }
+  
+  .text-lg {
+    font-size: 1.5rem;
+  }
+  
+  .text-xl {
+    font-size: 1.875rem;
+  }
+}

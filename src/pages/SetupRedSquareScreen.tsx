@@ -12,6 +12,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 import SEO from "@/components/SEO";
 import QRCode from "react-qr-code";
+import { AndroidTVInterface } from "@/components/tv/AndroidTVInterface";
+import { TVRemoteHandler } from "@/components/tv/TVRemoteHandler";
+import "@/styles/android-tv.css";
 
 interface ScreenAppRelease {
   id: string;
@@ -36,10 +39,17 @@ const SetupRedSquareScreen = () => {
   const [downloading, setDownloading] = useState<string | null>(null);
   const [selectedScreenType, setSelectedScreenType] = useState<ScreenType | null>(null);
   const [detectedPlatform, setDetectedPlatform] = useState<ScreenType>('unknown');
+  const [showTVInterface, setShowTVInterface] = useState(false);
 
   useEffect(() => {
     fetchScreenReleases();
     detectPlatform();
+    
+    // Check if we're running on Android TV
+    const userAgent = navigator.userAgent.toLowerCase();
+    if (userAgent.includes('android') && (userAgent.includes('tv') || userAgent.includes('googletv'))) {
+      setShowTVInterface(true);
+    }
   }, []);
 
   const detectPlatform = () => {
@@ -239,6 +249,35 @@ const SetupRedSquareScreen = () => {
           'Configure display settings and monetization options'
         ]
       },
+      'screens_macos': {
+        name: 'macOS',
+        icon: Apple,
+        bucket: 'app_artifacts',
+        description: 'For Mac computers and MacBooks used as displays',
+        instructions: [
+          'Download the macOS installer (.dmg file)',
+          'Double-click the DMG file to mount it',
+          'Drag RedSquare Screens to your Applications folder',
+          'Launch RedSquare Screens from Applications',
+          'Create an account or sign in',
+          'Configure your screen settings and location',
+          'Set your availability and pricing preferences'
+        ]
+      },
+      'screens_linux': {
+        name: 'Linux',
+        icon: Monitor,
+        bucket: 'app_artifacts',
+        description: 'For Linux computers and embedded displays',
+        instructions: [
+          'Download the Linux AppImage file',
+          'Make the AppImage executable: chmod +x RedSquare-Screens.AppImage',
+          'Run the AppImage: ./RedSquare-Screens.AppImage',
+          'Create an account or sign in',
+          'Configure your screen settings and location',
+          'Set your availability and pricing preferences'
+        ]
+      },
       'screens_amazon_fire': {
         name: 'Amazon Fire TV',
         icon: Tv2,
@@ -342,6 +381,22 @@ const SetupRedSquareScreen = () => {
       setDownloading(null);
     }
   };
+
+  // If we're on Android TV, show the TV-optimized interface
+  if (showTVInterface) {
+    return (
+      <TVRemoteHandler>
+        <AndroidTVInterface 
+          onSetup={() => {
+            toast({
+              title: "Screen Setup Complete!",
+              description: "Your Android TV is now connected to RedSquare."
+            });
+          }}
+        />
+      </TVRemoteHandler>
+    );
+  }
 
   return (
     <Layout>
