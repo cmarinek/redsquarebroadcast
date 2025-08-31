@@ -100,33 +100,79 @@ jobs:
           TAG="screens-linux-v${{ steps.build_info.outputs.version }}"
           RELEASE_NAME="RedSquare Screens Linux v${{ steps.build_info.outputs.version }}"
           
-          # Create GitHub Release
-          RELEASE_RESPONSE=$(curl -s -X POST \
+          # Escape special characters for JSON
+          ESCAPED_FILE_SIZE=$(echo "$FILE_SIZE_MB" | sed 's/"/\\"/g')
+          
+          # Create GitHub Release with proper error handling
+          HTTP_STATUS=$(curl -s -w "%{http_code}" -X POST \
             "https://api.github.com/repos/${{ github.repository }}/releases" \
             -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
             -H "Accept: application/vnd.github.v3+json" \
-            -d '{
-              "tag_name": "'$TAG'",
-              "target_commitish": "${{ github.sha }}",
-              "name": "'$RELEASE_NAME'",
-              "body": "Automated build of RedSquare Screens for Linux\n\nCommit: ${{ github.sha }}\nFile size: '$FILE_SIZE_MB'MB",
-              "draft": false,
-              "prerelease": true
-            }')
+            -H "Content-Type: application/json" \
+            -d "{
+              \"tag_name\": \"$TAG\",
+              \"target_commitish\": \"${{ github.sha }}\",
+              \"name\": \"$RELEASE_NAME\",
+              \"body\": \"Automated build of RedSquare Screens for Linux\\n\\nCommit: ${{ github.sha }}\\nFile size: ${ESCAPED_FILE_SIZE}MB\",
+              \"draft\": false,
+              \"prerelease\": true
+            }" \
+            -o /tmp/release_response.json)
           
-          UPLOAD_URL=$(echo "$RELEASE_RESPONSE" | jq -r '.upload_url' | sed 's/{.*}//')
-          RELEASE_URL=$(echo "$RELEASE_RESPONSE" | jq -r '.html_url')
+          echo "GitHub Release API Status: $HTTP_STATUS"
+          
+          # Read the response body from file
+          RESPONSE_BODY=$(cat /tmp/release_response.json)
+          
+          if [ "$HTTP_STATUS" != "201" ]; then
+            echo "Failed to create GitHub release. HTTP Status: $HTTP_STATUS"
+            echo "Response: $RESPONSE_BODY"
+            exit 1
+          fi
+          
+          # Parse response
+          UPLOAD_URL=$(echo "$RESPONSE_BODY" | jq -r '.upload_url' | sed 's/{.*}//')
+          RELEASE_URL=$(echo "$RESPONSE_BODY" | jq -r '.html_url')
+          
+          if [ -z "$UPLOAD_URL" ] || [ "$UPLOAD_URL" = "null" ]; then
+            echo "Failed to get upload URL from release response"
+            echo "Response: $RESPONSE_BODY"
+            exit 1
+          fi
+          
           echo "Created GitHub Release: $RELEASE_URL"
+          echo "Upload URL: $UPLOAD_URL"
           
           # Upload asset to the release
           ASSET_NAME="RedSquare-Screens-Linux-v${{ steps.build_info.outputs.version }}.AppImage"
-          UPLOAD_RESPONSE=$(curl -s -X POST \
-            "${UPLOAD_URL}?name=${ASSET_NAME}&label=Linux Desktop App" \
+          echo "Uploading asset: $ASSET_NAME"
+          
+          UPLOAD_HTTP_STATUS=$(curl -s -w "%{http_code}" -X POST \
+            "${UPLOAD_URL}?name=${ASSET_NAME}&label=Linux%20Desktop%20App" \
             -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
             -H "Content-Type: application/octet-stream" \
-            --data-binary @"$FILE_PATH")
+            --data-binary @"$FILE_PATH" \
+            -o /tmp/upload_response.json)
           
-          DOWNLOAD_URL=$(echo "$UPLOAD_RESPONSE" | jq -r '.browser_download_url')
+          echo "Upload API Status: $UPLOAD_HTTP_STATUS"
+          
+          # Read the upload response body from file
+          UPLOAD_BODY=$(cat /tmp/upload_response.json)
+          
+          if [ "$UPLOAD_HTTP_STATUS" != "201" ]; then
+            echo "Failed to upload asset. HTTP Status: $UPLOAD_HTTP_STATUS"
+            echo "Response: $UPLOAD_BODY"
+            exit 1
+          fi
+          
+          DOWNLOAD_URL=$(echo "$UPLOAD_BODY" | jq -r '.browser_download_url')
+          
+          if [ -z "$DOWNLOAD_URL" ] || [ "$DOWNLOAD_URL" = "null" ]; then
+            echo "Failed to get download URL from upload response"
+            echo "Response: $UPLOAD_BODY"
+            exit 1
+          fi
+          
           echo "Asset uploaded successfully: $DOWNLOAD_URL"
           echo "artifact_url=$DOWNLOAD_URL" >> $GITHUB_OUTPUT
 
