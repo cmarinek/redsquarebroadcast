@@ -7,91 +7,67 @@ const corsHeaders = {
 };
 
 serve(async (req) => {
-  // Handle CORS preflight requests
+  console.log("🔄 Update build status function called");
+  console.log("Request method:", req.method);
+
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
-  console.log("Update build status function called");
-  console.log("Request method:", req.method);
-  console.log("Request headers:", Object.fromEntries(req.headers.entries()));
-
   try {
-    const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
-    const ghActionSecret = Deno.env.get("GH_ACTION_SECRET");
     const supabaseUrl = Deno.env.get("SUPABASE_URL");
+    const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
 
-    console.log("Environment check:", {
-      hasServiceKey: !!serviceKey,
-      hasGhActionSecret: !!ghActionSecret,
-      hasSupabaseUrl: !!supabaseUrl
-    });
-
-    if (!serviceKey || !ghActionSecret || !supabaseUrl) {
-      console.error("Missing environment variables");
-      throw new Error("Missing required environment variables.");
+    if (!supabaseUrl || !serviceKey) {
+      console.error("❌ Missing Supabase configuration");
+      throw new Error("Internal server error: Missing Supabase configuration.");
     }
 
-    // 1. Authenticate the request from GitHub Actions
-    const authHeader = req.headers.get("Authorization");
-    console.log("Auth header received:", authHeader ? "Bearer [REDACTED]" : "None");
-    console.log("Expected format: Bearer [SECRET]");
-    
-    if (authHeader !== `Bearer ${ghActionSecret}`) {
-      console.error("Authentication failed - header mismatch");
-      return new Response(JSON.stringify({ error: "Unauthorized" }), { 
-        status: 401, 
-        headers: { ...corsHeaders, "Content-Type": "application/json" } 
-      });
-    }
-    
-    console.log("Authentication successful");
+    console.log("✅ Environment variables present");
 
-    const {
-        build_id,
-        status,
-        artifact_url,
-        logs_url,
-        commit_hash,
-        version
-    } = await req.json();
+    const supabaseAdmin = createClient(supabaseUrl, serviceKey);
+
+    const { build_id, status, artifact_url, logs_url, commit_hash } = await req.json();
+    console.log(`📝 Updating build ${build_id} to status: ${status}`);
 
     if (!build_id || !status) {
-        return new Response(JSON.stringify({ error: "build_id and status are required" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      console.error("❌ Missing required fields");
+      return new Response(JSON.stringify({ error: "build_id and status are required" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" }
+      });
     }
 
-    // 2. Update the build record in the database
-    const supabaseAdminClient = createClient(supabaseUrl, serviceKey);
-    const updatePayload: {
-        status: string;
-        artifact_url?: string;
-        logs_url?: string;
-        commit_hash?: string;
-        version?: string;
-    } = {
-        status,
-        artifact_url,
-        logs_url,
-        commit_hash,
-        version
+    // Prepare update data
+    const updateData: any = {
+      status,
+      updated_at: new Date().toISOString()
     };
 
-    // Remove undefined properties so they don't overwrite existing values
-    Object.keys(updatePayload).forEach((key) => {
-      if (updatePayload[key as keyof typeof updatePayload] === undefined) {
-        delete updatePayload[key as keyof typeof updatePayload];
-      }
-    });
+    if (artifact_url) {
+      updateData.artifact_url = artifact_url;
+    }
+    if (logs_url) {
+      updateData.logs_url = logs_url;
+    }
+    if (commit_hash) {
+      updateData.commit_hash = commit_hash;
+    }
 
-
-    const { data, error } = await supabaseAdminClient
+    // Update the build record
+    const { data, error } = await supabaseAdmin
       .from('app_builds')
-      .update(updatePayload)
+      .update(updateData)
       .eq('id', build_id)
       .select()
       .single();
 
-    if (error) throw error;
+    if (error) {
+      console.error("❌ Database update error:", error);
+      throw error;
+    }
+
+    console.log("✅ Build status updated successfully:", data);
 
     return new Response(JSON.stringify({ success: true, build: data }), {
       status: 200,
@@ -99,7 +75,11 @@ serve(async (req) => {
     });
 
   } catch (error) {
-    return new Response(JSON.stringify({ error: error.message }), {
+    console.error("💥 Function error:", error);
+    return new Response(JSON.stringify({ 
+      error: error.message,
+      stack: error.stack 
+    }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
