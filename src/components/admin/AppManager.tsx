@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Upload, Download, Trash2, FileArchive, Users, Calendar, CheckCircle, Smartphone, Monitor, Tv } from "lucide-react";
 import { AppBuildHistory } from "./AppBuildHistory";
 import { BuildSystemTest } from "./BuildSystemTest";
+import { PlatformSpecifications } from "./PlatformSpecifications";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -1114,7 +1115,23 @@ export const AppManager = () => {
 
   return (
     <div className="space-y-6">
-      <Tabs value={activePlatform} onValueChange={(value) => setActivePlatform(value as Platform)}>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">App Manager</h1>
+          <p className="text-muted-foreground">
+            Manage application releases and view platform specifications
+          </p>
+        </div>
+      </div>
+
+      <Tabs defaultValue="releases" className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="releases">Build Management</TabsTrigger>
+          <TabsTrigger value="specifications">Platform Specifications</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="releases" className="space-y-6">
+          <Tabs value={activePlatform} onValueChange={(value) => setActivePlatform(value as Platform)} className="w-full">
         <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 gap-1">
           {/* RedSquare App Group */}
           <TabsTrigger value="redsquare_android" className="flex items-center gap-2">
@@ -1244,11 +1261,13 @@ export const AppManager = () => {
         <TabsContent value={activePlatform} className="space-y-6">
           {renderContent()}
         </TabsContent>
-        <TabsContent value="system_test" className="space-y-6">
-          <BuildSystemTest />
-          <AppBuildHistory />
-        </TabsContent>
       </Tabs>
-    </div>
-  );
+    </TabsContent>
+
+    <TabsContent value="specifications" className="space-y-6">
+      <PlatformSpecifications />
+    </TabsContent>
+  </Tabs>
+</div>
+);
 };
