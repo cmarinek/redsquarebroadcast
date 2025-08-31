@@ -80,7 +80,7 @@ jobs:
           name: screens-macos-app
           path: release/*.dmg
 
-      - name: Upload DMG to Supabase Storage
+      - name: Create GitHub Release and Upload DMG
         id: upload_dmg
         run: |
           FILE_PATH=$(ls release/*.dmg | head -1)
@@ -89,17 +89,43 @@ jobs:
             exit 1
           fi
           
-          FILE_NAME="screens-macos-app-v${{ steps.build_info.outputs.version }}.dmg"
-          SUPABASE_BUCKET="app_artifacts"
-
-          BUCKET_URL="${{ secrets.SUPABASE_URL }}/storage/v1/object/public/${SUPABASE_BUCKET}/${FILE_NAME}"
-          echo "artifact_url=$BUCKET_URL" >> $GITHUB_OUTPUT
-
-          curl -X POST \
-            "${{ secrets.SUPABASE_URL }}/storage/v1/object/${SUPABASE_BUCKET}/${FILE_NAME}" \
-            -H "Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" \
+          FILE_SIZE=$(stat -f%z "$FILE_PATH" 2>/dev/null || stat -c%s "$FILE_PATH")
+          FILE_SIZE_MB=$(echo "scale=2; $FILE_SIZE / 1024 / 1024" | bc)
+          echo "DMG file size: ${FILE_SIZE_MB}MB - using GitHub Releases for large files"
+          
+          # Create a unique tag for this build
+          TAG="screens-macos-v${{ steps.build_info.outputs.version }}"
+          RELEASE_NAME="RedSquare Screens macOS v${{ steps.build_info.outputs.version }}"
+          
+          # Create GitHub Release
+          RELEASE_RESPONSE=$(curl -s -X POST \
+            "https://api.github.com/repos/${{ github.repository }}/releases" \
+            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Accept: application/vnd.github.v3+json" \
+            -d '{
+              "tag_name": "'$TAG'",
+              "target_commitish": "${{ github.sha }}",
+              "name": "'$RELEASE_NAME'",
+              "body": "Automated build of RedSquare Screens for macOS\n\nCommit: ${{ github.sha }}\nFile size: '$FILE_SIZE_MB'MB",
+              "draft": false,
+              "prerelease": true
+            }')
+          
+          UPLOAD_URL=$(echo "$RELEASE_RESPONSE" | jq -r '.upload_url' | sed 's/{.*}//')
+          RELEASE_URL=$(echo "$RELEASE_RESPONSE" | jq -r '.html_url')
+          echo "Created GitHub Release: $RELEASE_URL"
+          
+          # Upload asset to the release
+          ASSET_NAME="RedSquare-Screens-macOS-v${{ steps.build_info.outputs.version }}.dmg"
+          UPLOAD_RESPONSE=$(curl -s -X POST \
+            "${UPLOAD_URL}?name=${ASSET_NAME}&label=macOS Desktop App" \
+            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
             -H "Content-Type: application/octet-stream" \
-            --data-binary @"$FILE_PATH"
+            --data-binary @"$FILE_PATH")
+          
+          DOWNLOAD_URL=$(echo "$UPLOAD_RESPONSE" | jq -r '.browser_download_url')
+          echo "Asset uploaded successfully: $DOWNLOAD_URL"
+          echo "artifact_url=$DOWNLOAD_URL" >> $GITHUB_OUTPUT
 
       - name: Update Build Status to 'Success'
         if: success()
