@@ -170,7 +170,21 @@ serve(async (req) => {
 
     console.log("✅ GitHub workflow dispatched successfully");
 
-    return new Response(JSON.stringify({ success: true, build: newBuild }), {
+    // Add debugging info about the repository and dispatch
+    const debugInfo = {
+      repository: `${githubRepoOwner}/${githubRepoName}`,
+      event_type: dispatchPayload.event_type,
+      dispatch_status: ghResponse.status,
+      response_headers: Object.fromEntries(ghResponse.headers.entries()),
+      build_id: newBuild.id
+    };
+    console.log("🔍 Debug info:", JSON.stringify(debugInfo, null, 2));
+
+    return new Response(JSON.stringify({ 
+      success: true, 
+      build: newBuild,
+      debug: debugInfo 
+    }), {
       status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
