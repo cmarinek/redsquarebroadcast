@@ -161,7 +161,7 @@ Deno.serve(async (req: Request) => {
         path: data.path, 
         signedUrl: data.signedUrl,
         url: data.signedUrl, // For PowerShell compatibility
-        headers: {}, // Empty headers for PowerShell compatibility  
+        headers: null, // PowerShell handles null better than empty object
         max_size_bytes: MAX_SIZE_BYTES, 
         rate_limit_remaining: rl.remaining 
       }),
