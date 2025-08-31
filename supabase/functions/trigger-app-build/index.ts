@@ -47,7 +47,7 @@ serve(async (req) => {
       return new Response(JSON.stringify({ error: "Admin access required" }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    const allowedAppTypes = ['android_tv', 'desktop_windows', 'ios', 'android_mobile', 'advertiser_android', 'advertiser_ios', 'advertiser_desktop'] as const;
+    const allowedAppTypes = ['redsquare_android', 'redsquare_ios', 'redsquare_web', 'screens_android_tv', 'screens_android_mobile', 'screens_ios', 'screens_windows', 'screens_macos', 'screens_linux'] as const;
     type AppType = typeof allowedAppTypes[number];
 
     const { app_type }: { app_type: AppType } = await req.json();
@@ -78,13 +78,17 @@ serve(async (req) => {
     
     // Map app types to correct workflow event types
     const eventTypeMap = {
-      'android_tv': 'trigger-android_tv-build',
-      'desktop_windows': 'trigger-desktop_windows-build', 
-      'ios': 'trigger-ios-build',
-      'android_mobile': 'trigger-android_mobile-build',
-      'advertiser_android': 'trigger-advertiser_android-build',
-      'advertiser_ios': 'trigger-advertiser_ios-build',
-      'advertiser_desktop': 'trigger-advertiser_desktop-build'
+      // RedSquare App (main user management app)
+      'redsquare_android': 'trigger-redsquare-android-build',
+      'redsquare_ios': 'trigger-redsquare-ios-build',
+      'redsquare_web': 'trigger-redsquare-web-build',
+      // RedSquare Screens (content display app)
+      'screens_android_tv': 'trigger-screens-android-tv-build',
+      'screens_android_mobile': 'trigger-screens-android-mobile-build',
+      'screens_ios': 'trigger-screens-ios-build',
+      'screens_windows': 'trigger-screens-windows-build',
+      'screens_macos': 'trigger-screens-macos-build',
+      'screens_linux': 'trigger-screens-linux-build'
     };
     
     const eventType = eventTypeMap[app_type];

@@ -1,8 +1,8 @@
-name: Build Advertiser iOS App
+name: Build RedSquare iOS App
 
 on:
   repository_dispatch:
-    types: [trigger-advertiser_ios-build]
+    types: [trigger-redsquare-ios-build]
   workflow_dispatch:
     inputs:
       build_id:
@@ -11,10 +11,10 @@ on:
       version:
         description: 'Version for this build'
         required: true
-        default: '1.0.0-advertiser-ios'
+        default: '1.0.0-manual'
 
 jobs:
-  build-advertiser-ios:
+  build-redsquare-ios:
     runs-on: macos-latest
     steps:
       - name: Get Build Info from Dispatch
@@ -56,22 +56,13 @@ jobs:
       - name: Install Dependencies
         run: npm install
 
-      - name: Build Advertiser Web App
+      - name: Build Web App
         run: npm run build
-        env:
-          VITE_APP_TYPE: advertiser
-          VITE_PLATFORM: ios
 
       - name: Set up Xcode
         uses: maxim-lobanov/setup-xcode@v1
         with:
           xcode-version: '16.2'
-
-      - name: Configure Capacitor for Advertiser App
-        run: |
-          # Update capacitor.config.ts for advertiser app  
-          sed -i.bak 's/com\.redsquare\.broadcast/app.redsquare.advertiser/' capacitor.config.ts
-          sed -i.bak 's/redsquarebroadcast/RedSquare Advertiser/' capacitor.config.ts
 
       - name: Setup Capacitor iOS Platform
         run: |
@@ -86,23 +77,6 @@ jobs:
       - name: Sync Capacitor Project
         run: npx cap sync ios
 
-      - name: Configure iOS Project for Advertiser
-        run: |
-          cd ios/App
-          # Update display name
-          sed -i.bak 's/redsquarebroadcast/RedSquare Advertiser/' App/Info.plist
-          # Update bundle identifier  
-          sed -i.bak 's/com\.redsquare\.broadcast/app.redsquare.advertiser/' App.xcodeproj/project.pbxproj
-          
-          # Remove any team configuration to ensure unsigned build
-          echo "Removing team configuration for unsigned build..."
-          sed -i.bak '/DEVELOPMENT_TEAM/d' App.xcodeproj/project.pbxproj
-          sed -i.bak '/DevelopmentTeam/d' App.xcodeproj/project.pbxproj
-          sed -i.bak '/ProvisioningStyle/d' App.xcodeproj/project.pbxproj
-          
-          # Set manual provisioning style
-          sed -i.bak 's/ProvisioningStyle = Automatic;/ProvisioningStyle = Manual;/g' App.xcodeproj/project.pbxproj
-
       - name: Install CocoaPods
         run: |
           sudo gem install cocoapods
@@ -114,26 +88,25 @@ jobs:
           sudo xcode-select -s /Applications/Xcode_16.2.app/Contents/Developer
           xcodebuild -downloadPlatform iOS
           
-      - name: Build Advertiser iOS App
+      - name: Build iOS App
         run: |
           cd ios/App
           xcodebuild -workspace App.xcworkspace \
             -scheme App \
             -configuration Release \
             -destination 'generic/platform=iOS' \
-            -archivePath AdvertiserApp.xcarchive \
+            -archivePath App.xcarchive \
             archive \
             CODE_SIGN_IDENTITY="" \
             CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGNING_ALLOWED=NO \
-            DEVELOPMENT_TEAM=PLACEHOLDER
+            CODE_SIGNING_ALLOWED=NO
 
-      - name: Export Advertiser IPA
+      - name: Export IPA
         run: |
           cd ios/App
           xcodebuild -exportArchive \
-            -archivePath AdvertiserApp.xcarchive \
-            -exportPath AdvertiserExport \
+            -archivePath App.xcarchive \
+            -exportPath Export \
             -exportOptionsPlist ../../build-scripts/ExportOptions.plist \
             CODE_SIGN_IDENTITY="" \
             CODE_SIGNING_REQUIRED=NO \
@@ -142,16 +115,17 @@ jobs:
       - name: Upload IPA as Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: advertiser-ios-app
-          path: ios/App/AdvertiserExport/App.ipa
+          name: redsquare-ios-app
+          path: ios/App/Export/App.ipa
 
       - name: Upload IPA to Supabase Storage
         id: upload_ipa
         run: |
-          FILE_PATH="ios/App/AdvertiserExport/App.ipa"
-          FILE_NAME="redsquare-advertiser-ios-v${{ steps.build_info.outputs.version }}.ipa"
+          FILE_PATH="ios/App/Export/App.ipa"
+          FILE_NAME="redsquare-ios-app-v${{ steps.build_info.outputs.version }}.ipa"
           SUPABASE_BUCKET="ios-files"
 
+          # Get the public URL of the bucket
           BUCKET_URL="${{ secrets.SUPABASE_URL }}/storage/v1/object/public/${SUPABASE_BUCKET}/${FILE_NAME}"
           echo "artifact_url=$BUCKET_URL" >> $GITHUB_OUTPUT
 

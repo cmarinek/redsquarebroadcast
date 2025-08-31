@@ -1,8 +1,8 @@
-name: Build Desktop Client
+name: Build RedSquare Screens (Windows)
 
 on:
   repository_dispatch:
-    types: [trigger-desktop_windows-build]
+    types: [trigger-screens-windows-build]
   workflow_dispatch:
     inputs:
       build_id:
@@ -11,10 +11,10 @@ on:
       version:
         description: 'Version for this build'
         required: true
-        default: '1.0.0-manual-desktop'
+        default: '1.0.0-manual'
 
 jobs:
-  build-desktop-windows:
+  build-screens-windows:
     runs-on: windows-latest
     steps:
       - name: Get Build Info from Dispatch
@@ -109,7 +109,7 @@ jobs:
           Write-Host "Original file: $fileName (${fileSizeMB}MB)"
           
           # Create zip file
-          $zipName = "RedSquare-Desktop-v${{ steps.build_info.outputs.version }}.zip"
+          $zipName = "RedSquare-Screens-Windows-v${{ steps.build_info.outputs.version }}.zip"
           $zipPath = Join-Path $env:TEMP $zipName
           
           Write-Host "Creating zip file: $zipName"

@@ -1,9 +1,9 @@
-name: Build Advertiser Android App
+name: Build RedSquare Screens (Android TV)
 
 on:
   repository_dispatch:
-    types: [trigger-advertiser_android-build]
-  workflow_dispatch:
+    types: [trigger-screens-android-tv-build]
+  workflow_dispatch: # Allows manual triggering from the GitHub UI for testing
     inputs:
       build_id:
         description: 'ID of the build record in the database'
@@ -11,10 +11,10 @@ on:
       version:
         description: 'Version for this build'
         required: true
-        default: '1.0.0-advertiser-android'
+        default: '1.0.0-manual'
 
 jobs:
-  build-advertiser-android:
+  build-screens-android-tv:
     runs-on: ubuntu-latest
     steps:
       - name: Get Build Info from Dispatch
@@ -47,16 +47,12 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'npm'
 
       - name: Install Dependencies
         run: npm install
 
-      - name: Build Advertiser Web App
+      - name: Build Web App
         run: npm run build
-        env:
-          VITE_APP_TYPE: advertiser
-          VITE_PLATFORM: android
 
       - name: Set up Java
         uses: actions/setup-java@v4
@@ -67,105 +63,28 @@ jobs:
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
 
-      - name: Configure Capacitor for Advertiser App
-        run: |
-          # Update capacitor.config.ts for advertiser app
-          if [ -f "capacitor.config.ts" ]; then
-            sed -i 's/appId: "app.lovable.5108753008cd41c59bc4bc6e5c990b78"/appId: "app.redsquare.advertiser"/' capacitor.config.ts
-            sed -i 's/appName: "redsquarebroadcast"/appName: "RedSquare Advertiser"/' capacitor.config.ts
-          else
-            echo "capacitor.config.ts not found"
-            exit 1
-          fi
-
       - name: Setup Capacitor Android Platform
         run: |
-          echo "=== DEBUG: Current working directory ==="
-          pwd
-          ls -la
-          
-          echo "=== DEBUG: Checking Capacitor configuration ==="
-          if [ -f "capacitor.config.ts" ]; then
-            cat capacitor.config.ts
-          else
-            echo "ERROR: capacitor.config.ts not found"
-            exit 1
+          # Ensure Capacitor is initialized
+          if [ ! -f "capacitor.config.ts" ] && [ ! -f "capacitor.config.js" ]; then
+            echo "Capacitor config not found, initializing..."
+            npx cap init
           fi
           
-          echo "=== DEBUG: Checking if built web app exists ==="
-          if [ -d "dist" ]; then
-            echo "dist directory found"
-            ls -la dist/
-          else
-            echo "ERROR: dist directory not found - web app needs to be built first"
-            exit 1
-          fi
-          
-          echo "=== DEBUG: Removing any existing android directory ==="
-          rm -rf android
-          
-          echo "=== DEBUG: Installing Capacitor if needed ==="
-          npm list @capacitor/android || npm install @capacitor/android
-          
-          echo "=== DEBUG: Checking Capacitor version ==="
-          npx cap --version
-          
-          echo "=== DEBUG: Adding Android platform ==="
-          npx cap add android
-          
-          echo "=== DEBUG: Verifying Android platform creation ==="
-          if [ ! -d "android" ]; then
-            echo "ERROR: Android directory was not created"
-            echo "Available platforms:"
-            npx cap list
-            exit 1
-          fi
-          
-          echo "Android directory created successfully"
-          ls -la android/
-          
-          if [ ! -f "android/gradlew" ]; then
-            echo "ERROR: gradlew was not created by Capacitor"
-            echo "Trying to manually initialize gradle wrapper..."
-            cd android
+          # Check if Android platform exists and is complete
+          if [ ! -f "android/gradlew" ] || [ ! -f "android/build.gradle" ]; then
+            echo "Android project incomplete, removing and re-adding platform"
+            rm -rf android
+            npx cap add android
             
-            # Check if gradle is available and try to create wrapper
-            if command -v gradle &> /dev/null; then
-              echo "Gradle found, creating wrapper..."
-              gradle wrapper
-            else
-              echo "Gradle not found globally, trying with gradlew from capacitor template..."
-              # Copy gradlew from node_modules if available
-              if [ -f "../node_modules/@capacitor/android/android-template/gradlew" ]; then
-                cp "../node_modules/@capacitor/android/android-template/gradlew" .
-                cp "../node_modules/@capacitor/android/android-template/gradlew.bat" .
-                mkdir -p gradle/wrapper
-                cp "../node_modules/@capacitor/android/android-template/gradle/wrapper/"* gradle/wrapper/
-              fi
-            fi
-            cd ..
-            
+            # Verify the platform was added successfully
             if [ ! -f "android/gradlew" ]; then
-              echo "ERROR: Still no gradlew after manual creation attempts"
-              echo "Contents of android directory:"
-              find android/ -type f -name "*.gradle" -o -name "gradlew*" | head -20
+              echo "ERROR: Failed to create Android platform"
               exit 1
             fi
+          else
+            echo "Android platform properly configured, skipping add"
           fi
-          
-          if [ ! -f "android/build.gradle" ]; then
-            echo "ERROR: build.gradle was not created"
-            exit 1
-          fi
-          
-          echo "=== DEBUG: Making gradlew executable ==="
-          chmod +x android/gradlew
-          
-          echo "=== DEBUG: Final verification ==="
-          echo "Contents of android directory:"
-          ls -la android/
-          echo "Gradle wrapper version:"
-          cd android && ./gradlew --version && cd ..
 
       - name: Sync Capacitor Project
         run: |
@@ -180,17 +99,6 @@ jobs:
             exit 1
           fi
 
-      - name: Configure Android Manifest for Advertiser
-        run: |
-          # Update Android manifest for advertiser-specific features
-          if [ -f "android/app/src/main/res/values/strings.xml" ]; then
-            sed -i 's/Red Square Broadcast/Red Square Advertiser/g' android/app/src/main/res/values/strings.xml
-          else
-            echo "strings.xml not found, creating it"
-            mkdir -p android/app/src/main/res/values
-            echo '<?xml version="1.0" encoding="utf-8"?><resources><string name="app_name">RedSquare Advertiser</string><string name="title_activity_main">RedSquare Advertiser</string><string name="package_name">app.redsquare.advertiser</string></resources>' > android/app/src/main/res/values/strings.xml
-          fi
-
       - name: Create Android Keystore
         env:
           KEYSTORE_BASE64: ${{ secrets.ANDROID_SIGNING_KEY_BASE64 }}
@@ -201,7 +109,7 @@ jobs:
             echo "No keystore provided, using debug signing"
           fi
 
-      - name: Build Advertiser Android APK
+      - name: Build RedSquare Screens Android TV APK
         run: |
           cd android
           # Verify gradlew exists before attempting to use it
@@ -226,7 +134,7 @@ jobs:
       - name: Upload APK as Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: advertiser-android-app
+          name: screens-android-tv-app
           path: android/app/build/outputs/apk/release/*.apk
 
       - name: Upload APK to Supabase Storage
@@ -240,9 +148,10 @@ jobs:
           fi
           echo "Found APK: $FILE_PATH"
           
-          FILE_NAME="redsquare-advertiser-android-v${{ steps.build_info.outputs.version }}.apk"
-          SUPABASE_BUCKET="apk-files"
+          FILE_NAME="screens-android-tv-app-v${{ steps.build_info.outputs.version }}.apk"
+          SUPABASE_BUCKET="tv-files"
 
+          # Get the public URL of the bucket
           BUCKET_URL="${{ secrets.SUPABASE_URL }}/storage/v1/object/public/${SUPABASE_BUCKET}/${FILE_NAME}"
           echo "artifact_url=$BUCKET_URL" >> $GITHUB_OUTPUT
 

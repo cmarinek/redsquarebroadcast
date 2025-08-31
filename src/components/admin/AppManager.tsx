@@ -36,7 +36,7 @@ interface AppRelease {
   build_id?: string;
 }
 
-type Platform = 'android' | 'ios' | 'tv' | 'desktop' | 'advertiser_android' | 'advertiser_ios' | 'advertiser_desktop' | 'system_test';
+type Platform = 'redsquare_android' | 'redsquare_ios' | 'redsquare_web' | 'screens_android_tv' | 'screens_android_mobile' | 'screens_ios' | 'screens_windows' | 'screens_macos' | 'screens_linux' | 'system_test';
 
 interface UploadState {
   isUploading: boolean;
@@ -45,81 +45,114 @@ interface UploadState {
 }
 
 const PLATFORM_CONFIG = {
-  android: {
+  // RedSquare App (Main user management app)
+  redsquare_android: {
     icon: Smartphone,
-    name: 'Android Mobile',
+    name: 'RedSquare Android',
+    description: 'Main mobile app for advertisers and screen owners',
     fileExtension: 'apk',
     bucket: 'apk-files',
     acceptedFiles: '.apk',
     buildInstructions: [
-      'This is a manual process.',
-      'Follow standard Android build procedures.'
+      'Build the main RedSquare mobile app for Android devices.',
+      'Use the automated build system or upload manually.'
     ]
   },
-  ios: {
+  redsquare_ios: {
     icon: Smartphone,
-    name: 'iOS',
+    name: 'RedSquare iOS',
+    description: 'Main mobile app for advertisers and screen owners',
     fileExtension: 'ipa',
     bucket: 'ios-files',
     acceptedFiles: '.ipa',
     buildInstructions: [
-      'This is a manual process.',
-      'Follow standard iOS build procedures.'
+      'Build the main RedSquare mobile app for iOS devices.',
+      'Use the automated build system or upload manually.'
     ]
   },
-  tv: {
+  redsquare_web: {
+    icon: Monitor,
+    name: 'RedSquare Web',
+    description: 'Progressive web app accessible from any browser',
+    fileExtension: 'zip',
+    bucket: 'app_artifacts',
+    acceptedFiles: '.zip',
+    buildInstructions: [
+      'The web app is automatically deployed.',
+      'Manual builds are not typically required.'
+    ]
+  },
+  // RedSquare Screens (Content display app for various screen types)
+  screens_android_tv: {
     icon: Tv,
-    name: 'Android TV',
+    name: 'RedSquare Screens (Android TV)',
+    description: 'Content display app for Android TV devices',
     fileExtension: 'apk',
-    bucket: 'app_artifacts',
+    bucket: 'tv-files',
     acceptedFiles: '.apk',
     buildInstructions: [
-      'For manual uploads, build the APK locally and upload here.',
-      'Alternatively, use the automated build button above.'
+      'Build the content display app for Android TV.',
+      'Use the automated build system for latest version.'
     ]
   },
-  desktop: {
-    icon: Monitor,
-    name: 'Desktop',
-    fileExtension: 'exe',
-    bucket: 'app_artifacts',
-    acceptedFiles: '.exe,.dmg,.appimage',
-    buildInstructions: [
-      'There is no manual upload process for the desktop app.',
-      'Please use the automated build system.'
-    ]
-  },
-  advertiser_android: {
+  screens_android_mobile: {
     icon: Smartphone,
-    name: 'Advertiser Android',
+    name: 'RedSquare Screens (Android Mobile)',
+    description: 'Content display app for Android mobile devices used as screens',
     fileExtension: 'apk',
     bucket: 'apk-files',
     acceptedFiles: '.apk',
     buildInstructions: [
-      'For manual uploads, build the APK locally and upload here.',
-      'Alternatively, use the automated build button above.'
+      'Build the content display app for Android mobile devices.',
+      'Use the automated build system or upload manually.'
     ]
   },
-  advertiser_ios: {
+  screens_ios: {
     icon: Smartphone,
-    name: 'Advertiser iOS',
+    name: 'RedSquare Screens (iOS)',
+    description: 'Content display app for iOS devices used as screens',
     fileExtension: 'ipa',
     bucket: 'ios-files',
     acceptedFiles: '.ipa',
     buildInstructions: [
-      'For manual uploads, build the IPA locally and upload here.',
-      'Alternatively, use the automated build button above.'
+      'Build the content display app for iOS devices.',
+      'Use the automated build system or upload manually.'
     ]
   },
-  advertiser_desktop: {
+  screens_windows: {
     icon: Monitor,
-    name: 'Advertiser Desktop',
+    name: 'RedSquare Screens (Windows)',
+    description: 'Content display app for Windows-based screens',
     fileExtension: 'exe',
     bucket: 'app_artifacts',
-    acceptedFiles: '.exe,.dmg,.appimage',
+    acceptedFiles: '.exe',
     buildInstructions: [
-      'There is no manual upload process for the advertiser desktop app.',
-      'Please use the automated build system.'
+      'Build the content display app for Windows devices.',
+      'Use the automated build system.'
+    ]
+  },
+  screens_macos: {
+    icon: Monitor,
+    name: 'RedSquare Screens (macOS)',
+    description: 'Content display app for macOS-based screens',
+    fileExtension: 'dmg',
+    bucket: 'app_artifacts',
+    acceptedFiles: '.dmg',
+    buildInstructions: [
+      'Build the content display app for macOS devices.',
+      'Use the automated build system.'
+    ]
+  },
+  screens_linux: {
+    icon: Monitor,
+    name: 'RedSquare Screens (Linux)',
+    description: 'Content display app for Linux-based screens',
+    fileExtension: 'appimage',
+    bucket: 'app_artifacts',
+    acceptedFiles: '.appimage',
+    buildInstructions: [
+      'Build the content display app for Linux devices.',
+      'Use the automated build system.'
     ]
   }
 } as const;
@@ -128,7 +161,7 @@ export const AppManager = () => {
   const { toast } = useToast();
   const [releases, setReleases] = useState<AppRelease[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activePlatform, setActivePlatform] = useState<Platform>('tv');
+  const [activePlatform, setActivePlatform] = useState<Platform>('redsquare_android');
   const [isTriggeringBuild, setIsTriggeringBuild] = useState(false);
   const [buildSuccessfullyStarted, setBuildSuccessfullyStarted] = useState<string | null>(null);
   const [uploadState, setUploadState] = useState<UploadState>({
@@ -197,16 +230,27 @@ export const AppManager = () => {
       // Convert automated builds to unified format
       const automatedReleasesFormatted = automatedBuilds.map(async (build) => {
         const platformMap: { [key: string]: Platform } = {
-          'android_tv': 'tv',
-          'android_mobile': 'android',
-          'ios': 'ios',
-          'desktop_windows': 'desktop',
-          'advertiser_android': 'advertiser_android',
-          'advertiser_ios': 'advertiser_ios',
-          'advertiser_desktop': 'advertiser_desktop'
+          // Legacy mappings for existing builds (for backward compatibility)
+          'android_tv': 'screens_android_tv',
+          'android_mobile': 'redsquare_android',
+          'ios': 'redsquare_ios',
+          'desktop_windows': 'screens_windows',
+          'advertiser_android': 'redsquare_android',
+          'advertiser_ios': 'redsquare_ios',
+          'advertiser_desktop': 'screens_windows',
+          // New mappings
+          'redsquare_android': 'redsquare_android',
+          'redsquare_ios': 'redsquare_ios',
+          'redsquare_web': 'redsquare_web',
+          'screens_android_tv': 'screens_android_tv',
+          'screens_android_mobile': 'screens_android_mobile',
+          'screens_ios': 'screens_ios',
+          'screens_windows': 'screens_windows',
+          'screens_macos': 'screens_macos',
+          'screens_linux': 'screens_linux'
         };
 
-        const platform = platformMap[build.app_type] || 'android';
+        const platform = platformMap[build.app_type] || 'redsquare_android';
         const config = PLATFORM_CONFIG[platform];
         
         // Fetch actual file size for automated builds
@@ -505,7 +549,7 @@ export const AppManager = () => {
     return releases.filter(release => release.platform === platform);
   };
 
-  const handleTriggerBuild = async (app_type: 'android_tv' | 'desktop_windows' | 'ios' | 'android_mobile' | 'advertiser_android' | 'advertiser_ios' | 'advertiser_desktop') => {
+  const handleTriggerBuild = async (app_type: 'redsquare_android' | 'redsquare_ios' | 'redsquare_web' | 'screens_android_tv' | 'screens_android_mobile' | 'screens_ios' | 'screens_windows' | 'screens_macos' | 'screens_linux') => {
     setIsTriggeringBuild(true);
     setBuildSuccessfullyStarted(null); // Reset previous success state
     toast({
@@ -558,25 +602,26 @@ export const AppManager = () => {
       return null; // Content is handled by TabsContent
     }
     
-    if (activePlatform === 'desktop' || activePlatform === 'advertiser_desktop') {
+    // Desktop/Screen apps that are build-only (no manual upload)
+    if (activePlatform === 'screens_windows' || activePlatform === 'screens_macos' || activePlatform === 'screens_linux' || activePlatform === 'redsquare_web') {
       return (
         <Card>
           <CardHeader>
               <div className="flex justify-between items-start">
                   <div>
-                      <CardTitle>Automated {activePlatform === 'advertiser_desktop' ? 'Advertiser ' : ''}Desktop Build</CardTitle>
-                      <CardDescription>Use the automated system to build the latest version of the {activePlatform === 'advertiser_desktop' ? 'Red Square Advertiser ' : ''}Desktop client for Windows.</CardDescription>
+                      <CardTitle>Automated {currentConfig.name} Build</CardTitle>
+                      <CardDescription>{currentConfig.description}. Use the automated build system to create the latest version.</CardDescription>
                   </div>
                   <Button 
-                    onClick={() => handleTriggerBuild(activePlatform === 'advertiser_desktop' ? 'advertiser_desktop' : 'desktop_windows')} 
+                    onClick={() => handleTriggerBuild(activePlatform)} 
                     disabled={isTriggeringBuild}
-                    variant={buildSuccessfullyStarted === (activePlatform === 'advertiser_desktop' ? 'advertiser_desktop' : 'desktop_windows') ? 'default' : 'outline'}
-                    className={buildSuccessfullyStarted === (activePlatform === 'advertiser_desktop' ? 'advertiser_desktop' : 'desktop_windows') ? 'bg-green-600 hover:bg-green-700 text-white' : ''}
+                    variant={buildSuccessfullyStarted === activePlatform ? 'default' : 'outline'}
+                    className={buildSuccessfullyStarted === activePlatform ? 'bg-green-600 hover:bg-green-700 text-white' : ''}
                   >
                       <Upload className="mr-2 h-4 w-4" />
                       {isTriggeringBuild ? 'Starting...' : 
-                       buildSuccessfullyStarted === (activePlatform === 'advertiser_desktop' ? 'advertiser_desktop' : 'desktop_windows') ? '✓ Build Started Successfully!' : 
-                       `Start Automated ${activePlatform === 'advertiser_desktop' ? 'Advertiser ' : ''}Desktop Build`}
+                       buildSuccessfullyStarted === activePlatform ? '✓ Build Started Successfully!' : 
+                       `Start Automated Build`}
                   </Button>
               </div>
           </CardHeader>
@@ -584,7 +629,7 @@ export const AppManager = () => {
       );
     }
 
-    // Common UI for Android, iOS, TV
+    // Common UI for mobile apps (Android, iOS, TV)
     return (
       <>
         {/* Available Releases Section - First */}
@@ -594,7 +639,7 @@ export const AppManager = () => {
               <Download className="h-5 w-5" />
               Available {currentConfig.name} Releases
             </CardTitle>
-            <CardDescription>Manage and download {currentConfig.name} app releases</CardDescription>
+            <CardDescription>{currentConfig.description}</CardDescription>
           </CardHeader>
           <CardContent>
             {getPlatformReleases(activePlatform).length === 0 ? (
@@ -683,122 +728,30 @@ export const AppManager = () => {
           </CardContent>
         </Card>
 
-        {/* Automated Build Sections - Second */}
-        {activePlatform === 'tv' && (
-          <Card>
-            <CardHeader>
-                <div className="flex justify-between items-start">
-                    <div>
-                        <CardTitle>Automated Android TV Build</CardTitle>
-                        <CardDescription>Use the automated system to build the latest version of the Android TV app.</CardDescription>
-                    </div>
-                    <Button 
-                      onClick={() => handleTriggerBuild('android_tv')} 
-                      disabled={isTriggeringBuild}
-                      variant={buildSuccessfullyStarted === 'android_tv' ? 'default' : 'outline'}
-                      className={buildSuccessfullyStarted === 'android_tv' ? 'bg-green-600 hover:bg-green-700 text-white' : ''}
-                    >
-                        <Upload className="mr-2 h-4 w-4" />
-                        {isTriggeringBuild ? 'Starting...' : 
-                         buildSuccessfullyStarted === 'android_tv' ? '✓ Build Started Successfully!' : 
-                         'Start Automated Android TV Build'}
-                    </Button>
-                </div>
-            </CardHeader>
-          </Card>
-        )}
-        {activePlatform === 'android' && (
-          <Card>
-            <CardHeader>
-                <div className="flex justify-between items-start">
-                    <div>
-                        <CardTitle>Automated Android Mobile Build</CardTitle>
-                        <CardDescription>Use the automated system to build the latest version of the Android mobile app.</CardDescription>
-                    </div>
-                    <Button 
-                      onClick={() => handleTriggerBuild('android_mobile')} 
-                      disabled={isTriggeringBuild}
-                      variant={buildSuccessfullyStarted === 'android_mobile' ? 'default' : 'outline'}
-                      className={buildSuccessfullyStarted === 'android_mobile' ? 'bg-green-600 hover:bg-green-700 text-white' : ''}
-                    >
-                        <Upload className="mr-2 h-4 w-4" />
-                        {isTriggeringBuild ? 'Starting...' : 
-                         buildSuccessfullyStarted === 'android_mobile' ? '✓ Build Started Successfully!' : 
-                         'Start Automated Android Build'}
-                    </Button>
-                </div>
-            </CardHeader>
-          </Card>
-        )}
-        {activePlatform === 'ios' && (
-          <Card>
-            <CardHeader>
-                <div className="flex justify-between items-start">
-                    <div>
-                        <CardTitle>Automated iOS Build</CardTitle>
-                        <CardDescription>Use the automated system to build the latest version of the iOS app.</CardDescription>
-                    </div>
-                    <Button 
-                      onClick={() => handleTriggerBuild('ios')} 
-                      disabled={isTriggeringBuild}
-                      variant={buildSuccessfullyStarted === 'ios' ? 'default' : 'outline'}
-                      className={buildSuccessfullyStarted === 'ios' ? 'bg-green-600 hover:bg-green-700 text-white' : ''}
-                    >
-                        <Upload className="mr-2 h-4 w-4" />
-                        {isTriggeringBuild ? 'Starting...' : 
-                         buildSuccessfullyStarted === 'ios' ? '✓ Build Started Successfully!' : 
-                         'Start Automated iOS Build'}
-                    </Button>
-                </div>
-            </CardHeader>
-          </Card>
-        )}
-        {activePlatform === 'advertiser_android' && (
-          <Card>
-            <CardHeader>
-                <div className="flex justify-between items-start">
-                    <div>
-                        <CardTitle>Automated Advertiser Android Build</CardTitle>
-                        <CardDescription>Use the automated system to build the latest version of the Red Square Advertiser Android app.</CardDescription>
-                    </div>
-                    <Button 
-                      onClick={() => handleTriggerBuild('advertiser_android')} 
-                      disabled={isTriggeringBuild}
-                      variant={buildSuccessfullyStarted === 'advertiser_android' ? 'default' : 'outline'}
-                      className={buildSuccessfullyStarted === 'advertiser_android' ? 'bg-green-600 hover:bg-green-700 text-white' : ''}
-                    >
-                        <Upload className="mr-2 h-4 w-4" />
-                        {isTriggeringBuild ? 'Starting...' : 
-                         buildSuccessfullyStarted === 'advertiser_android' ? '✓ Build Started Successfully!' : 
-                         'Start Automated Advertiser Android Build'}
-                    </Button>
-                </div>
-            </CardHeader>
-          </Card>
-        )}
-        {activePlatform === 'advertiser_ios' && (
-          <Card>
-            <CardHeader>
-                <div className="flex justify-between items-start">
-                    <div>
-                        <CardTitle>Automated Advertiser iOS Build</CardTitle>
-                        <CardDescription>Use the automated system to build the latest version of the Red Square Advertiser iOS app.</CardDescription>
-                    </div>
-                    <Button 
-                      onClick={() => handleTriggerBuild('advertiser_ios')} 
-                      disabled={isTriggeringBuild}
-                      variant={buildSuccessfullyStarted === 'advertiser_ios' ? 'default' : 'outline'}
-                      className={buildSuccessfullyStarted === 'advertiser_ios' ? 'bg-green-600 hover:bg-green-700 text-white' : ''}
-                    >
-                        <Upload className="mr-2 h-4 w-4" />
-                        {isTriggeringBuild ? 'Starting...' : 
-                         buildSuccessfullyStarted === 'advertiser_ios' ? '✓ Build Started Successfully!' : 
-                         'Start Automated Advertiser iOS Build'}
-                    </Button>
-                </div>
-            </CardHeader>
-          </Card>
-        )}
+        {/* Automated Build Section */}
+        <Card>
+          <CardHeader>
+              <div className="flex justify-between items-start">
+                  <div>
+                      <CardTitle>Automated {currentConfig.name} Build</CardTitle>
+                      <CardDescription>{currentConfig.description}. Use the automated build system for the latest version.</CardDescription>
+                  </div>
+                  <Button 
+                    onClick={() => handleTriggerBuild(activePlatform)} 
+                    disabled={isTriggeringBuild}
+                    variant={buildSuccessfullyStarted === activePlatform ? 'default' : 'outline'}
+                    className={buildSuccessfullyStarted === activePlatform ? 'bg-green-600 hover:bg-green-700 text-white' : ''}
+                  >
+                      <Upload className="mr-2 h-4 w-4" />
+                      {isTriggeringBuild ? 'Starting...' : 
+                       buildSuccessfullyStarted === activePlatform ? '✓ Build Started Successfully!' : 
+                       'Start Automated Build'}
+                  </Button>
+              </div>
+          </CardHeader>
+        </Card>
+
+        {/* Manual Upload Section */}
         <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -806,7 +759,7 @@ export const AppManager = () => {
                 Manually Upload New {currentConfig.name} App
               </CardTitle>
               <CardDescription>
-                Upload a new version of the Red Square {currentConfig.name} app
+                {currentConfig.description}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -823,7 +776,11 @@ export const AppManager = () => {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="minimum-os-version">Minimum OS Version</Label>
-                  <Input id="minimum-os-version" placeholder={activePlatform === 'android' ? 'e.g., 7.0' : activePlatform === 'ios' ? 'e.g., 13.0' : 'e.g., Android TV 9.0'} value={minimumOsVersion} onChange={(e) => setMinimumOsVersion(e.target.value)} disabled={uploadState.isUploading}/>
+                  <Input id="minimum-os-version" placeholder={
+                    activePlatform.includes('android') ? 'e.g., 7.0' : 
+                    activePlatform.includes('ios') ? 'e.g., 13.0' : 
+                    'e.g., Version 10+'
+                  } value={minimumOsVersion} onChange={(e) => setMinimumOsVersion(e.target.value)} disabled={uploadState.isUploading}/>
                 </div>
                 <div>
                   <Label htmlFor="bundle-id">Bundle/Package ID</Label>
@@ -846,7 +803,7 @@ export const AppManager = () => {
             </CardContent>
           </Card>
 
-          {/* Build Instructions - Last */}
+          {/* Build Instructions */}
           <Alert>
             <FileArchive className="h-4 w-4" />
             <AlertDescription className="space-y-2">
@@ -876,40 +833,82 @@ export const AppManager = () => {
   return (
     <div className="space-y-6">
       <Tabs value={activePlatform} onValueChange={(value) => setActivePlatform(value as Platform)}>
-        <TabsList className="grid w-full grid-cols-8">
-          <TabsTrigger value="android" className="flex items-center gap-2">
+        <TabsList className="grid w-full grid-cols-4">
+          {/* RedSquare App Group */}
+          <TabsTrigger value="redsquare_android" className="flex items-center gap-2">
             <Smartphone className="h-4 w-4" />
-            Android Mobile
+            RedSquare Android
           </TabsTrigger>
-          <TabsTrigger value="ios" className="flex items-center gap-2">
+          <TabsTrigger value="redsquare_ios" className="flex items-center gap-2">
             <Smartphone className="h-4 w-4" />
-            iOS
+            RedSquare iOS
           </TabsTrigger>
-          <TabsTrigger value="tv" className="flex items-center gap-2">
+          {/* RedSquare Screens Group */}
+          <TabsTrigger value="screens_android_tv" className="flex items-center gap-2">
             <Tv className="h-4 w-4" />
-            Android TV
-          </TabsTrigger>
-          <TabsTrigger value="desktop" className="flex items-center gap-2">
-            <Monitor className="h-4 w-4" />
-            Desktop
-          </TabsTrigger>
-          <TabsTrigger value="advertiser_android" className="flex items-center gap-2">
-            <Smartphone className="h-4 w-4" />
-            Adv Android
-          </TabsTrigger>
-          <TabsTrigger value="advertiser_ios" className="flex items-center gap-2">
-            <Smartphone className="h-4 w-4" />
-            Adv iOS
-          </TabsTrigger>
-          <TabsTrigger value="advertiser_desktop" className="flex items-center gap-2">
-            <Monitor className="h-4 w-4" />
-            Adv Desktop
+            Screens TV
           </TabsTrigger>
           <TabsTrigger value="system_test" className="flex items-center gap-2">
             <CheckCircle className="h-4 w-4" />
-            Build System Verification
+            Build System
           </TabsTrigger>
         </TabsList>
+        
+        {/* Submenu for additional screen platforms */}
+        {activePlatform.startsWith('screens_') && (
+          <div className="mt-4">
+            <div className="flex flex-wrap gap-2">
+              <Button 
+                variant={activePlatform === 'screens_android_tv' ? 'default' : 'outline'} 
+                size="sm" 
+                onClick={() => setActivePlatform('screens_android_tv')}
+              >
+                <Tv className="h-4 w-4 mr-1" />
+                Android TV
+              </Button>
+              <Button 
+                variant={activePlatform === 'screens_android_mobile' ? 'default' : 'outline'} 
+                size="sm" 
+                onClick={() => setActivePlatform('screens_android_mobile')}
+              >
+                <Smartphone className="h-4 w-4 mr-1" />
+                Android Mobile
+              </Button>
+              <Button 
+                variant={activePlatform === 'screens_ios' ? 'default' : 'outline'} 
+                size="sm" 
+                onClick={() => setActivePlatform('screens_ios')}
+              >
+                <Smartphone className="h-4 w-4 mr-1" />
+                iOS
+              </Button>
+              <Button 
+                variant={activePlatform === 'screens_windows' ? 'default' : 'outline'} 
+                size="sm" 
+                onClick={() => setActivePlatform('screens_windows')}
+              >
+                <Monitor className="h-4 w-4 mr-1" />
+                Windows
+              </Button>
+              <Button 
+                variant={activePlatform === 'screens_macos' ? 'default' : 'outline'} 
+                size="sm" 
+                onClick={() => setActivePlatform('screens_macos')}
+              >
+                <Monitor className="h-4 w-4 mr-1" />
+                macOS
+              </Button>
+              <Button 
+                variant={activePlatform === 'screens_linux' ? 'default' : 'outline'} 
+                size="sm" 
+                onClick={() => setActivePlatform('screens_linux')}
+              >
+                <Monitor className="h-4 w-4 mr-1" />
+                Linux
+              </Button>
+            </div>
+          </div>
+        )}
         <TabsContent value={activePlatform} className="space-y-6">
           {renderContent()}
         </TabsContent>

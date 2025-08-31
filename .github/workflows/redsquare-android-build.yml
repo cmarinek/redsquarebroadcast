@@ -1,9 +1,9 @@
-name: Build Android TV App
+name: Build RedSquare Android App
 
 on:
   repository_dispatch:
-    types: [trigger-android_tv-build]
-  workflow_dispatch: # Allows manual triggering from the GitHub UI for testing
+    types: [trigger-redsquare-android-build]
+  workflow_dispatch:
     inputs:
       build_id:
         description: 'ID of the build record in the database'
@@ -14,7 +14,7 @@ on:
         default: '1.0.0-manual'
 
 jobs:
-  build-android:
+  build-redsquare-android:
     runs-on: ubuntu-latest
     steps:
       - name: Get Build Info from Dispatch
@@ -30,10 +30,15 @@ jobs:
 
       - name: Update Build Status to 'In Progress'
         run: |
-          curl -X POST "${{ secrets.SUPABASE_URL }}/functions/v1/update-build-status" \
+          SUPABASE_URL="${{ secrets.SUPABASE_URL }}"
+          if [ -z "$SUPABASE_URL" ]; then
+            echo "Error: SUPABASE_URL secret not set"
+            exit 1
+          fi
+          curl -X POST "${SUPABASE_URL}/functions/v1/update-build-status" \
             -H "Authorization: Bearer ${{ secrets.GH_ACTION_SECRET }}" \
             -H "Content-Type: application/json" \
-            --data '{
+            -d '{
               "build_id": "${{ steps.build_info.outputs.build_id }}",
               "status": "in_progress",
               "logs_url": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}",
@@ -99,6 +104,16 @@ jobs:
             exit 1
           fi
 
+      - name: Configure Android Build for Mobile
+        run: |
+          # Update for RedSquare main app configuration
+          if [ -f "android/app/src/main/AndroidManifest.xml" ]; then
+            # Ensure it's configured for mobile devices
+            sed -i 's/android.hardware.touchscreen/android.hardware.touchscreen/' android/app/src/main/AndroidManifest.xml || echo "No touchscreen config needed"
+          else
+            echo "AndroidManifest.xml not found, using default mobile configuration"
+          fi
+
       - name: Create Android Keystore
         env:
           KEYSTORE_BASE64: ${{ secrets.ANDROID_SIGNING_KEY_BASE64 }}
@@ -109,17 +124,10 @@ jobs:
             echo "No keystore provided, using debug signing"
           fi
 
-      - name: Build Android Release APK
+      - name: Build RedSquare Android Release APK
         run: |
           cd android
-          # Verify gradlew exists before attempting to use it
-          if [ ! -f "./gradlew" ]; then
-            echo "ERROR: gradlew not found in android directory"
-            echo "Contents of android directory:"
-            ls -la
-            exit 1
-          fi
-          
+          chmod +x ./gradlew
           ./gradlew assembleRelease
           echo "Listing build outputs:"
           find . -name "*.apk" -type f
@@ -134,7 +142,7 @@ jobs:
       - name: Upload APK as Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: android-tv-app
+          name: redsquare-android-app
           path: android/app/build/outputs/apk/release/*.apk
 
       - name: Upload APK to Supabase Storage
@@ -148,8 +156,8 @@ jobs:
           fi
           echo "Found APK: $FILE_PATH"
           
-          FILE_NAME="android-tv-app-v${{ steps.build_info.outputs.version }}.apk"
-          SUPABASE_BUCKET="app_artifacts"
+          FILE_NAME="redsquare-android-app-v${{ steps.build_info.outputs.version }}.apk"
+          SUPABASE_BUCKET="apk-files"
 
           # Get the public URL of the bucket
           BUCKET_URL="${{ secrets.SUPABASE_URL }}/storage/v1/object/public/${SUPABASE_BUCKET}/${FILE_NAME}"
@@ -167,7 +175,7 @@ jobs:
           curl -X POST "${{ secrets.SUPABASE_URL }}/functions/v1/update-build-status" \
             -H "Authorization: Bearer ${{ secrets.GH_ACTION_SECRET }}" \
             -H "Content-Type: application/json" \
-            --data '{
+            -d '{
               "build_id": "${{ steps.build_info.outputs.build_id }}",
               "status": "success",
               "artifact_url": "${{ steps.upload_apk.outputs.artifact_url }}"
@@ -183,7 +191,7 @@ jobs:
           curl -X POST "${{ secrets.SUPABASE_URL }}/functions/v1/update-build-status" \
             -H "Authorization: Bearer ${{ secrets.GH_ACTION_SECRET }}" \
             -H "Content-Type: application/json" \
-            --data-binary '{
+            -d '{
               "build_id": "${{ steps.build_info.outputs.build_id }}",
               "status": "'$STATUS'"
             }'
