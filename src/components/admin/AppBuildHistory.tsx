@@ -11,7 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 
 interface AppBuild {
   id: string;
-  app_type: 'android_tv' | 'desktop_windows' | 'ios' | 'android_mobile' | 'advertiser_android' | 'advertiser_ios' | 'advertiser_desktop';
+  app_type: 'redsquare_android' | 'redsquare_ios' | 'redsquare_web' | 'screens_android_tv' | 'screens_android_mobile' | 'screens_ios' | 'screens_windows' | 'screens_macos' | 'screens_linux' | 'screens_amazon_fire' | 'screens_roku' | 'screens_samsung_tizen' | 'screens_lg_webos';
   version: string;
   status: 'pending' | 'in_progress' | 'success' | 'failed' | 'cancelled';
   triggered_by: string;
@@ -23,13 +23,22 @@ interface AppBuild {
 }
 
 const APP_TYPE_LABELS = {
-  android_tv: 'Android TV',
-  desktop_windows: 'Desktop Windows',
-  ios: 'iOS',
-  android_mobile: 'Android Mobile',
-  advertiser_android: 'Advertiser Android',
-  advertiser_ios: 'Advertiser iOS',
-  advertiser_desktop: 'Advertiser Desktop'
+  // RedSquare App (main user management app)
+  redsquare_android: 'RedSquare Android',
+  redsquare_ios: 'RedSquare iOS',
+  redsquare_web: 'RedSquare Web',
+  // RedSquare Screens (content display app)
+  screens_android_tv: 'Screens Android TV',
+  screens_android_mobile: 'Screens Android Mobile',
+  screens_ios: 'Screens iOS',
+  screens_windows: 'Screens Windows',
+  screens_macos: 'Screens macOS',
+  screens_linux: 'Screens Linux',
+  // RedSquare Screens (streaming platforms)
+  screens_amazon_fire: 'Screens Amazon Fire TV',
+  screens_roku: 'Screens Roku',
+  screens_samsung_tizen: 'Screens Samsung Tizen',
+  screens_lg_webos: 'Screens LG webOS'
 };
 
 const STATUS_COLORS = {

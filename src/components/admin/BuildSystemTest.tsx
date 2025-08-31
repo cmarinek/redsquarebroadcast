@@ -60,7 +60,7 @@ export const BuildSystemTest = () => {
       try {
         // Test uploading a small file to each bucket
         const testFile = new Blob(['test'], { type: 'text/plain' });
-        const buckets = ['apk-files', 'ios-files', 'app_artifacts'];
+        const buckets = ['apk-files', 'ios-files', 'tv-files', 'app_artifacts'];
         const bucketResults = [];
         
         for (const bucket of buckets) {
@@ -133,7 +133,7 @@ export const BuildSystemTest = () => {
         } else {
           // Trigger a real build
           const { data: buildData, error: buildError } = await supabase.functions.invoke('trigger-app-build', {
-            body: { app_type: 'android_tv' }
+            body: { app_type: 'screens_android_tv' }
           });
           
           if (buildError) {
@@ -302,7 +302,7 @@ export const BuildSystemTest = () => {
               <h4 className="font-medium mb-2">2. Build Artifacts Verification</h4>
               <div className="text-sm text-muted-foreground space-y-1">
                 <p>• Successful builds should show "Upload Artifact to Supabase Storage"</p>
-                <p>• Check Supabase Storage buckets (apk-files, ios-files, app_artifacts)</p>
+                <p>• Check Supabase Storage buckets (apk-files, ios-files, tv-files, app_artifacts)</p>
                 <p>• Verify generated files are properly named with version numbers</p>
               </div>
             </div>
