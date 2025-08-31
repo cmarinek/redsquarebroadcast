@@ -107,14 +107,8 @@ jobs:
           $fileSizeMB = [math]::Round($file.Length / 1MB, 2)
           $fileSizeBytes = $file.Length
           
-          Write-Host "Original file: $fileName (${fileSizeMB}MB)"
-          Write-Host "File size in bytes: $fileSizeBytes"
-          
-          # Check file size limit (85MB = 89,128,960 bytes to be safe)
-          if ($fileSizeBytes -gt 89128960) {
-            Write-Error "File size (${fileSizeMB}MB) exceeds safe upload limit of 85MB. Build optimization needed."
-            exit 1
-          }
+           Write-Host "Original file: $fileName (${fileSizeMB}MB)"
+           Write-Host "File size in bytes: $fileSizeBytes"
           
           # Create 7z archive for better compression
           $zipName = "RedSquare-Screens-Windows-v${{ steps.build_info.outputs.version }}.7z"
@@ -136,41 +130,59 @@ jobs:
           $zipFile = Get-Item $zipPath
           $zipSizeMB = [math]::Round($zipFile.Length / 1MB, 2)
           $compressionRatio = [math]::Round((1 - $zipFile.Length / $file.Length) * 100, 1)
-          Write-Host "7z archive created: $zipName (${zipSizeMB}MB) - Compression ratio: ${compressionRatio}%"
+           Write-Host "7z archive created: $zipName (${zipSizeMB}MB) - Compression ratio: ${compressionRatio}%"
           
-          # Final size check for 7z file (85MB = 89,128,960 bytes to match raw limit)
-          if ($zipFile.Length -gt 89128960) {
-            Write-Error "7z archive size (${zipSizeMB}MB) still exceeds safe limit of 85MB. Further optimization needed."
-            exit 1
-          }
-          
-          # Upload using resumable upload script
-          Write-Host "Uploading with resumable upload..."
-          node scripts/resumable-upload.js "$zipPath" "app_artifacts" "$zipName" "${{ secrets.SUPABASE_URL }}" "${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}"
-          
-          # Read the result URL
-          $result = Get-Content "upload-result.txt"
-          if ($result -eq "UPLOAD_FAILED" -or $result -eq "SIZE_LIMIT_EXCEEDED") {
-            Write-Error "Build artifact upload failed. File size: ${zipSizeMB}MB may exceed storage limits."
-            Write-Host "Consider further reducing build size by:"
-            Write-Host "- Excluding more node_modules content"
-            Write-Host "- Using better compression" 
-            Write-Host "- Removing unnecessary dependencies"
-            exit 1
-          }
-          
-          echo "artifact_url=$result" >> $env:GITHUB_OUTPUT
-          Write-Host "7z archive uploaded successfully using resumable upload!"
-          Write-Host "Artifact URL: $result"
-          
-          # Clean up temp files
-          if (Test-Path $zipPath) {
-            Remove-Item $zipPath -Force
-            Write-Host "Temporary 7z file cleaned up"
-          }
-          if (Test-Path "upload-result.txt") {
-            Remove-Item "upload-result.txt" -Force
-          }
+           # Instead of uploading to Supabase (size limits), use GitHub Releases
+           Write-Host "Using GitHub Releases for large Windows binaries..."
+           
+           # Create a unique tag for this build  
+           $tag = "screens-windows-v${{ steps.build_info.outputs.version }}"
+           $releaseName = "RedSquare Screens Windows v${{ steps.build_info.outputs.version }}"
+           
+           # Create GitHub Release
+           $releaseBody = @{
+             tag_name = $tag
+             target_commitish = "${{ github.sha }}"
+             name = $releaseName
+             body = "Automated build of RedSquare Screens for Windows`n`nCommit: ${{ github.sha }}`nFile size: ${zipSizeMB}MB"
+             draft = $false
+             prerelease = $true
+           } | ConvertTo-Json
+           
+           $releaseResponse = Invoke-RestMethod -Uri "https://api.github.com/repos/${{ github.repository }}/releases" `
+             -Method POST `
+             -Headers @{
+               "Authorization" = "Bearer ${{ secrets.GITHUB_TOKEN }}"
+               "Accept" = "application/vnd.github.v3+json"  
+               "User-Agent" = "GitHub-Actions"
+             } `
+             -Body $releaseBody
+           
+           Write-Host "Created GitHub Release: $($releaseResponse.html_url)"
+           
+           # Upload asset to the release
+           $assetName = "RedSquare-Screens-Windows-v${{ steps.build_info.outputs.version }}.7z"
+           $uploadUrl = $releaseResponse.upload_url -replace '\{.*\}', "?name=$assetName&label=Windows Desktop App"
+           
+           $uploadResponse = Invoke-RestMethod -Uri $uploadUrl `
+             -Method POST `
+             -Headers @{
+               "Authorization" = "Bearer ${{ secrets.GITHUB_TOKEN }}"
+               "Content-Type" = "application/x-7z-compressed"
+               "User-Agent" = "GitHub-Actions"
+             } `
+             -InFile $zipPath
+           
+           $downloadUrl = $uploadResponse.browser_download_url
+           Write-Host "Asset uploaded successfully: $downloadUrl"
+           
+           echo "artifact_url=$downloadUrl" >> $env:GITHUB_OUTPUT
+           
+           # Clean up temp files
+           if (Test-Path $zipPath) {
+             Remove-Item $zipPath -Force
+             Write-Host "Temporary 7z file cleaned up"
+           }
         shell: pwsh
 
       - name: Update Build Status to 'Success'
