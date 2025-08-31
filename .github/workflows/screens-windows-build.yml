@@ -141,7 +141,7 @@ jobs:
            $tag = "screens-windows-v${{ steps.build_info.outputs.version }}"
            $releaseName = "RedSquare Screens Windows v${{ steps.build_info.outputs.version }}"
            
-           # Create GitHub Release
+           # Create GitHub Release with proper error handling
            $releaseBody = @{
              tag_name = $tag
              target_commitish = "${{ github.sha }}"
@@ -149,34 +149,62 @@ jobs:
              body = "Automated build of RedSquare Screens for Windows`n`nCommit: ${{ github.sha }}`nFile size: ${zipSizeMB}MB"
              draft = $false
              prerelease = $true
-           } | ConvertTo-Json
+           } | ConvertTo-Json -Depth 10
            
-           $releaseResponse = Invoke-RestMethod -Uri "https://api.github.com/repos/${{ github.repository }}/releases" `
-             -Method POST `
-             -Headers @{
-               "Authorization" = "Bearer ${{ secrets.GITHUB_TOKEN }}"
-               "Accept" = "application/vnd.github.v3+json"  
-               "User-Agent" = "GitHub-Actions"
-             } `
-             -Body $releaseBody
-           
-           Write-Host "Created GitHub Release: $($releaseResponse.html_url)"
+           try {
+             $releaseResponse = Invoke-RestMethod -Uri "https://api.github.com/repos/${{ github.repository }}/releases" `
+               -Method POST `
+               -Headers @{
+                 "Authorization" = "Bearer ${{ secrets.GITHUB_TOKEN }}"
+                 "Accept" = "application/vnd.github.v3+json"
+                 "Content-Type" = "application/json"
+                 "User-Agent" = "GitHub-Actions"
+               } `
+               -Body $releaseBody `
+               -StatusCodeVariable httpStatus
+             
+             Write-Host "GitHub Release API Status: $httpStatus"
+             Write-Host "Created GitHub Release: $($releaseResponse.html_url)"
+           }
+           catch {
+             Write-Error "Failed to create GitHub release: $($_.Exception.Message)"
+             Write-Error "Response: $($_.Exception.Response | ConvertTo-Json -Depth 3)"
+             exit 1
+           }
            
            # Upload asset to the release
            $assetName = "RedSquare-Screens-Windows-v${{ steps.build_info.outputs.version }}.7z"
-           $uploadUrl = $releaseResponse.upload_url -replace '\{.*\}', "?name=$assetName&label=Windows Desktop App"
+           $uploadUrl = $releaseResponse.upload_url -replace '\{.*\}', "?name=$assetName&label=Windows%20Desktop%20App"
            
-           $uploadResponse = Invoke-RestMethod -Uri $uploadUrl `
-             -Method POST `
-             -Headers @{
-               "Authorization" = "Bearer ${{ secrets.GITHUB_TOKEN }}"
-               "Content-Type" = "application/x-7z-compressed"
-               "User-Agent" = "GitHub-Actions"
-             } `
-             -InFile $zipPath
+           Write-Host "Upload URL: $uploadUrl"
+           Write-Host "Uploading asset: $assetName"
            
-           $downloadUrl = $uploadResponse.browser_download_url
-           Write-Host "Asset uploaded successfully: $downloadUrl"
+           try {
+             $uploadResponse = Invoke-RestMethod -Uri $uploadUrl `
+               -Method POST `
+               -Headers @{
+                 "Authorization" = "Bearer ${{ secrets.GITHUB_TOKEN }}"
+                 "Content-Type" = "application/x-7z-compressed"
+                 "User-Agent" = "GitHub-Actions"
+               } `
+               -InFile $zipPath `
+               -StatusCodeVariable uploadStatus
+             
+             Write-Host "Upload API Status: $uploadStatus"
+             $downloadUrl = $uploadResponse.browser_download_url
+             
+             if ([string]::IsNullOrEmpty($downloadUrl)) {
+               Write-Error "Failed to get download URL from upload response"
+               exit 1
+             }
+             
+             Write-Host "Asset uploaded successfully: $downloadUrl"
+           }
+           catch {
+             Write-Error "Failed to upload asset: $($_.Exception.Message)"
+             Write-Error "Response: $($_.Exception.Response | ConvertTo-Json -Depth 3)"
+             exit 1
+           }
            
            echo "artifact_url=$downloadUrl" >> $env:GITHUB_OUTPUT
            
