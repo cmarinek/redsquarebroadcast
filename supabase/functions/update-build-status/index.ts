@@ -7,24 +7,45 @@ const corsHeaders = {
 };
 
 serve(async (req) => {
+  // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
+
+  console.log("Update build status function called");
+  console.log("Request method:", req.method);
+  console.log("Request headers:", Object.fromEntries(req.headers.entries()));
 
   try {
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
     const ghActionSecret = Deno.env.get("GH_ACTION_SECRET");
     const supabaseUrl = Deno.env.get("SUPABASE_URL");
 
+    console.log("Environment check:", {
+      hasServiceKey: !!serviceKey,
+      hasGhActionSecret: !!ghActionSecret,
+      hasSupabaseUrl: !!supabaseUrl
+    });
+
     if (!serviceKey || !ghActionSecret || !supabaseUrl) {
+      console.error("Missing environment variables");
       throw new Error("Missing required environment variables.");
     }
 
     // 1. Authenticate the request from GitHub Actions
     const authHeader = req.headers.get("Authorization");
+    console.log("Auth header received:", authHeader ? "Bearer [REDACTED]" : "None");
+    console.log("Expected format: Bearer [SECRET]");
+    
     if (authHeader !== `Bearer ${ghActionSecret}`) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      console.error("Authentication failed - header mismatch");
+      return new Response(JSON.stringify({ error: "Unauthorized" }), { 
+        status: 401, 
+        headers: { ...corsHeaders, "Content-Type": "application/json" } 
+      });
     }
+    
+    console.log("Authentication successful");
 
     const {
         build_id,
