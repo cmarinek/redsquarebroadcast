@@ -1159,14 +1159,6 @@ export const AppManager = () => {
           <div className="mt-4">
             <div className="flex flex-wrap gap-2">
               <Button 
-                variant={activePlatform === 'screens_android_tv' ? 'default' : 'outline'} 
-                size="sm" 
-                onClick={() => setActivePlatform('screens_android_tv')}
-              >
-                <Tv className="h-4 w-4 mr-1" />
-                Android TV
-              </Button>
-              <Button 
                 variant={activePlatform === 'screens_android_mobile' ? 'default' : 'outline'} 
                 size="sm" 
                 onClick={() => setActivePlatform('screens_android_mobile')}
@@ -1205,6 +1197,14 @@ export const AppManager = () => {
               >
                  <Monitor className="h-4 w-4 mr-1" />
                 Linux
+              </Button>
+              <Button 
+                variant={activePlatform === 'screens_android_tv' ? 'default' : 'outline'} 
+                size="sm" 
+                onClick={() => setActivePlatform('screens_android_tv')}
+              >
+                <Tv className="h-4 w-4 mr-1" />
+                Android TV
               </Button>
               <Button 
                 variant={activePlatform === 'screens_amazon_fire' ? 'default' : 'outline'} 
