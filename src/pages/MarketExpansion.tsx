@@ -23,7 +23,7 @@ const MarketExpansion = () => {
           </div>
 
           <Tabs defaultValue="apis" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-4">
+            <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 gap-1">
               <TabsTrigger value="apis">APIs & SDKs</TabsTrigger>
               <TabsTrigger value="integrations">Integrations</TabsTrigger>
               <TabsTrigger value="enterprise">Enterprise</TabsTrigger>

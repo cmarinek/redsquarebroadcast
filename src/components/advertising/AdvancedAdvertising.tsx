@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { Target, TrendingUp, Users, Brain, Calendar, DollarSign } from "lucide-react";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 
 export function AdvancedAdvertising() {
   const { toast } = useToast();
@@ -42,7 +42,7 @@ export function AdvancedAdvertising() {
       </div>
 
       <Tabs defaultValue="campaigns" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 gap-1">
           <TabsTrigger value="campaigns">Smart Campaigns</TabsTrigger>
           <TabsTrigger value="targeting">Audience Targeting</TabsTrigger>
           <TabsTrigger value="optimization">Auto-Optimization</TabsTrigger>

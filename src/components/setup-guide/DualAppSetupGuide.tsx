@@ -104,7 +104,7 @@ export function DualAppSetupGuide() {
 
       {/* Setup Flow */}
       <Tabs defaultValue="advertiser" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-2 md:grid-cols-3 gap-1">
           <TabsTrigger value="advertiser">Advertiser Setup</TabsTrigger>
           <TabsTrigger value="screen-owner">Screen Owner Setup</TabsTrigger>
           <TabsTrigger value="complete">Complete Setup</TabsTrigger>

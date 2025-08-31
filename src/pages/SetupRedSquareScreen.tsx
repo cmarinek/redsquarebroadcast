@@ -451,7 +451,7 @@ const SetupRedSquareScreen = () => {
 
             {/* Enhanced Apps & Instructions Section */}
             <Tabs defaultValue="downloads" className="space-y-8">
-              <TabsList className="grid w-full grid-cols-4">
+              <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 gap-1">
                 <TabsTrigger value="downloads">Download Apps</TabsTrigger>
                 <TabsTrigger value="instructions">Setup Guide</TabsTrigger>
                 <TabsTrigger value="qr-codes">QR Codes</TabsTrigger>

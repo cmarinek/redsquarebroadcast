@@ -94,7 +94,7 @@ const Demo = () => {
         <section className="py-20 px-4">
           <div className="max-w-7xl mx-auto">
             <Tabs defaultValue="journeys" className="w-full">
-              <TabsList className="grid w-full grid-cols-4 mb-12">
+              <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 gap-1 mb-12">
                 <TabsTrigger value="journeys">User Journeys</TabsTrigger>
                 <TabsTrigger value="features">Live Features</TabsTrigger>
                 <TabsTrigger value="network">Screen Network</TabsTrigger>

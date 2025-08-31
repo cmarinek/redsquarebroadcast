@@ -1072,7 +1072,7 @@ export const AppManager = () => {
   return (
     <div className="space-y-6">
       <Tabs value={activePlatform} onValueChange={(value) => setActivePlatform(value as Platform)}>
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 gap-1">
           {/* RedSquare App Group */}
           <TabsTrigger value="redsquare_android" className="flex items-center gap-2">
             <Smartphone className="h-4 w-4" />

@@ -87,7 +87,7 @@ const AdvertiserSetupGuide = () => {
       <CardContent>
         <div id="advertiser-guide-content">
           <Tabs defaultValue="getting-started" className="w-full">
-            <TabsList className="grid w-full grid-cols-4">
+            <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 gap-1">
               <TabsTrigger value="getting-started">Getting Started</TabsTrigger>
               <TabsTrigger value="content">Content Creation</TabsTrigger>
               <TabsTrigger value="discovery">Screen Discovery</TabsTrigger>

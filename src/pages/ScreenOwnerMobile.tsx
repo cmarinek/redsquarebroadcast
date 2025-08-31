@@ -317,7 +317,7 @@ export default function ScreenOwnerMobile() {
         )}
 
         <Tabs defaultValue="dashboard" className="w-full">
-          <TabsList className="grid w-full grid-cols-5 h-12">
+          <TabsList className="grid w-full grid-cols-3 md:grid-cols-5 gap-1 h-12">
             <Tooltip>
               <TooltipTrigger asChild>
                 <TabsTrigger value="dashboard" className="text-xs flex-col py-1">

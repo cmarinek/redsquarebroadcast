@@ -312,7 +312,7 @@ const AdvertiserDashboard = () => {
               </CardHeader>
               <CardContent>
                 <Tabs defaultValue="overview" className="w-full">
-                  <TabsList className="grid w-full grid-cols-7">
+                  <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-1">
                     <TabsTrigger value="overview">Overview</TabsTrigger>
                     <TabsTrigger value="setup">Setup Guide</TabsTrigger>
                     <TabsTrigger value="analytics">Analytics</TabsTrigger>

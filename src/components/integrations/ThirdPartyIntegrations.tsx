@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
 import { Zap, Calendar, BarChart3, MessageSquare, Mail, ShoppingCart } from "lucide-react";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 
 interface Integration {
   id: string;
@@ -125,7 +125,7 @@ export function ThirdPartyIntegrations() {
       </div>
 
       <Tabs defaultValue="marketplace" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-2 md:grid-cols-3 gap-1">
           <TabsTrigger value="marketplace">Marketplace</TabsTrigger>
           <TabsTrigger value="zapier-setup">Zapier Setup</TabsTrigger>
           <TabsTrigger value="custom">Custom Integrations</TabsTrigger>

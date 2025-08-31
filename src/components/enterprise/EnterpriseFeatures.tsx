@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
 import { Building2, Users, Shield, Zap, Globe, Settings } from "lucide-react";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 
 export function EnterpriseFeatures() {
   const { toast } = useToast();
@@ -39,7 +39,7 @@ export function EnterpriseFeatures() {
       </div>
 
       <Tabs defaultValue="white-label" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 gap-1">
           <TabsTrigger value="white-label">White Label</TabsTrigger>
           <TabsTrigger value="sso">SSO Integration</TabsTrigger>
           <TabsTrigger value="bulk-management">Bulk Management</TabsTrigger>

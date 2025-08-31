@@ -24,7 +24,7 @@ const AdminOperations = () => {
           </div>
 
           <Tabs defaultValue="performance" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-5">
+            <TabsList className="grid w-full grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-1">
               <TabsTrigger value="performance">Performance</TabsTrigger>
               <TabsTrigger value="content">Content Workflow</TabsTrigger>
               <TabsTrigger value="security">Security & Compliance</TabsTrigger>

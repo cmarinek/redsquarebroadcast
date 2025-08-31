@@ -27,7 +27,7 @@ import {
   Clock,
   Users
 } from "lucide-react";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 
 const AdminDocumentation = () => {
   const { toast } = useToast();
@@ -84,7 +84,7 @@ const AdminDocumentation = () => {
 
         <div id="documentation-content">
           <Tabs defaultValue="screen-owner" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-3">
+            <TabsList className="grid w-full grid-cols-2 md:grid-cols-3 gap-1">
               <TabsTrigger value="screen-owner">Screen Owner Guide</TabsTrigger>
               <TabsTrigger value="broadcaster">Broadcaster Guide</TabsTrigger>
               <TabsTrigger value="technical">Technical Setup</TabsTrigger>
