@@ -1,4 +1,4 @@
-import { SUPABASE_URL, supabase } from '@/integrations/supabase/client';
+import { SUPABASE_PROJECT_REF, supabase } from '@/integrations/supabase/client';
 
 export async function getSignedViewUrl(bucket: 'content' | 'avatars', filePath: string, expiresIn = 600): Promise<string | null> {
   try {
@@ -29,7 +29,7 @@ export function optimizeImageUrl(url: string | null | undefined, opts: { w?: num
     if (opts.h) params.set('height', String(opts.h));
     if (opts.q) params.set('quality', String(opts.q));
     params.set('resize', 'cover');
-    const base = `${SUPABASE_URL}/storage/v1/render/image/public/${bucket}/${path}`;
+    const base = `https://${SUPABASE_PROJECT_REF}.supabase.co/storage/v1/render/image/public/${bucket}/${path}`;
     return params.toString() ? `${base}?${params.toString()}` : base;
   } catch {
     return url;

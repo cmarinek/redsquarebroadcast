@@ -124,8 +124,8 @@ const AdvertiserDashboard = () => {
       } else {
         setScreens((screensData || []).map(screen => ({
           ...screen,
-          name: screen.name || `Screen ${screen.id.slice(-4)}`,
-          size: screen.size || 'Large'
+          name: screen.location || `Screen ${screen.id.slice(-4)}`,
+          size: 'Large'
         })));
       }
 
