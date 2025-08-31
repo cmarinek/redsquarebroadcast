@@ -108,6 +108,11 @@ jobs:
           cd android
           chmod +x ./gradlew
           ./gradlew assembleRelease
+          echo "Listing build outputs:"
+          find . -name "*.apk" -type f
+          ls -la app/build/outputs/ || echo "outputs directory not found"
+          ls -la app/build/outputs/apk/ || echo "apk directory not found"
+          ls -la app/build/outputs/apk/release/ || echo "release directory not found"
         env:
           SIGNING_KEY_ALIAS: ${{ secrets.ANDROID_SIGNING_KEY_ALIAS }}
           SIGNING_KEY_PASSWORD: ${{ secrets.ANDROID_SIGNING_KEY_PASSWORD }}
@@ -117,12 +122,19 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: android-mobile-app
-          path: android/app/build/outputs/apk/release/app-release.apk
+          path: android/app/build/outputs/apk/release/*.apk
 
       - name: Upload APK to Supabase Storage
         id: upload_apk
         run: |
-          FILE_PATH="android/app/build/outputs/apk/release/app-release.apk"
+          # Find the actual APK file
+          FILE_PATH=$(find android/app/build/outputs/apk/release/ -name "*.apk" | head -1)
+          if [ -z "$FILE_PATH" ]; then
+            echo "No APK file found in release directory"
+            exit 1
+          fi
+          echo "Found APK: $FILE_PATH"
+          
           FILE_NAME="android-mobile-app-v${{ steps.build_info.outputs.version }}.apk"
           SUPABASE_BUCKET="apk-files"
 
