@@ -80,20 +80,38 @@ jobs:
 
       - name: Setup Capacitor Android Platform
         run: |
-          # Check if Android platform exists and is complete
-          if [ ! -f "android/gradlew" ] || [ ! -f "android/build.gradle" ]; then
-            echo "Android project incomplete, removing and re-adding platform"
-            rm -rf android
-            npx cap add android
-            
-            # Verify the platform was added successfully
-            if [ ! -f "android/gradlew" ]; then
-              echo "ERROR: Failed to create Android platform"
-              exit 1
-            fi
-          else
-            echo "Android platform properly configured, skipping add"
+          echo "Checking current directory structure..."
+          ls -la
+          
+          echo "Removing any existing android directory to ensure clean setup..."
+          rm -rf android
+          
+          echo "Adding Android platform..."
+          npx cap add android
+          
+          echo "Verifying Android platform was created..."
+          if [ ! -d "android" ]; then
+            echo "ERROR: Android directory was not created"
+            exit 1
           fi
+          
+          if [ ! -f "android/gradlew" ]; then
+            echo "ERROR: gradlew was not created"
+            echo "Contents of android directory:"
+            ls -la android/
+            exit 1
+          fi
+          
+          if [ ! -f "android/build.gradle" ]; then
+            echo "ERROR: build.gradle was not created"
+            echo "Contents of android directory:"
+            ls -la android/
+            exit 1
+          fi
+          
+          echo "Android platform successfully set up"
+          echo "Contents of android directory:"
+          ls -la android/
 
       - name: Sync Capacitor Project
         run: |
