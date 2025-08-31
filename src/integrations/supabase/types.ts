@@ -333,6 +333,7 @@ export type Database = {
           commit_hash: string | null
           created_at: string
           id: string
+          is_active: boolean
           logs_url: string | null
           status: string
           triggered_by: string
@@ -345,6 +346,7 @@ export type Database = {
           commit_hash?: string | null
           created_at?: string
           id?: string
+          is_active?: boolean
           logs_url?: string | null
           status?: string
           triggered_by: string
@@ -357,6 +359,7 @@ export type Database = {
           commit_hash?: string | null
           created_at?: string
           id?: string
+          is_active?: boolean
           logs_url?: string | null
           status?: string
           triggered_by?: string

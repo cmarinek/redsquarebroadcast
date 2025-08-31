@@ -219,7 +219,7 @@ export const AppManager = () => {
           file_size: 0, // Not available from builds
           uploaded_by: build.triggered_by || 'system',
           release_notes: `Automated build from commit ${build.commit_hash?.slice(0, 7) || 'unknown'}`,
-          is_active: true,
+          is_active: build.is_active || true,
           download_count: 0,
           created_at: build.created_at,
           updated_at: build.updated_at || build.created_at,
@@ -393,24 +393,26 @@ export const AppManager = () => {
   };
 
   const toggleReleaseStatus = async (releaseId: string, currentStatus: boolean) => {
-    // Only allow toggling status for manual releases
-    const release = releases.find(r => r.id === releaseId);
-    if (release?.source === 'automated') {
-      toast({
-        title: "Cannot modify automated builds",
-        description: "Automated builds cannot be deactivated manually.",
-        variant: "destructive"
-      });
-      return;
-    }
-
     try {
-      const { error } = await supabase
-        .from('app_releases')
-        .update({ is_active: !currentStatus })
-        .eq('id', releaseId);
+      const release = releases.find(r => r.id === releaseId);
+      
+      if (release?.source === 'automated') {
+        // Update automated build status
+        const { error } = await supabase
+          .from('app_builds')
+          .update({ is_active: !currentStatus })
+          .eq('id', releaseId);
+          
+        if (error) throw error;
+      } else {
+        // Update manual release status
+        const { error } = await supabase
+          .from('app_releases')
+          .update({ is_active: !currentStatus })
+          .eq('id', releaseId);
 
-      if (error) throw error;
+        if (error) throw error;
+      }
 
       toast({
         title: "Status updated",
@@ -821,19 +823,16 @@ export const AppManager = () => {
                               <Download className="h-4 w-4 mr-1" />
                               Download
                             </Button>
-                            {release.source === 'manual' && (
-                              <>
-                                <Button size="sm" variant={release.is_active ? "secondary" : "default"} onClick={() => toggleReleaseStatus(release.id, release.is_active)}>
-                                  {release.is_active ? "Deactivate" : "Activate"}
-                                </Button>
-                                <Button size="sm" variant="destructive" onClick={() => deleteRelease(release)}>
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
-                              </>
-                            )}
-                            {release.source === 'automated' && (
+                            <Button size="sm" variant={release.is_active ? "secondary" : "default"} onClick={() => toggleReleaseStatus(release.id, release.is_active)}>
+                              {release.is_active ? "Deactivate" : "Activate"}
+                            </Button>
+                            {release.source === 'manual' ? (
+                              <Button size="sm" variant="destructive" onClick={() => deleteRelease(release)}>
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            ) : (
                               <Badge variant="outline" className="text-xs">
-                                Automated Build
+                                Auto
                               </Badge>
                             )}
                           </div>
