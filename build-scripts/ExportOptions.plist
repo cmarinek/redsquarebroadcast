@@ -4,6 +4,8 @@
 <dict>
     <key>method</key>
     <string>debugging</string>
+    <key>teamID</key>
+    <string>RedSquare.Team</string>
     <key>compileBitcode</key>
     <false/>
     <key>destination</key>
