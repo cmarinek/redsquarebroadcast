@@ -156,7 +156,15 @@ Deno.serve(async (req: Request) => {
     }));
 
     return new Response(
-      JSON.stringify({ bucket, path: data.path, signedUrl: data.signedUrl, max_size_bytes: MAX_SIZE_BYTES, rate_limit_remaining: rl.remaining }),
+      JSON.stringify({ 
+        bucket, 
+        path: data.path, 
+        signedUrl: data.signedUrl,
+        url: data.signedUrl, // For PowerShell compatibility
+        headers: {}, // Empty headers for PowerShell compatibility  
+        max_size_bytes: MAX_SIZE_BYTES, 
+        rate_limit_remaining: rl.remaining 
+      }),
       { status: 200, headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store', ...corsHeaders } }
     );
   } catch (e) {
