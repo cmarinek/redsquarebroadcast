@@ -372,12 +372,35 @@ export const AppManager = () => {
   };
 
   const fetchFileSizeWithRetry = async (url: string, maxRetries: number): Promise<number> => {
+    try {
+      console.log(`Using Supabase proxy to fetch file size:`, url);
+      
+      const { data, error } = await supabase.functions.invoke('get-file-size', {
+        body: { file_url: url }
+      });
+      
+      if (error) {
+        console.error('Error from get-file-size function:', error);
+        return 0;
+      }
+      
+      if (data?.file_size && data.file_size > 0) {
+        console.log('File size fetched via proxy:', data.file_size);
+        return data.file_size;
+      }
+      
+      console.log('No file size returned from proxy, falling back to direct fetch');
+    } catch (error) {
+      console.warn('Supabase function call failed, falling back to direct fetch:', error);
+    }
+    
+    // Fallback to direct fetch with retries
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
-        console.log(`Fetching file size (attempt ${attempt}/${maxRetries}):`, url);
+        console.log(`Direct fetch attempt ${attempt}/${maxRetries}:`, url);
         
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+        const timeoutId = setTimeout(() => controller.abort(), 5000);
         
         const response = await fetch(url, { 
           method: 'HEAD',
@@ -389,23 +412,20 @@ export const AppManager = () => {
         if (response.ok) {
           const contentLength = response.headers.get('content-length');
           const size = contentLength ? parseInt(contentLength, 10) : 0;
-          console.log(`File size fetched successfully on attempt ${attempt}:`, size);
+          console.log(`File size fetched directly on attempt ${attempt}:`, size);
           return size;
-        } else {
-          console.warn(`HTTP ${response.status} on attempt ${attempt}`);
         }
       } catch (error) {
-        console.warn(`Error fetching file size (attempt ${attempt}/${maxRetries}):`, error);
+        console.warn(`Direct fetch error (attempt ${attempt}/${maxRetries}):`, error);
         
-        // If this isn't the last attempt, wait before retrying
         if (attempt < maxRetries) {
-          await new Promise(resolve => setTimeout(resolve, 1000 * attempt)); // Exponential backoff
+          await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
         }
       }
     }
     
-    console.error(`Failed to fetch file size after ${maxRetries} attempts`);
-    return 0; // Return 0 after all retries failed
+    console.error(`Failed to fetch file size after all attempts`);
+    return 0;
   };
 
   const getCurrentPlatformConfig = () => PLATFORM_CONFIG[activePlatform];

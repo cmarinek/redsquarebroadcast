@@ -69,6 +69,25 @@ serve(async (req) => {
 
     console.log("✅ Build status updated successfully:", data);
 
+    // If build is successful and has an artifact, create an app release
+    if (status === 'success' && artifact_url) {
+      try {
+        console.log("🎯 Creating app release for successful build");
+        const createReleaseResponse = await supabaseAdmin.functions.invoke('create-app-release', {
+          body: { build_id }
+        });
+        
+        if (createReleaseResponse.error) {
+          console.error("⚠️ Failed to create app release:", createReleaseResponse.error);
+        } else {
+          console.log("✅ App release created successfully");
+        }
+      } catch (error) {
+        console.error("⚠️ Error creating app release:", error);
+        // Don't fail the main request if release creation fails
+      }
+    }
+
     return new Response(JSON.stringify({ success: true, build: data }), {
       status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
