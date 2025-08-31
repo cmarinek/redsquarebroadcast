@@ -17,7 +17,6 @@ import { AnalyticsDashboard } from "@/components/shared/AnalyticsDashboard";
 import { ContentSchedulingAutomation } from "@/components/advertiser/ContentSchedulingAutomation";
 import AudienceTargeting from "@/components/advertiser/AudienceTargeting";
 import { ABTestingTools } from "@/components/shared/ABTestingTools";
-import MobileAppIntegration from "@/components/advertiser/MobileAppIntegration";
 
 interface Booking {
   id: string;
@@ -458,7 +457,13 @@ const AdvertiserDashboard = () => {
                   </TabsContent>
 
                   <TabsContent value="mobile">
-                    <MobileAppIntegration />
+                    <div className="text-center py-12">
+                      <Smartphone className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                      <h3 className="text-lg font-semibold mb-2">Mobile App Integration</h3>
+                      <p className="text-muted-foreground">
+                        Mobile app integration features are coming soon. Stay tuned for enhanced mobile advertising capabilities.
+                      </p>
+                    </div>
                   </TabsContent>
                 </Tabs>
               </CardContent>
