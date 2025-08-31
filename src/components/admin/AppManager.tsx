@@ -905,15 +905,33 @@ export const AppManager = () => {
           <TabsTrigger value="redsquare_android" className="flex items-center gap-2">
             <Smartphone className="h-4 w-4" />
             RedSquare Android
+            {getPlatformReleases('redsquare_android').length > 0 && (
+              <Badge variant="secondary" className="ml-1 text-xs">
+                {getPlatformReleases('redsquare_android').length}
+              </Badge>
+            )}
           </TabsTrigger>
           <TabsTrigger value="redsquare_ios" className="flex items-center gap-2">
             <Smartphone className="h-4 w-4" />
             RedSquare iOS
+            {getPlatformReleases('redsquare_ios').length > 0 && (
+              <Badge variant="secondary" className="ml-1 text-xs">
+                {getPlatformReleases('redsquare_ios').length}
+              </Badge>
+            )}
           </TabsTrigger>
           {/* RedSquare Screens Group */}
           <TabsTrigger value="screens_android_tv" className="flex items-center gap-2">
             <Tv className="h-4 w-4" />
-            Screens TV
+            Screens TV & Desktop
+            {(() => {
+              const screenReleases = releases.filter(r => r.platform.startsWith('screens_'));
+              return screenReleases.length > 0 ? (
+                <Badge variant="secondary" className="ml-1 text-xs">
+                  {screenReleases.length}
+                </Badge>
+              ) : null;
+            })()}
           </TabsTrigger>
           <TabsTrigger value="system_test" className="flex items-center gap-2">
             <CheckCircle className="h-4 w-4" />
