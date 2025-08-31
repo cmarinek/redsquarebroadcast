@@ -27,12 +27,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Layout } from "@/components/Layout";
 import { useAuth } from "@/contexts/AuthContext";
-import { RevenueOptimization } from "@/components/screen-owner/RevenueOptimization";
 import { DeviceMonitoring } from "@/components/screen-owner/DeviceMonitoring";
 import { ScreenNetworkManagement } from "@/components/screen-owner/ScreenNetworkManagement";
-import { ContentApprovalWorkflows } from "@/components/screen-owner/ContentApprovalWorkflows";
 import { PayoutManagement } from "@/components/screen-owner/PayoutManagement";
-import { AvailabilityManager } from "@/components/screen-owner/AvailabilityManager";
 import { useUserRoles } from "@/hooks/useUserRoles";
 import AdminRoleManager from "@/components/admin/AdminRoleManager";
 import ScreenOwnerSetupGuide from "@/components/screen-owner/ScreenOwnerSetupGuide";
@@ -399,7 +396,13 @@ const ScreenOwnerDashboard = () => {
           </TabsContent>
 
           <TabsContent value="revenue">
-            <RevenueOptimization screens={screens} />
+            <div className="text-center py-12">
+              <TrendingUp className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+              <h3 className="text-lg font-semibold mb-2">Revenue Optimization</h3>
+              <p className="text-muted-foreground">
+                Advanced revenue optimization features are coming soon. Monitor your current earnings in the overview tab.
+              </p>
+            </div>
           </TabsContent>
 
           <TabsContent value="monitoring">
@@ -411,19 +414,23 @@ const ScreenOwnerDashboard = () => {
           </TabsContent>
 
           <TabsContent value="content">
-            <ContentApprovalWorkflows screens={screens} />
+            <div className="text-center py-12">
+              <CheckCircle className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+              <h3 className="text-lg font-semibold mb-2">Content Approval</h3>
+              <p className="text-muted-foreground">
+                Content approval workflows are coming soon. All content is currently auto-approved.
+              </p>
+            </div>
           </TabsContent>
 
           <TabsContent value="availability">
-            {screens.length > 0 ? (
-              <AvailabilityManager screenId={screens[0].id} />
-            ) : (
-              <Card>
-                <CardContent className="p-6 text-center">
-                  <p className="text-muted-foreground">Register a screen to manage availability</p>
-                </CardContent>
-              </Card>
-            )}
+            <div className="text-center py-12">
+              <Calendar className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+              <h3 className="text-lg font-semibold mb-2">Availability Management</h3>
+              <p className="text-muted-foreground">
+                Advanced availability management features are coming soon. Your screens are currently available 24/7.
+              </p>
+            </div>
           </TabsContent>
 
           <TabsContent value="payouts">
