@@ -21,6 +21,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { getApplicationMode, isElectronApp, isTVApp } from '@/utils/environment';
 import { TVRemoteHandler } from '@/components/tv/TVRemoteHandler';
+import { useContentCache } from '@/hooks/useContentCache';
 
 interface BroadcastContent {
   id: string;
@@ -36,10 +37,23 @@ export default function BroadcastApp() {
   const [isPaired, setIsPaired] = useState(false);
   const [screenId, setScreenId] = useState('');
   const [pairingCode, setPairingCode] = useState('');
-  const [currentContent, setCurrentContent] = useState<BroadcastContent | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [volume, setVolume] = useState(75);
   const [qrCode, setQrCode] = useState('');
+  
+  // Content delivery system
+  const {
+    schedule,
+    isDownloading,
+    cachedContent,
+    fetchSchedule,
+    getCurrentContent,
+    getNextContent,
+    cacheAllContent
+  } = useContentCache(isPaired ? screenId : undefined);
+  
+  const currentContent = getCurrentContent();
+  const nextContent = getNextContent();
   
   const applicationMode = getApplicationMode();
   const isElectron = isElectronApp();
@@ -79,9 +93,15 @@ export default function BroadcastApp() {
     if (!pairingCode.trim()) return;
     
     try {
-      // Simulate pairing process
       setIsPaired(true);
-      console.log('Screen paired with code:', pairingCode);
+      console.log('Screen paired with code:', pairingCode, 'Screen ID:', screenId);
+      
+      // Fetch content schedule after pairing
+      if (screenId) {
+        console.log('Fetching content schedule for screen:', screenId);
+        await fetchSchedule(screenId);
+        await cacheAllContent();
+      }
     } catch (error) {
       console.error('Pairing failed:', error);
     }
@@ -110,22 +130,26 @@ export default function BroadcastApp() {
     }
 
     // Render actual broadcast content
+    const contentUrl = cachedContent[currentContent.id] || currentContent.url;
+    
     if (currentContent.type === 'video') {
       return (
         <video 
           className="w-full h-full object-cover"
-          src={currentContent.url}
+          src={contentUrl}
           autoPlay={isPlaying}
           loop
           muted={volume === 0}
+          onError={(e) => console.error('Video playback error:', e)}
         />
       );
     } else {
       return (
         <img 
           className="w-full h-full object-cover"
-          src={currentContent.url}
-          alt={currentContent.title || 'Broadcast content'}
+          src={contentUrl}
+          alt="Broadcast content"
+          onError={(e) => console.error('Image display error:', e)}
         />
       );
     }
@@ -304,6 +328,16 @@ export default function BroadcastApp() {
                   <Badge variant="secondary" className="bg-white/10">
                     {screenId} | {applicationMode}
                   </Badge>
+                  {schedule && (
+                    <Badge variant="outline" className="bg-white/10 border-green-400 text-green-400">
+                      {schedule.schedule.length} items scheduled
+                    </Badge>
+                  )}
+                  {isDownloading && (
+                    <Badge variant="outline" className="bg-white/10 border-yellow-400 text-yellow-400">
+                      Downloading...
+                    </Badge>
+                  )}
                   <Button variant="outline" size="sm" className="bg-white/10 border-white/20 text-white hover:bg-white/20">
                     <Settings className="h-4 w-4" />
                   </Button>
