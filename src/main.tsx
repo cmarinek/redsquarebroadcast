@@ -55,8 +55,8 @@ if (lastRef && lastRef !== SUPABASE_PROJECT_REF) {
 initWebVitals(0.1) // 10% sampling rate
 initErrorReporting(0.5) // 50% sampling rate
 
-// Detect if running on mobile device in Capacitor
-const isMobileApp = !!(window as any).Capacitor;
+// Detect if running on mobile device in Capacitor (only in actual mobile environment)
+const isMobileApp = !!(window as any).Capacitor && (window as any).Capacitor.isNativePlatform;
 
 createRoot(document.getElementById("root")!).render(
   <ErrorBoundary>
