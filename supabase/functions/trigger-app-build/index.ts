@@ -124,40 +124,15 @@ serve(async (req) => {
 
     console.log("✅ Build record created:", newBuild.id);
 
-    // 3. Dispatch GitHub Action workflow using workflow_dispatch (more reliable than repository_dispatch)
-    const workflowFileMap = {
-      // RedSquare App (main user management app)
-      'redsquare_android': 'redsquare-android-build.yml',
-      'redsquare_ios': 'redsquare-ios-build.yml', 
-      'redsquare_web': 'redsquare-web-build.yml',
-      // RedSquare Screens (content display app)
-      'screens_android_tv': 'screens-android-tv-build.yml',
-      'screens_android_mobile': 'screens-android-mobile-build.yml',
-      'screens_ios': 'screens-ios-build.yml',
-      'screens_windows': 'screens-windows-build.yml',
-      'screens_macos': 'screens-macos-build.yml',
-      'screens_linux': 'screens-linux-build.yml',
-      // RedSquare Screens (streaming platforms)
-      'screens_amazon_fire': 'screens-amazon-fire-build.yml',
-      'screens_roku': 'screens-roku-build.yml',
-      'screens_samsung_tizen': 'screens-samsung-tizen-build.yml',
-      'screens_lg_webos': 'screens-lg-webos-build.yml'
-    };
+    // 3. Trigger GitHub workflows using repository_dispatch (exactly as configured in workflows)
+    console.log("🚀 Triggering GitHub workflow...");
     
-    const workflowFile = workflowFileMap[app_type];
-    if (!workflowFile) {
-      console.error("❌ No workflow configured for app type:", app_type);
-      throw new Error(`No workflow configured for app type: ${app_type}`);
-    }
-
-    console.log("🔧 Workflow file:", workflowFile);
-
-    // Use repository_dispatch as it was working before
     const dispatchUrl = `https://api.github.com/repos/${githubRepoOwner}/${githubRepoName}/dispatches`;
     console.log("🚀 Dispatch URL:", dispatchUrl);
 
+    // Generate exact event type that matches workflow triggers
     const dispatchPayload = {
-      event_type: `trigger-${app_type.replace('_', '-')}-build`,
+      event_type: `trigger-${app_type.replace(/_/g, '-')}-build`,
       client_payload: {
         build_id: newBuild.id,
         version: newBuild.version,
