@@ -32,7 +32,7 @@ const ALLOWED_TYPES = new Set([
   'video/mp4',
   'application/zip', 'application/vnd.microsoft.portable-executable', 'application/octet-stream'
 ]);
-const MAX_SIZE_BYTES = 500 * 1024 * 1024; // 500MB
+const MAX_SIZE_BYTES = 50 * 1024 * 1024; // 50MB - Supabase Storage limit
 
 async function insertLog(details: Record<string, unknown>) {
   try {
