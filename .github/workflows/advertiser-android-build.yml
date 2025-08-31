@@ -107,14 +107,15 @@ jobs:
           echo "=== DEBUG: Installing Capacitor if needed ==="
           npm list @capacitor/android || npm install @capacitor/android
           
+          echo "=== DEBUG: Checking Capacitor version ==="
+          npx cap --version
+          
           echo "=== DEBUG: Adding Android platform ==="
-          npx cap add android --debug
+          npx cap add android
           
           echo "=== DEBUG: Verifying Android platform creation ==="
           if [ ! -d "android" ]; then
             echo "ERROR: Android directory was not created"
-            echo "Capacitor version:"
-            npx cap --version
             echo "Available platforms:"
             npx cap list
             exit 1
@@ -124,14 +125,30 @@ jobs:
           ls -la android/
           
           if [ ! -f "android/gradlew" ]; then
-            echo "ERROR: gradlew was not created"
-            echo "Trying to manually create gradlew..."
+            echo "ERROR: gradlew was not created by Capacitor"
+            echo "Trying to manually initialize gradle wrapper..."
             cd android
-            gradle wrapper || echo "Gradle wrapper creation failed"
+            
+            # Check if gradle is available and try to create wrapper
+            if command -v gradle &> /dev/null; then
+              echo "Gradle found, creating wrapper..."
+              gradle wrapper
+            else
+              echo "Gradle not found globally, trying with gradlew from capacitor template..."
+              # Copy gradlew from node_modules if available
+              if [ -f "../node_modules/@capacitor/android/android-template/gradlew" ]; then
+                cp "../node_modules/@capacitor/android/android-template/gradlew" .
+                cp "../node_modules/@capacitor/android/android-template/gradlew.bat" .
+                mkdir -p gradle/wrapper
+                cp "../node_modules/@capacitor/android/android-template/gradle/wrapper/"* gradle/wrapper/
+              fi
+            fi
             cd ..
             
             if [ ! -f "android/gradlew" ]; then
-              echo "ERROR: Still no gradlew after manual creation"
+              echo "ERROR: Still no gradlew after manual creation attempts"
+              echo "Contents of android directory:"
+              find android/ -type f -name "*.gradle" -o -name "gradlew*" | head -20
               exit 1
             fi
           fi
