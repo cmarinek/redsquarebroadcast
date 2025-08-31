@@ -1,7 +1,6 @@
 {
   "appId": "com.redsquare.screens", 
   "productName": "RedSquare Screens",
-  "main": "dist-electron/main.js",
   "compression": "maximum",
   "removePackageScripts": true,
   "extraMetadata": {
