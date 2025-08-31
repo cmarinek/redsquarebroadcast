@@ -482,8 +482,15 @@ export const AppManager = () => {
       let downloadUrl: string;
       
       if (release.source === 'automated') {
-        // For automated builds, use the artifact_url directly
+        // For automated builds, use the artifact_url directly (GitHub Releases or Supabase public URLs)
         downloadUrl = release.file_path;
+        
+        // If it's a Supabase storage URL but file_path doesn't start with https, construct the full URL
+        if (!downloadUrl.startsWith('http') && config.bucket) {
+          // Get Supabase URL from import
+          const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://hqeyyutbuxhyildsasqq.supabase.co';
+          downloadUrl = `${supabaseUrl}/storage/v1/object/public/${config.bucket}/${release.file_path}`;
+        }
       } else {
         // For manual releases, create signed URL
         const { data, error } = await supabase.storage
@@ -501,12 +508,19 @@ export const AppManager = () => {
         });
       }
 
-      const link = document.createElement('a');
-      link.href = downloadUrl;
-      link.download = `RedSquare-${release.platform}-v${release.version_name}.${release.file_extension}`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+      // For automated builds, try direct download, fallback to opening in new tab
+      if (release.source === 'automated') {
+        // Open in new tab for better reliability with large files and external URLs
+        window.open(downloadUrl, '_blank');
+      } else {
+        // Use download link for manual uploads
+        const link = document.createElement('a');
+        link.href = downloadUrl;
+        link.download = `RedSquare-${release.platform}-v${release.version_name}.${release.file_extension}`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }
 
       fetchReleases();
 
@@ -517,8 +531,8 @@ export const AppManager = () => {
     } catch (error) {
       console.error("Error downloading app:", error);
       toast({
-        title: "Download failed",
-        description: "Please try again.",
+        title: "Download failed", 
+        description: error instanceof Error ? error.message : "Please try again.",
         variant: "destructive"
       });
     }
