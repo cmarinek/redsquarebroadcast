@@ -891,7 +891,7 @@ const AdminDashboard = () => {
                   {/* Platform Analytics */}
                   <Card>
                     <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
+                      <CardTitle className="flex items-center gap-2 text-sm">
                         <BarChart3 className="h-5 w-5 text-blue-500" />
                         Platform Analytics
                       </CardTitle>
@@ -921,7 +921,7 @@ const AdminDashboard = () => {
                   {/* Revenue Metrics */}
                   <Card>
                     <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
+                      <CardTitle className="flex items-center gap-2 text-sm">
                         <DollarSign className="h-5 w-5 text-green-500" />
                         Revenue Metrics
                       </CardTitle>
@@ -953,7 +953,7 @@ const AdminDashboard = () => {
                   {/* Pending Actions */}
                   <Card>
                     <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
+                      <CardTitle className="flex items-center gap-2 text-sm">
                         <AlertTriangle className="h-5 w-5 text-amber-500" />
                         Pending Actions
                       </CardTitle>
