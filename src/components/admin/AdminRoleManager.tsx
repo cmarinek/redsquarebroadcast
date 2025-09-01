@@ -1,35 +1,31 @@
-
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@/contexts/AuthContext";
 import { UserRole } from "@/hooks/useUserRoles";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Shield, UserCog, Search } from "lucide-react";
 import { optimizeImageUrl } from "@/utils/media";
+import { DatabaseService } from "@/services/DatabaseService";
+import { NotificationService } from "@/services/NotificationService";
+import { useAsyncOperation } from "@/hooks/useAsyncOperation";
+import { BaseCard } from "@/components/shared/BaseCard";
+import { DataTable } from "@/components/shared/DataTable";
+import { StatusBadge } from "@/components/shared/StatusBadge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 
-type ProfileRow = {
+type UserWithRoles = {
   user_id: string;
   display_name: string | null;
   avatar_url: string | null;
   created_at?: string;
-};
-
-type RoleRow = {
-  user_id: string;
-  role: UserRole;
+  email?: string;
+  roles: UserRole[];
 };
 
 const roleLabel: Record<UserRole, string> = {
   advertiser: "Advertiser",
-  broadcaster: "Broadcaster", // Keep for backward compatibility
+  broadcaster: "Broadcaster",
   screen_owner: "Screen Owner",
   admin: "Admin",
 };
@@ -41,7 +37,7 @@ const roleBadgeVariant = (role: UserRole) => {
     case "screen_owner":
       return "secondary" as const;
     case "advertiser":
-    case "broadcaster": // Backward compatibility
+    case "broadcaster":
       return "outline" as const;
     default:
       return "outline" as const;
@@ -49,45 +45,12 @@ const roleBadgeVariant = (role: UserRole) => {
 };
 
 export function AdminRoleManager() {
-  const { user } = useAuth();
-  const { toast } = useToast();
   const [q, setQ] = useState("");
   const [pendingChange, setPendingChange] = useState<{ user_id: string } | null>(null);
 
   const { data: profiles, isLoading: profilesLoading, refetch: refetchProfiles } = useQuery({
     queryKey: ["admin", "all_users"],
-    queryFn: async () => {
-      console.log("[AdminRoleManager] fetching all users with profiles");
-      // First get all auth users, then LEFT JOIN with profiles
-      const { data: authUsers, error: authError } = await supabase.auth.admin.listUsers();
-      if (authError) throw authError;
-
-      if (!authUsers.users.length) return [];
-
-      const userIds = authUsers.users.map(u => u.id);
-      const { data: profilesData, error: profilesError } = await supabase
-        .from("profiles")
-        .select("user_id, display_name, avatar_url, created_at")
-        .in("user_id", userIds);
-      
-      if (profilesError) throw profilesError;
-
-      // Merge auth users with profiles
-      const profilesMap = new Map(profilesData?.map(p => [p.user_id, p]));
-      
-      return authUsers.users.map(user => ({
-        user_id: user.id,
-        display_name: profilesMap.get(user.id)?.display_name || user.email || 'Unknown User',
-        avatar_url: profilesMap.get(user.id)?.avatar_url,
-        created_at: profilesMap.get(user.id)?.created_at || user.created_at,
-        email: user.email
-      })) as (ProfileRow & { email?: string })[];
-    },
-    meta: {
-      onError: (err: any) => {
-        console.error("[AdminRoleManager] users fetch error", err);
-      },
-    },
+    queryFn: DatabaseService.getAllUsers,
   });
 
   const userIds = useMemo(() => (profiles ?? []).map(p => p.user_id), [profiles]);
@@ -95,20 +58,7 @@ export function AdminRoleManager() {
   const { data: roles, isLoading: rolesLoading, refetch: refetchRoles } = useQuery({
     queryKey: ["admin", "user_roles", userIds],
     enabled: userIds.length > 0,
-    queryFn: async () => {
-      console.log("[AdminRoleManager] fetching user_roles for", userIds.length, "users");
-      const { data, error } = await supabase
-        .from("user_roles")
-        .select("user_id, role")
-        .in("user_id", userIds);
-      if (error) throw error;
-      return (data ?? []) as RoleRow[];
-    },
-    meta: {
-      onError: (err: any) => {
-        console.error("[AdminRoleManager] user_roles fetch error", err);
-      },
-    },
+    queryFn: () => DatabaseService.getUserRoles(userIds),
   });
 
   const rolesByUser = useMemo(() => {
@@ -120,192 +70,169 @@ export function AdminRoleManager() {
     return map;
   }, [roles]);
 
+  const usersWithRoles: UserWithRoles[] = useMemo(() => {
+    return (profiles ?? []).map(profile => ({
+      ...profile,
+      roles: rolesByUser[profile.user_id] ?? []
+    }));
+  }, [profiles, rolesByUser]);
+
   const filtered = useMemo(() => {
-    if (!profiles) return [];
     const t = q.trim().toLowerCase();
-    if (!t) return profiles;
-    return profiles.filter((p) => {
-      const dn = p.display_name?.toLowerCase() ?? "";
-      const email = (p as any).email?.toLowerCase() ?? "";
-      const rolesText = (rolesByUser[p.user_id] ?? []).join(",").toLowerCase();
-      return dn.includes(t) || p.user_id.toLowerCase().includes(t) || rolesText.includes(t) || email.includes(t);
+    if (!t) return usersWithRoles;
+    return usersWithRoles.filter((user) => {
+      const dn = user.display_name?.toLowerCase() ?? "";
+      const email = user.email?.toLowerCase() ?? "";
+      const rolesText = user.roles.join(",").toLowerCase();
+      return dn.includes(t) || user.user_id.toLowerCase().includes(t) || rolesText.includes(t) || email.includes(t);
     });
-  }, [profiles, q, rolesByUser]);
+  }, [usersWithRoles, q]);
 
-  const applyToggleRole = async (targetUserId: string, role: UserRole) => {
-    const currentRoles = rolesByUser[targetUserId] ?? [];
-    const isActive = currentRoles.includes(role);
+  const { execute: toggleRole } = useAsyncOperation(
+    async (userId: string, role: UserRole) => {
+      const currentRoles = rolesByUser[userId] ?? [];
+      const isActive = currentRoles.includes(role);
+      
+      const result = await DatabaseService.toggleUserRole(userId, role, isActive);
+      
+      NotificationService.success(
+        `${roleLabel[role]} role ${result.action}`,
+        { duration: 2000 }
+      );
+      
+      await Promise.all([refetchRoles(), refetchProfiles()]);
+    },
+    { showErrorToast: true }
+  );
 
-    console.log("[AdminRoleManager] toggle role", { targetUserId, role, isActive });
-
-    if (isActive) {
-      const { error } = await supabase
-        .from("user_roles")
-        .delete()
-        .eq("user_id", targetUserId)
-        .eq("role", role);
-      if (error) {
-        console.error("[AdminRoleManager] delete role error", error);
-        toast({
-          title: "Failed to remove role",
-          description: error.message ?? "Please try again.",
-          variant: "destructive",
-        });
-        return;
-      }
-      toast({ title: "Role removed", description: `${roleLabel[role]} removed` });
-    } else {
-      const { error } = await supabase
-        .from("user_roles")
-        .insert({ user_id: targetUserId, role } as any);
-      if (error) {
-        console.error("[AdminRoleManager] insert role error", error);
-        toast({
-          title: "Failed to add role",
-          description: error.message ?? "Please try again.",
-          variant: "destructive",
-        });
-        return;
-      }
-      toast({ title: "Role added", description: `${roleLabel[role]} granted` });
-    }
-
-    await Promise.all([refetchRoles(), refetchProfiles()]);
-  };
-
-  const confirmToggle = (row: ProfileRow, role: UserRole) => {
-    const currentRoles = rolesByUser[row.user_id] ?? [];
-    const isActive = currentRoles.includes(role);
-
+  const confirmToggle = (user: UserWithRoles, role: UserRole) => {
+    const isActive = user.roles.includes(role);
+    
     // Only confirm when removing the admin role
     if (role === "admin" && isActive) {
-      setPendingChange({ user_id: row.user_id });
+      setPendingChange({ user_id: user.user_id });
       return;
     }
-
-    // If affecting own admin removal, also confirm (handled above as it's removing admin)
-    applyToggleRole(row.user_id, role);
+    
+    toggleRole(user.user_id, role);
   };
+
+  const columns = [
+    {
+      key: 'user',
+      header: 'User',
+      render: (user: UserWithRoles) => (
+        <div className="flex items-center gap-3">
+          <Avatar className="h-8 w-8">
+            <AvatarImage src={optimizeImageUrl(user.avatar_url, { w: 64, h: 64, q: 70 }) ?? undefined} />
+            <AvatarFallback>
+              {(user.display_name?.[0] ?? user.user_id?.[0] ?? "U").toUpperCase()}
+            </AvatarFallback>
+          </Avatar>
+          <div>
+            <div className="font-medium">{user.display_name ?? "Anonymous"}</div>
+            <div className="text-xs text-muted-foreground">
+              {user.email && <div>{user.email}</div>}
+              <div>{user.user_id}</div>
+            </div>
+          </div>
+        </div>
+      )
+    },
+    {
+      key: 'roles',
+      header: 'Roles',
+      render: (user: UserWithRoles) => (
+        <div className="flex flex-wrap gap-1">
+          {user.roles.length === 0 ? (
+            <StatusBadge status="idle" />
+          ) : (
+            user.roles.map((role) => (
+              <StatusBadge 
+                key={role} 
+                status={role === 'admin' ? 'critical' : role === 'screen_owner' ? 'medium' : 'low'} 
+              />
+            ))
+          )}
+        </div>
+      )
+    },
+    {
+      key: 'actions',
+      header: 'Actions',
+      className: 'text-right',
+      render: (user: UserWithRoles) => {
+        const isAdvertiser = user.roles.includes("advertiser") || user.roles.includes("broadcaster");
+        const isScreenOwner = user.roles.includes("screen_owner");
+        const isAdmin = user.roles.includes("admin");
+        
+        return (
+          <div className="flex items-center justify-end gap-2">
+            <Button
+              variant={isAdvertiser ? "default" : "outline"}
+              size="sm"
+              onClick={() => confirmToggle(user, "advertiser")}
+            >
+              Advertiser
+            </Button>
+            <Button
+              variant={isScreenOwner ? "default" : "outline"}
+              size="sm"
+              onClick={() => confirmToggle(user, "screen_owner")}
+            >
+              Screen Owner
+            </Button>
+            <Button
+              variant={isAdmin ? "default" : "outline"}
+              size="sm"
+              onClick={() => confirmToggle(user, "admin")}
+            >
+              <Shield className="h-4 w-4 mr-1" />
+              Admin
+            </Button>
+          </div>
+        );
+      }
+    }
+  ];
 
   const isBusy = profilesLoading || rolesLoading;
 
   return (
-    <Card className="border-0 shadow-sm">
-      <CardHeader className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-        <div>
-          <CardTitle className="flex items-center gap-2">
-            <UserCog className="w-5 h-5" />
-            User Roles
-          </CardTitle>
-          <CardDescription>Grant or revoke multiple roles per user. Only admins can access this.</CardDescription>
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="relative w-full md:w-72">
-            <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search by name, email, id, or role…"
-              value={q}
-              onChange={(e) => setQ(e.target.value)}
-              className="pl-8"
-            />
+    <>
+      <BaseCard
+        title="User Roles"
+        description="Grant or revoke multiple roles per user. Only admins can access this."
+        icon={UserCog}
+        loading={isBusy}
+        actions={
+          <div className="flex items-center gap-2">
+            <div className="relative w-full md:w-72">
+              <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search by name, email, id, or role…"
+                value={q}
+                onChange={(e) => setQ(e.target.value)}
+                className="pl-8"
+              />
+            </div>
+            <Button 
+              variant="outline" 
+              onClick={() => { refetchProfiles(); refetchRoles(); }}
+            >
+              Refresh
+            </Button>
           </div>
-          <Button variant="outline" onClick={() => { refetchProfiles(); refetchRoles(); }}>Refresh</Button>
-        </div>
-      </CardHeader>
-      <CardContent>
-        <div className="rounded-md border">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>User</TableHead>
-                <TableHead>Roles</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {isBusy && (
-                <TableRow>
-                  <TableCell colSpan={3}>
-                    <div className="animate-pulse h-8 bg-muted rounded" />
-                  </TableCell>
-                </TableRow>
-              )}
-              {!isBusy && filtered.length === 0 && (
-                <TableRow>
-                  <TableCell colSpan={3} className="text-center text-muted-foreground py-6">
-                    No users found
-                  </TableCell>
-                </TableRow>
-              )}
-              {filtered.map((row) => {
-                const userRoles = rolesByUser[row.user_id] ?? [];
-                const isAdvertiser = userRoles.includes("advertiser") || userRoles.includes("broadcaster");
-                const isScreenOwner = userRoles.includes("screen_owner");
-                const isAdmin = userRoles.includes("admin");
-                return (
-                  <TableRow key={row.user_id}>
-                    <TableCell>
-                      <div className="flex items-center gap-3">
-                        <Avatar className="h-8 w-8">
-                          <AvatarImage src={optimizeImageUrl(row.avatar_url, { w: 64, h: 64, q: 70 }) ?? undefined} />
-                          <AvatarFallback>
-                            {(row.display_name?.[0] ?? row.user_id?.[0] ?? "U").toUpperCase()}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div>
-                          <div className="font-medium">{row.display_name ?? "Anonymous"}</div>
-                          <div className="text-xs text-muted-foreground">
-                            {(row as any).email && <div>{(row as any).email}</div>}
-                            <div>{row.user_id}</div>
-                          </div>
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex flex-wrap gap-1">
-                        {userRoles.length === 0 && (
-                          <Badge variant="outline" className="capitalize">None</Badge>
-                        )}
-                        {userRoles.map((r) => (
-                          <Badge key={r} variant={roleBadgeVariant(r)} className="capitalize">
-                            {roleLabel[r]}
-                          </Badge>
-                        ))}
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex items-center justify-end gap-2">
-                        <Button
-                          variant={isAdvertiser ? "default" : "outline"}
-                          size="sm"
-                          onClick={() => confirmToggle(row, "advertiser")}
-                        >
-                          Advertiser
-                        </Button>
-                        <Button
-                          variant={isScreenOwner ? "default" : "outline"}
-                          size="sm"
-                          onClick={() => confirmToggle(row, "screen_owner")}
-                        >
-                          Screen Owner
-                        </Button>
-                        <Button
-                          variant={isAdmin ? "default" : "outline"}
-                          size="sm"
-                          onClick={() => confirmToggle(row, "admin")}
-                        >
-                          <Shield className="h-4 w-4 mr-1" />
-                          Admin
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
-        </div>
-      </CardContent>
+        }
+      >
+        <DataTable
+          data={filtered}
+          columns={columns}
+          loading={isBusy}
+          emptyMessage="No users found"
+          keyExtractor={(user) => user.user_id}
+        />
+      </BaseCard>
 
       <AlertDialog open={!!pendingChange} onOpenChange={(open) => !open && setPendingChange(null)}>
         <AlertDialogContent>
@@ -321,7 +248,8 @@ export function AdminRoleManager() {
             <AlertDialogAction
               onClick={() => {
                 if (pendingChange) {
-                  applyToggleRole(pendingChange.user_id, "admin");
+                  toggleRole(pendingChange.user_id, "admin");
+                  setPendingChange(null);
                 }
               }}
             >
@@ -330,7 +258,7 @@ export function AdminRoleManager() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </Card>
+    </>
   );
 }
 
