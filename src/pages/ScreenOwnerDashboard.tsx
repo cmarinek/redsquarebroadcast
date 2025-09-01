@@ -28,7 +28,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Layout } from "@/components/Layout";
 import { useAuth } from "@/contexts/AuthContext";
 import { RevenueOptimization } from "@/components/screen-owner/RevenueOptimization";
-import { DeviceMonitoring } from "@/components/screen-owner/DeviceMonitoring";
+import { DeviceMonitoring } from "@/components/shared/DeviceMonitoring";
 import { ScreenNetworkManagement } from "@/components/screen-owner/ScreenNetworkManagement";
 import { ContentApprovalWorkflows } from "@/components/screen-owner/ContentApprovalWorkflows";
 import { PayoutManagement } from "@/components/screen-owner/PayoutManagement";
