@@ -5,6 +5,7 @@ import { Link } from "react-router-dom";
 import { AdminSystemHealth } from "@/components/admin/AdminSystemHealth";
 import { AppManager } from "@/components/admin/AppManager";
 import { AutomatedBuilds } from "@/components/admin/AutomatedBuilds";
+import { ProductionMonitoringDashboard } from "@/components/admin/ProductionMonitoringDashboard";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -883,6 +884,10 @@ const AdminDashboard = () => {
                      <Smartphone className="h-4 w-4 mr-2" />
                      Apps
                    </TabsTrigger>
+                   <TabsTrigger value="monitoring" className="py-4 whitespace-nowrap data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-50 data-[state=active]:to-orange-100 text-sm text-red-700">
+                     <Activity className="h-4 w-4 mr-2" />
+                     Monitoring
+                   </TabsTrigger>
                  </TabsList>
               </div>
 
@@ -1372,6 +1377,10 @@ const AdminDashboard = () => {
               <TabsContent value="mobile" className="mt-0 p-6">
                 <AppManager />
                 <AutomatedBuilds />
+              </TabsContent>
+
+              <TabsContent value="monitoring" className="mt-0 p-6">
+                <ProductionMonitoringDashboard />
               </TabsContent>
 
             </Tabs>
