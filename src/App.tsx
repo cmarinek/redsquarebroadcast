@@ -56,13 +56,13 @@ const App = () => {
   useEffect(() => {
     // Auto-redirect screen applications to RedSquare Screens interface
     if (shouldAutoRedirectToScreen() && location.pathname === '/') {
-      console.log('RedSquare: Auto-redirecting screen application to RedSquare Screens interface');
+      // Auto-redirecting screen application to RedSquare Screens interface
       navigate('/redsquare-screens', { replace: true });
     }
   }, [navigate, location.pathname]);
 
   const applicationMode = getApplicationMode();
-  console.log('RedSquare App Mode:', applicationMode, 'Current path:', location.pathname);
+  // App Mode: ${applicationMode}, Path: ${location.pathname}
   
   return (
     <TooltipProvider>

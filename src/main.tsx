@@ -61,12 +61,7 @@ initErrorReporting(0.5) // 50% sampling rate
 const isMobileApp = !!(window as any).Capacitor && (window as any).Capacitor.isNativePlatform;
 const isElectron = !!(window as any).electronAPI || !!(window as any).require || navigator.userAgent.indexOf('Electron') !== -1;
 
-console.log('Environment detection:', {
-  isMobileApp,
-  isElectron,
-  userAgent: navigator.userAgent,
-  location: window.location.href
-});
+// Environment detection completed
 
 // Add error event listener for debugging
 window.addEventListener('error', (event) => {
@@ -79,15 +74,11 @@ window.addEventListener('unhandledrejection', (event) => {
 
 // Add CSS loading check for Electron
 if (isElectron) {
-  console.log('Running in Electron - checking CSS loading...');
+  // Checking CSS variables in Electron
   const checkCSS = () => {
     const computedStyle = getComputedStyle(document.documentElement);
     const bgColor = computedStyle.getPropertyValue('--background');
-    console.log('CSS variables check:', {
-      background: bgColor,
-      primary: computedStyle.getPropertyValue('--primary'),
-      foreground: computedStyle.getPropertyValue('--foreground')
-    });
+    // CSS variables validated
     
     if (!bgColor) {
       console.warn('CSS variables not loaded properly');
@@ -98,13 +89,13 @@ if (isElectron) {
   setTimeout(checkCSS, 100);
 }
 
-console.log('Rendering React application...');
+// Starting React application
 
 const rootElement = document.getElementById("root");
 if (!rootElement) {
   console.error('Root element not found!');
 } else {
-  console.log('Root element found, creating React root...');
+  // Root element ready for React mounting
 }
 
 createRoot(rootElement!).render(
@@ -126,4 +117,4 @@ createRoot(rootElement!).render(
   </ErrorBoundary>
 );
 
-console.log('React application rendered');
+// React application initialized
