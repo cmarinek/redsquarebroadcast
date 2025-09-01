@@ -31,7 +31,17 @@ interface SystemHealth {
   checks: HealthCheck[];
 }
 
-export function AdminSystemHealth() {
+interface Props {
+  showHeader?: boolean;
+  autoRefresh?: boolean;
+  refreshInterval?: number;
+}
+
+export function SystemHealthWidget({ 
+  showHeader = true, 
+  autoRefresh = true, 
+  refreshInterval = 30000 
+}: Props) {
   const [systemHealth, setSystemHealth] = useState<SystemHealth | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -39,10 +49,12 @@ export function AdminSystemHealth() {
 
   useEffect(() => {
     fetchSystemHealth();
-    // Refresh every 30 seconds
-    const interval = setInterval(fetchSystemHealth, 30000);
-    return () => clearInterval(interval);
-  }, []);
+    
+    if (autoRefresh) {
+      const interval = setInterval(fetchSystemHealth, refreshInterval);
+      return () => clearInterval(interval);
+    }
+  }, [autoRefresh, refreshInterval]);
 
   const fetchSystemHealth = async () => {
     try {
@@ -51,7 +63,6 @@ export function AdminSystemHealth() {
       });
 
       if (error) throw error;
-
       setSystemHealth(data);
     } catch (error) {
       console.error('Error fetching system health:', error);
@@ -111,12 +122,14 @@ export function AdminSystemHealth() {
   if (loading) {
     return (
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Activity className="h-5 w-5" />
-            System Health
-          </CardTitle>
-        </CardHeader>
+        {showHeader && (
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Activity className="h-5 w-5" />
+              System Health
+            </CardTitle>
+          </CardHeader>
+        )}
         <CardContent>
           <div className="animate-pulse space-y-4">
             <div className="h-4 bg-muted rounded w-3/4"></div>
@@ -126,6 +139,73 @@ export function AdminSystemHealth() {
         </CardContent>
       </Card>
     );
+  }
+
+  const content = (
+    <>
+      {systemHealth ? (
+        <>
+          <div className="flex items-center justify-between text-sm text-muted-foreground">
+            <span>Last checked: {new Date(systemHealth.timestamp).toLocaleString()}</span>
+            <span className="flex items-center gap-1">
+              {getStatusIcon(systemHealth.status)}
+              Overall Status
+            </span>
+          </div>
+
+          <Separator />
+
+          <div className="space-y-3">
+            {systemHealth.checks.map((check, index) => (
+              <div key={index} className="flex items-center justify-between p-3 rounded-lg border">
+                <div className="flex items-center gap-3">
+                  {getServiceIcon(check.service)}
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium capitalize">{check.service}</span>
+                      {getStatusIcon(check.status)}
+                    </div>
+                    <p className="text-sm text-muted-foreground">{check.details}</p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  {getStatusBadge(check.status)}
+                  {check.responseTime && (
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {check.responseTime}ms
+                    </p>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {systemHealth.status !== 'healthy' && (
+            <div className="mt-4 p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200 dark:border-yellow-800">
+              <div className="flex items-start gap-2">
+                <AlertTriangle className="h-4 w-4 text-yellow-600 mt-0.5" />
+                <div className="text-sm">
+                  <p className="font-medium text-yellow-800 dark:text-yellow-200">
+                    System Issues Detected
+                  </p>
+                  <p className="text-yellow-700 dark:text-yellow-300 mt-1">
+                    Some services are experiencing issues. Monitor the affected services and take action if needed.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+        </>
+      ) : (
+        <div className="text-center text-muted-foreground">
+          No health data available
+        </div>
+      )}
+    </>
+  );
+
+  if (!showHeader) {
+    return <div className="space-y-4">{content}</div>;
   }
 
   return (
@@ -151,64 +231,7 @@ export function AdminSystemHealth() {
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
-        {systemHealth ? (
-          <>
-            <div className="flex items-center justify-between text-sm text-muted-foreground">
-              <span>Last checked: {new Date(systemHealth.timestamp).toLocaleString()}</span>
-              <span className="flex items-center gap-1">
-                {getStatusIcon(systemHealth.status)}
-                Overall Status
-              </span>
-            </div>
-
-            <Separator />
-
-            <div className="space-y-3">
-              {systemHealth.checks.map((check, index) => (
-                <div key={index} className="flex items-center justify-between p-3 rounded-lg border">
-                  <div className="flex items-center gap-3">
-                    {getServiceIcon(check.service)}
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium capitalize">{check.service}</span>
-                        {getStatusIcon(check.status)}
-                      </div>
-                      <p className="text-sm text-muted-foreground">{check.details}</p>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    {getStatusBadge(check.status)}
-                    {check.responseTime && (
-                      <p className="text-xs text-muted-foreground mt-1">
-                        {check.responseTime}ms
-                      </p>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {systemHealth.status !== 'healthy' && (
-              <div className="mt-4 p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200 dark:border-yellow-800">
-                <div className="flex items-start gap-2">
-                  <AlertTriangle className="h-4 w-4 text-yellow-600 mt-0.5" />
-                  <div className="text-sm">
-                    <p className="font-medium text-yellow-800 dark:text-yellow-200">
-                      System Issues Detected
-                    </p>
-                    <p className="text-yellow-700 dark:text-yellow-300 mt-1">
-                      Some services are experiencing issues. Monitor the affected services and take action if needed.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            )}
-          </>
-        ) : (
-          <div className="text-center text-muted-foreground">
-            No health data available
-          </div>
-        )}
+        {content}
       </CardContent>
     </Card>
   );

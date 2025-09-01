@@ -6,6 +6,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { Activity, AlertTriangle, CheckCircle, Clock, Server, TrendingUp, Zap } from "lucide-react";
+import { SystemHealthWidget } from "@/components/admin/SystemHealthWidget";
 import { useToast } from "@/components/ui/use-toast";
 
 interface SystemHealth {
@@ -304,43 +305,7 @@ export const ProductionMonitoringDashboard = () => {
         </TabsList>
 
         <TabsContent value="overview" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Service Health Status</CardTitle>
-              <CardDescription>
-                Current status of all monitored services
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {systemHealth.map((service, index) => (
-                  <div key={index} className="flex items-center justify-between p-4 border rounded">
-                    <div>
-                      <h4 className="font-medium capitalize">{service.service_name}</h4>
-                      <p className="text-sm text-muted-foreground">
-                        Last checked: {new Date(service.last_check).toLocaleTimeString()}
-                      </p>
-                      {service.error_message && (
-                        <p className="text-sm text-red-600 mt-1">{service.error_message}</p>
-                      )}
-                    </div>
-                    <div className="flex items-center gap-2">
-                      {service.response_time_ms && (
-                        <Badge variant="outline">{service.response_time_ms}ms</Badge>
-                      )}
-                      {getStatusBadge(service.status)}
-                    </div>
-                  </div>
-                ))}
-                
-                {systemHealth.length === 0 && (
-                  <div className="text-center py-8 text-muted-foreground">
-                    No health data available. Run a health check to see service status.
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
+          <SystemHealthWidget showHeader={false} />
         </TabsContent>
 
         <TabsContent value="alerts" className="space-y-4">

@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Users, Monitor, Calendar, DollarSign, BarChart3, Shield, Settings, AlertTriangle, TrendingUp, Eye, Ban, CheckCircle, XCircle, Search, Filter, Download, FileText, Clock, MapPin, Activity, Server, Database, Wifi, WifiOff, Bell, Lock, Globe, Zap, CreditCard, Cloud, RefreshCw, HardDrive, Cpu, MemoryStick, Router, LineChart, PieChart, UserCheck, UserX, AlertCircle, Info, CheckSquare, Upload, Smartphone } from "lucide-react";
 import { Link } from "react-router-dom";
-import { AdminSystemHealth } from "@/components/admin/AdminSystemHealth";
+import { SystemHealthWidget } from "@/components/admin/SystemHealthWidget";
 import { AppManager } from "@/components/admin/AppManager";
 import { AutomatedBuilds } from "@/components/admin/AutomatedBuilds";
 import { ProductionMonitoringDashboard } from "@/components/admin/ProductionMonitoringDashboard";
@@ -1179,7 +1179,7 @@ const AdminDashboard = () => {
                 </div>
               </TabsContent>
               <TabsContent value="system" className="mt-0 p-6">
-                <AdminSystemHealth />
+                <SystemHealthWidget />
               </TabsContent>
 
               <TabsContent value="security" className="mt-0 p-6">
