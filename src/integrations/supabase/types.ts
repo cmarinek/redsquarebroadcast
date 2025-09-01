@@ -1444,7 +1444,6 @@ export type Database = {
           has_completed_advertiser_onboarding: boolean
           has_completed_broadcaster_onboarding: boolean
           has_completed_screen_owner_onboarding: boolean
-          role: string
           stripe_account_id: string | null
           updated_at: string
           user_id: string
@@ -1456,7 +1455,6 @@ export type Database = {
           has_completed_advertiser_onboarding?: boolean
           has_completed_broadcaster_onboarding?: boolean
           has_completed_screen_owner_onboarding?: boolean
-          role?: string
           stripe_account_id?: string | null
           updated_at?: string
           user_id: string
@@ -1468,7 +1466,6 @@ export type Database = {
           has_completed_advertiser_onboarding?: boolean
           has_completed_broadcaster_onboarding?: boolean
           has_completed_screen_owner_onboarding?: boolean
-          role?: string
           stripe_account_id?: string | null
           updated_at?: string
           user_id?: string
