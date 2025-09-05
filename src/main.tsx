@@ -61,6 +61,22 @@ initErrorReporting(0.5) // 50% sampling rate
 const isMobileApp = !!(window as any).Capacitor && (window as any).Capacitor.isNativePlatform;
 const isElectron = !!(window as any).electronAPI || !!(window as any).require || navigator.userAgent.indexOf('Electron') !== -1;
 
+// Determine if this is specifically the RedSquare mobile app (not screens app)
+const isRedSquareMobileApp = isMobileApp && 
+  (window.location.pathname.includes('/screen-owner-mobile') || 
+   window.location.pathname.includes('/mobile-app') ||
+   (!window.location.pathname.includes('/redsquare-screens') && 
+    !isElectron && 
+    !navigator.userAgent.includes('TV')));
+
+console.log('App initialization:', {
+  isMobileApp,
+  isElectron,
+  isRedSquareMobileApp,
+  pathname: window.location.pathname,
+  userAgent: navigator.userAgent
+});
+
 // Environment detection completed
 
 // Add error event listener for debugging
@@ -106,7 +122,7 @@ createRoot(rootElement!).render(
           <LanguageProvider>
             <AuthProvider>
               <Suspense fallback={<LoadingFallback message="Loading application..." />}>
-                {isMobileApp ? <ScreenOwnerMobile /> : <App />}
+                {isRedSquareMobileApp ? <ScreenOwnerMobile /> : <App />}
               </Suspense>
               <Toaster />
             </AuthProvider>
