@@ -116,7 +116,18 @@ export default function RedSquareScreens() {
       return (
         <div className="flex flex-col items-center justify-center h-full text-center space-y-6">
           <div className="w-32 h-32 bg-gradient-to-br from-red-600 to-red-800 rounded-full flex items-center justify-center">
-            <Monitor className="h-16 w-16 text-white" />
+            <img 
+              src="/icon-192x192.png" 
+              alt="RedSquare Logo" 
+              className="h-20 w-20 rounded-full"
+              onError={(e) => {
+                // Fallback to icon if logo fails to load
+                const target = e.target as HTMLImageElement;
+                target.style.display = 'none';
+                target.nextElementSibling?.classList.remove('hidden');
+              }}
+            />
+            <Monitor className="h-16 w-16 text-white hidden" />
           </div>
           <div className="space-y-2">
             <h2 className="text-3xl font-bold">RedSquare Screens</h2>
@@ -184,7 +195,17 @@ export default function RedSquareScreens() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 bg-gradient-to-br from-red-600 to-red-800 rounded-lg flex items-center justify-center">
-                <Monitor className="h-4 w-4 text-white" />
+                <img 
+                  src="/icon-192x192.png" 
+                  alt="RedSquare" 
+                  className="h-6 w-6 rounded"
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    target.style.display = 'none';
+                    target.nextElementSibling?.classList.remove('hidden');
+                  }}
+                />
+                <Monitor className="h-4 w-4 text-white hidden" />
               </div>
               <h1 className="text-xl font-bold">RedSquare Screens</h1>
             </div>
@@ -230,7 +251,17 @@ export default function RedSquareScreens() {
             <div className="max-w-md w-full space-y-8">
               <div className="text-center space-y-4">
                 <div className="w-24 h-24 bg-gradient-to-br from-red-600 to-red-800 rounded-full flex items-center justify-center mx-auto">
-                  <QrCode className="h-12 w-12 text-white" />
+                  <img 
+                    src="/icon-192x192.png" 
+                    alt="RedSquare Logo" 
+                    className="h-16 w-16 rounded-full"
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement;
+                      target.style.display = 'none';
+                      target.nextElementSibling?.classList.remove('hidden');
+                    }}
+                  />
+                  <QrCode className="h-12 w-12 text-white hidden" />
                 </div>
                 <h2 className="text-2xl font-bold">Pair Your Screen</h2>
                 <p className="text-muted-foreground">

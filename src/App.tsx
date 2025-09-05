@@ -56,13 +56,13 @@ const App = () => {
   useEffect(() => {
     // Auto-redirect screen applications to RedSquare Screens interface
     if (shouldAutoRedirectToScreen() && location.pathname === '/') {
-      // Auto-redirecting screen application to RedSquare Screens interface
+      console.log('Auto-redirecting screen application to RedSquare Screens interface');
       navigate('/redsquare-screens', { replace: true });
     }
   }, [navigate, location.pathname]);
 
   const applicationMode = getApplicationMode();
-  // App Mode: ${applicationMode}, Path: ${location.pathname}
+  console.log(`RedSquare App Mode: ${applicationMode}, Path: ${location.pathname}`);
   
   return (
     <TooltipProvider>
@@ -71,8 +71,18 @@ const App = () => {
       <Suspense fallback={
         <div className="min-h-screen flex items-center justify-center bg-background text-foreground p-6">
           <div className="flex flex-col items-center gap-4">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-            <p className="text-sm text-muted-foreground">Loading RedSquare...</p>
+            <img 
+              src="/icon-192x192.png" 
+              alt="RedSquare Logo" 
+              className="h-16 w-16 rounded-full animate-pulse"
+              onError={(e) => {
+                const target = e.target as HTMLImageElement;
+                target.style.display = 'none';
+                target.nextElementSibling?.classList.remove('hidden');
+              }}
+            />
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary hidden"></div>
+            <p className="text-sm text-muted-foreground">Loading RedSquare Screens...</p>
             <div className="text-xs opacity-50">Mode: {applicationMode}</div>
           </div>
         </div>
