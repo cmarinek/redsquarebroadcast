@@ -79,7 +79,11 @@ console.log('App initialization:', {
   isElectron,
   isRedSquareMobileApp,
   pathname: window.location.pathname,
-  userAgent: navigator.userAgent
+  hash: window.location.hash,
+  userAgent: navigator.userAgent,
+  protocol: window.location.protocol,
+  shouldUseHashRouter,
+  Router: shouldUseHashRouter ? 'HashRouter' : 'BrowserRouter'
 });
 
 // Environment detection completed

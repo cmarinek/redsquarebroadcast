@@ -7,6 +7,7 @@ import { Footer } from "@/components/Footer";
 import { Navigation } from "@/components/Navigation";
 import { StatusIndicator } from "@/components/StatusIndicator";
 import { shouldAutoRedirectToScreen, getApplicationMode } from "@/utils/environment";
+import { assets } from "@/utils/assets";
 
 const Index = lazy(() => import("./pages/Index"));
 const Demo = lazy(() => import("./pages/Demo"));
@@ -55,7 +56,11 @@ const App = () => {
 
   useEffect(() => {
     // Auto-redirect screen applications to RedSquare Screens interface
-    if (shouldAutoRedirectToScreen() && location.pathname === '/') {
+    // For HashRouter, we need to check both pathname and hash
+    const currentPath = window.location.hash ? window.location.hash.slice(1) : location.pathname;
+    const isAtRoot = currentPath === '/' || currentPath === '' || currentPath === '#/';
+    
+    if (shouldAutoRedirectToScreen() && isAtRoot) {
       console.log('Auto-redirecting screen application to RedSquare Screens interface');
       navigate('/redsquare-screens', { replace: true });
     }
@@ -72,7 +77,7 @@ const App = () => {
         <div className="min-h-screen flex items-center justify-center bg-background text-foreground p-6">
           <div className="flex flex-col items-center gap-4">
             <img 
-              src="/icon-192x192.png" 
+              src={assets.logo192} 
               alt="RedSquare Logo" 
               className="h-16 w-16 rounded-full animate-pulse"
               onError={(e) => {

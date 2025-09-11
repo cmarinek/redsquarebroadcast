@@ -34,8 +34,8 @@ export function resolveAsset(path: string): string {
  * Common asset paths with environment-aware resolution
  */
 export const assets = {
-  logo192: resolveAsset('/icon-192x192.png'),
-  logo512: resolveAsset('/icon-512x512.png'),
-  logo1024: resolveAsset('/icon-1024x1024.png'),
+  logo192: resolveAsset('/lovable-uploads/901ca0b5-a900-440e-b16d-bdd30112cc94.png'),
+  logo512: resolveAsset('/lovable-uploads/901ca0b5-a900-440e-b16d-bdd30112cc94.png'),
+  logo1024: resolveAsset('/lovable-uploads/901ca0b5-a900-440e-b16d-bdd30112cc94.png'),
   manifest: resolveAsset('/manifest.json'),
 } as const;
