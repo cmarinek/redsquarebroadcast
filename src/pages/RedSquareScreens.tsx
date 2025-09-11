@@ -22,6 +22,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { getApplicationMode, isElectronApp, isTVApp } from '@/utils/environment';
 import { TVRemoteHandler } from '@/components/tv/TVRemoteHandler';
 import { useContentCache } from '@/hooks/useContentCache';
+import { assets } from '@/utils/assets';
 
 interface ScreenContent {
   id: string;
@@ -119,7 +120,7 @@ export default function RedSquareScreens() {
         <div className="flex flex-col items-center justify-center h-full text-center space-y-6">
           <div className="w-32 h-32 bg-gradient-to-br from-red-600 to-red-800 rounded-full flex items-center justify-center">
               <img 
-                src="/icon-192x192.png" 
+                src={assets.logo192} 
                 alt="RedSquare Logo" 
                 className="h-20 w-20 rounded-full"
                 onError={(e) => {
@@ -199,7 +200,7 @@ export default function RedSquareScreens() {
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 bg-gradient-to-br from-red-600 to-red-800 rounded-lg flex items-center justify-center">
                   <img 
-                    src="/icon-192x192.png" 
+                    src={assets.logo192} 
                     alt="RedSquare" 
                     className="h-6 w-6 rounded"
                     onError={(e) => {
@@ -256,7 +257,7 @@ export default function RedSquareScreens() {
               <div className="text-center space-y-4">
                 <div className="w-24 h-24 bg-gradient-to-br from-red-600 to-red-800 rounded-full flex items-center justify-center mx-auto">
                     <img 
-                      src="/icon-192x192.png" 
+                      src={assets.logo192} 
                       alt="RedSquare Logo" 
                       className="h-16 w-16 rounded-full"
                       onError={(e) => {

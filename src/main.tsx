@@ -1,6 +1,6 @@
 import React, { Suspense } from 'react'
 import { createRoot } from 'react-dom/client'
-import { BrowserRouter } from 'react-router-dom'
+import { BrowserRouter, HashRouter } from 'react-router-dom'
 import App from './App.tsx'
 import ScreenOwnerMobile from './pages/ScreenOwnerMobile.tsx'
 import './index.css'
@@ -61,6 +61,11 @@ initErrorReporting(0.5) // 50% sampling rate
 const isMobileApp = !!(window as any).Capacitor && (window as any).Capacitor.isNativePlatform;
 const isElectron = !!(window as any).electronAPI || !!(window as any).require || navigator.userAgent.indexOf('Electron') !== -1;
 
+// Use HashRouter for file:// protocols and Capacitor/Electron apps
+const isFileProtocol = window.location.protocol === 'file:';
+const shouldUseHashRouter = isFileProtocol || isMobileApp || isElectron;
+const Router = shouldUseHashRouter ? HashRouter : BrowserRouter;
+
 // Determine if this is specifically the RedSquare mobile app (not screens app)
 const isRedSquareMobileApp = isMobileApp && 
   (window.location.pathname.includes('/screen-owner-mobile') || 
@@ -117,7 +122,7 @@ if (!rootElement) {
 createRoot(rootElement!).render(
   <ErrorBoundary>
     <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
+      <Router>
         <I18nextProvider i18n={i18n}>
           <LanguageProvider>
             <AuthProvider>
@@ -128,7 +133,7 @@ createRoot(rootElement!).render(
             </AuthProvider>
           </LanguageProvider>
         </I18nextProvider>
-      </BrowserRouter>
+      </Router>
     </QueryClientProvider>
   </ErrorBoundary>
 );
