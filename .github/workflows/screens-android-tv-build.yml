@@ -58,6 +58,10 @@ jobs:
 
       - name: Build Web App
         run: npm run build:mobile
+        env:
+          VITE_BUILD_TARGET: mobile
+          VITE_TV_OPTIMIZED: 'true'
+          VITE_CAPACITOR: 'true'
 
       - name: Validate build assets
         run: |

@@ -56,6 +56,8 @@ jobs:
 
       - name: Build Web App
         run: npm run build
+        env:
+          VITE_BUILD_TARGET: electron
 
       - name: Build Linux Desktop App
         run: |
@@ -65,10 +67,12 @@ jobs:
           # Ensure clean build environment
           rm -rf release/ dist-electron/ || true
           
-          # Run the build
-          npm run electron:build:linux -- --config electron-builder.json --config.compression=maximum
+          # Validate and build Electron app
+          node scripts/electron-build.js validate
+          node scripts/electron-build.js prepare
+          node scripts/electron-build.js build linux
           
-            # Check if release directory exists
+            # Check if dist-electron directory exists
             if [ ! -d "dist-electron" ]; then
               echo "❌ dist-electron directory was not created"
               echo "Available directories:"
@@ -87,7 +91,7 @@ jobs:
           echo "✅ AppImage build completed successfully"
           
           # Check file size
-          file=$(ls release/*.AppImage | head -1)
+          file=$(ls dist-electron/*.AppImage | head -1)
           fileSize=$(stat -c%s "$file")
           fileSizeMB=$((fileSize / 1024 / 1024))
           echo "Built AppImage size: ${fileSizeMB}MB"

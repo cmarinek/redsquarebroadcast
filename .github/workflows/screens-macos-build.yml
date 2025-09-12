@@ -56,6 +56,8 @@ jobs:
 
       - name: Build Web App
         run: npm run build
+        env:
+          VITE_BUILD_TARGET: electron
 
       - name: Build macOS Desktop App
         run: |
@@ -65,10 +67,12 @@ jobs:
           # Ensure clean build environment
           rm -rf release/ dist-electron/ || true
           
-          # Run the build
-          npm run electron:build:mac -- --config electron-builder.json --config.compression=maximum
+          # Validate and build Electron app
+          node scripts/electron-build.js validate
+          node scripts/electron-build.js prepare
+          node scripts/electron-build.js build mac
           
-          # Check if release directory exists
+          # Check if dist-electron directory exists
           if [ ! -d "dist-electron" ]; then
             echo "❌ Electron dist directory was not created"
             echo "Available directories:"

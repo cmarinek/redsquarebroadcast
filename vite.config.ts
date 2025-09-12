@@ -5,16 +5,17 @@ import path from "path";
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
-  const buildTarget = process.env.VITE_BUILD_TARGET || 'web';
-  const isTVOptimized = process.env.VITE_TV_OPTIMIZED === 'true';
-  const isKioskMode = process.env.VITE_KIOSK_MODE === 'true';
+  const buildTarget = process.env.VITE_BUILD_TARGET || process.env.BUILD_TARGET || 'web';
+  const isTVOptimized = (process.env.VITE_TV_OPTIMIZED || process.env.TV_OPTIMIZED) === 'true';
+  const isKioskMode = (process.env.VITE_KIOSK_MODE || process.env.KIOSK_MODE) === 'true';
   const isScreenTarget = buildTarget === 'screen';
   const isMobileTarget = buildTarget === 'mobile';
   const isElectronTarget = buildTarget === 'electron';
+  const isCapacitor = (process.env.CAPACITOR === 'true' || process.env.VITE_CAPACITOR === 'true');
   
   return {
-    // Use relative base for mobile and electron builds, absolute for web
-    base: (isMobileTarget || isElectronTarget) ? './' : '/',
+    // Use relative base for Capacitor mobile and electron builds, absolute for web
+    base: (isMobileTarget || isElectronTarget || isCapacitor) ? './' : '/',
     define: {
       'process.env.NODE_ENV': JSON.stringify(mode),
       'import.meta.env.VITE_BUILD_TARGET': JSON.stringify(buildTarget),

@@ -68,15 +68,18 @@ jobs:
         run: npm install
 
       - name: Build Web App
-        run: npm run build:electron
+        run: npm run build
+        env:
+          VITE_BUILD_TARGET: electron
 
       - name: Build Desktop App
         run: |
           Write-Host "Building Electron app with optimizations..."
           
-          # Run electron builder for Windows
-          npm run electron:build:win -- --config electron-builder.json --config.compression=maximum
-          }
+          # Validate and build using our script
+          node scripts/electron-build.js validate
+          node scripts/electron-build.js prepare
+          node scripts/electron-build.js build windows
           
           try {
             Write-Host "Build command completed. Checking output..."
@@ -107,11 +110,6 @@ jobs:
             
             if ($file.Length -gt 500000000) {
               Write-Warning "File size ($fileSizeMB MB) exceeds 500MB limit. Consider optimizing the build."
-              # List largest files in the app for debugging
-              Write-Host "Analyzing app directory structure..."
-              if (Test-Path "release\win-unpacked") {
-                Get-ChildItem -Path "release\win-unpacked" -Recurse | Sort-Object Length -Descending | Select-Object -First 10 | Format-Table Name, @{Name="Size(MB)";Expression={[math]::Round($_.Length/1MB,2)}}
-              }
             }
           }
           catch {
@@ -127,9 +125,9 @@ jobs:
       - name: Create and Upload Artifact Zip
         id: upload_artifact
         run: |
-          $file = Get-ChildItem -Path release -Filter "*.exe" | Select-Object -First 1
+          $file = Get-ChildItem -Path dist-electron -Filter "*.exe" | Select-Object -First 1
           if (-not $file) {
-            Write-Error "No .exe file found in release directory"
+            Write-Error "No .exe file found in dist-electron directory"
             exit 1
           }
           
