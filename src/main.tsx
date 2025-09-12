@@ -33,23 +33,25 @@ const queryClient = new QueryClient({
   }
 })
 
-// Handle Supabase project switching cleanup
+// Handle Supabase project switching cleanup (non-blocking)
 const LAST_REF_KEY = 'active_supabase_ref';
-const lastRef = localStorage.getItem(LAST_REF_KEY);
-if (lastRef && lastRef !== SUPABASE_PROJECT_REF) {
-  try {
+try {
+  const lastRef = localStorage.getItem(LAST_REF_KEY);
+  if (lastRef && lastRef !== SUPABASE_PROJECT_REF) {
+    // Clean up but don't block app initialization
     cleanupAuthState();
-    try {
-      (supabase.auth as any).signOut({ scope: 'global' });
-    } catch {
-      supabase.auth.signOut();
-    }
-  } finally {
+    supabase.auth.signOut().catch(() => {});
     localStorage.setItem(LAST_REF_KEY, SUPABASE_PROJECT_REF);
-    window.location.href = '/auth';
+    // Schedule redirect after React mounts
+    setTimeout(() => {
+      window.location.href = '/auth';
+    }, 100);
+  } else {
+    if (!lastRef) localStorage.setItem(LAST_REF_KEY, SUPABASE_PROJECT_REF);
   }
-} else {
-  if (!lastRef) localStorage.setItem(LAST_REF_KEY, SUPABASE_PROJECT_REF);
+} catch {
+  // Fallback if localStorage fails
+  localStorage.setItem(LAST_REF_KEY, SUPABASE_PROJECT_REF);
 }
 
 // Initialize monitoring
