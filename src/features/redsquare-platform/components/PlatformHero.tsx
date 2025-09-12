@@ -32,7 +32,7 @@ export const PlatformHero = () => {
             </div>
             
             <h1 className="text-5xl lg:text-7xl font-bold mb-6 leading-tight">
-              <span className="text-foreground text-6xl">Advetising Your</span>
+              <span className="text-foreground text-6xl">Advertising</span>
               <br />
               <span className="bg-gradient-primary bg-clip-text text-transparent text-6xl">For Everyone, Everywhere</span>
             </h1>
