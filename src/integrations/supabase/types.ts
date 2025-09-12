@@ -2079,6 +2079,20 @@ export type Database = {
         Args: { _key: string; _limit: number; _window_seconds: number }
         Returns: boolean
       }
+      check_system_integrity: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      create_production_alert: {
+        Args: {
+          p_alert_type: string
+          p_message: string
+          p_metadata?: Json
+          p_severity: string
+          p_title: string
+        }
+        Returns: string
+      }
       create_security_alert: {
         Args:
           | {
@@ -2098,6 +2112,10 @@ export type Database = {
               p_severity: string
               p_title: string
             }
+        Returns: string
+      }
+      create_system_backup: {
+        Args: { p_backup_type: string; p_file_path?: string; p_metadata?: Json }
         Returns: string
       }
       generate_device_provisioning_token: {
@@ -2161,6 +2179,15 @@ export type Database = {
               metric_value: number
             }
           | { p_metadata?: Json; p_metric_name: string; p_value: number }
+        Returns: string
+      }
+      record_production_health: {
+        Args: {
+          p_check_name: string
+          p_details?: Json
+          p_response_time_ms?: number
+          p_status: string
+        }
         Returns: string
       }
       record_system_health: {
