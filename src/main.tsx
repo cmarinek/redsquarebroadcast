@@ -2,7 +2,6 @@ import React, { Suspense } from 'react'
 import { createRoot } from 'react-dom/client'
 import { BrowserRouter, HashRouter } from 'react-router-dom'
 import App from './App.tsx'
-import ScreenOwnerMobile from './pages/ScreenOwnerMobile.tsx'
 import './index.css'
 import { Toaster } from "@/components/ui/toaster"
 import { AuthProvider } from '@/contexts/AuthContext'
@@ -66,18 +65,11 @@ const isFileProtocol = window.location.protocol === 'file:';
 const shouldUseHashRouter = isFileProtocol || isMobileApp || isElectron;
 const Router = shouldUseHashRouter ? HashRouter : BrowserRouter;
 
-// Determine if this is specifically the RedSquare mobile app (not screens app)
-const isRedSquareMobileApp = isMobileApp && 
-  (window.location.pathname.includes('/screen-owner-mobile') || 
-   window.location.pathname.includes('/mobile-app') ||
-   (!window.location.pathname.includes('/redsquare-screens') && 
-    !isElectron && 
-    !navigator.userAgent.includes('TV')));
+// App will handle internal routing - no conditional app swapping here
 
 console.log('App initialization:', {
   isMobileApp,
   isElectron,
-  isRedSquareMobileApp,
   pathname: window.location.pathname,
   hash: window.location.hash,
   userAgent: navigator.userAgent,
@@ -130,8 +122,8 @@ createRoot(rootElement!).render(
         <I18nextProvider i18n={i18n}>
           <LanguageProvider>
             <AuthProvider>
-              <Suspense fallback={<LoadingFallback message="Loading application..." />}>
-                {isRedSquareMobileApp ? <ScreenOwnerMobile /> : <App />}
+              <Suspense fallback={<LoadingFallback message="Loading..." />}>
+                <App />
               </Suspense>
               <Toaster />
             </AuthProvider>

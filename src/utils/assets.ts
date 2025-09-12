@@ -3,9 +3,13 @@
  * Handles file:// protocols, Capacitor apps, and Electron applications
  */
 
-const isCapacitor = !!(window as any).Capacitor;
-const isElectron = !!(window as any).electronAPI || !!(window as any).require || navigator.userAgent.includes('Electron');
-const isFileProtocol = window.location.protocol === 'file:';
+const isCapacitor = typeof window !== 'undefined' && !!(window as any).Capacitor;
+const isElectron = typeof window !== 'undefined' && (
+  !!(window as any).electronAPI || 
+  !!(window as any).require || 
+  (typeof navigator !== 'undefined' && navigator.userAgent.includes('Electron'))
+);
+const isFileProtocol = typeof window !== 'undefined' && window.location.protocol === 'file:';
 
 /**
  * Resolves asset paths for different environments
