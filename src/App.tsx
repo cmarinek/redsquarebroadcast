@@ -6,7 +6,7 @@ import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
 import { Footer } from "@/components/Footer";
 import { Navigation } from "@/components/Navigation";
 import { StatusIndicator } from "@/components/StatusIndicator";
-import { getApplicationMode } from "@/utils/environment";
+
 import { assets } from "@/utils/assets";
 
 const Index = lazy(() => import("./pages/Index"));
@@ -20,7 +20,7 @@ const ScreenDiscovery = lazy(() => import("./pages/ScreenDiscovery"));
 const ScreenDetails = lazy(() => import("./pages/ScreenDetails"));
 const ContentUpload = lazy(() => import("./pages/ContentUpload"));
 const DeviceSetup = lazy(() => import("./pages/DeviceSetup"));
-const SmartTVApp = lazy(() => import("./pages/SmartTVApp"));
+
 const AdvertiserDashboard = lazy(() => import("./pages/AdvertiserDashboard"));
 const ScreenOwnerDashboard = lazy(() => import("./pages/ScreenOwnerDashboard"));
 const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
@@ -55,8 +55,6 @@ const App = () => {
   const location = useLocation();
 
 
-  const applicationMode = getApplicationMode();
-  console.log(`RedSquare App Mode: ${applicationMode}, Path: ${location.pathname}`);
   
   return (
     <TooltipProvider>
@@ -77,7 +75,6 @@ const App = () => {
             />
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary hidden"></div>
             <p className="text-sm text-muted-foreground">Loading RedSquare...</p>
-            <div className="text-xs opacity-50">Mode: {applicationMode}</div>
           </div>
         </div>
       }>
@@ -111,8 +108,6 @@ const App = () => {
               <Route path="/book/:screenId/payment" element={<Payment />} />
               <Route path="/confirmation/:bookingId" element={<Confirmation />} />
               <Route path="/device-setup" element={<DeviceSetup />} />
-              <Route path="/smart-tv" element={<SmartTVApp />} />
-              <Route path="/tv" element={<SmartTVApp />} />
               <Route path="/subscription" element={<Subscription />} />
               <Route path="/privacy" element={<Privacy />} />
               <Route path="/terms" element={<Terms />} />
