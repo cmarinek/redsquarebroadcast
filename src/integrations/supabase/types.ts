@@ -1539,6 +1539,36 @@ export type Database = {
         }
         Relationships: []
       }
+      production_health_checks: {
+        Row: {
+          check_name: string
+          checked_at: string | null
+          details: Json | null
+          id: string
+          resolved_at: string | null
+          response_time_ms: number | null
+          status: string
+        }
+        Insert: {
+          check_name: string
+          checked_at?: string | null
+          details?: Json | null
+          id?: string
+          resolved_at?: string | null
+          response_time_ms?: number | null
+          status: string
+        }
+        Update: {
+          check_name?: string
+          checked_at?: string | null
+          details?: Json | null
+          id?: string
+          resolved_at?: string | null
+          response_time_ms?: number | null
+          status?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -1878,6 +1908,42 @@ export type Database = {
           name?: string
           price_cents?: number
           stripe_price_id?: string | null
+        }
+        Relationships: []
+      }
+      system_backups: {
+        Row: {
+          backup_type: string
+          checksum: string | null
+          completed_at: string | null
+          created_at: string | null
+          file_path: string | null
+          file_size: number | null
+          id: string
+          metadata: Json | null
+          status: string
+        }
+        Insert: {
+          backup_type: string
+          checksum?: string | null
+          completed_at?: string | null
+          created_at?: string | null
+          file_path?: string | null
+          file_size?: number | null
+          id?: string
+          metadata?: Json | null
+          status?: string
+        }
+        Update: {
+          backup_type?: string
+          checksum?: string | null
+          completed_at?: string | null
+          created_at?: string | null
+          file_path?: string | null
+          file_size?: number | null
+          id?: string
+          metadata?: Json | null
+          status?: string
         }
         Relationships: []
       }
