@@ -12,9 +12,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 import SEO from "@/components/SEO";
 import QRCode from "react-qr-code";
-import { AndroidTVInterface } from "@/components/tv/AndroidTVInterface";
-import { TVRemoteHandler } from "@/components/tv/TVRemoteHandler";
-import "@/styles/android-tv.css";
 
 interface ScreenAppRelease {
   id: string;
@@ -39,17 +36,10 @@ const SetupRedSquareScreen = () => {
   const [downloading, setDownloading] = useState<string | null>(null);
   const [selectedScreenType, setSelectedScreenType] = useState<ScreenType | null>(null);
   const [detectedPlatform, setDetectedPlatform] = useState<ScreenType>('unknown');
-  const [showTVInterface, setShowTVInterface] = useState(false);
 
   useEffect(() => {
     fetchScreenReleases();
     detectPlatform();
-    
-    // Check if we're running on Android TV
-    const userAgent = navigator.userAgent.toLowerCase();
-    if (userAgent.includes('android') && (userAgent.includes('tv') || userAgent.includes('googletv'))) {
-      setShowTVInterface(true);
-    }
   }, []);
 
   const detectPlatform = () => {
@@ -381,22 +371,6 @@ const SetupRedSquareScreen = () => {
       setDownloading(null);
     }
   };
-
-  // If we're on Android TV, show the TV-optimized interface
-  if (showTVInterface) {
-    return (
-      <TVRemoteHandler>
-        <AndroidTVInterface 
-          onSetup={() => {
-            toast({
-              title: "Screen Setup Complete!",
-              description: "Your Android TV is now connected to RedSquare."
-            });
-          }}
-        />
-      </TVRemoteHandler>
-    );
-  }
 
   return (
     <Layout>
