@@ -41,7 +41,7 @@ export const Navigation = () => {
         <div className="flex justify-between h-16 items-center">
           <div className="flex items-center space-x-4">
             <img 
-              src="/icon-192x192.png" 
+              src="/lovable-uploads/901ca0b5-a900-440e-b16d-bdd30112cc94.png" 
               alt="Red Square Logo" 
               className="w-8 h-8 rounded-lg"
             />
