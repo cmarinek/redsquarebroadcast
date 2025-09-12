@@ -77,7 +77,7 @@ export const Hero = () => {
           {/* Right Column - Hero Image */}
           <div className="relative">
             <div className="relative group">
-              <img src={heroImage} alt="Digital screen displaying content" className="w-full h-auto rounded-2xl shadow-2xl transition-transform duration-500 group-hover:scale-105" decoding="async" fetchPriority="high" sizes="(min-width: 1024px) 50vw, 100vw" />
+              <img src={heroImage} alt="Digital screen displaying content" className="w-full h-auto rounded-2xl shadow-2xl transition-transform duration-500 group-hover:scale-105" decoding="async" sizes="(min-width: 1024px) 50vw, 100vw" />
               <div className="absolute inset-0 bg-gradient-glow rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
             </div>
 
