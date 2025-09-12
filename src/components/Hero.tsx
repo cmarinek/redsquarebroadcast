@@ -61,7 +61,7 @@ export const Hero = () => {
             <h1 className="text-5xl lg:text-7xl font-bold mb-6 leading-tight">
               <span className="text-foreground text-6xl">ADVERTISING</span>
               <br />
-              <span className="bg-gradient-primary bg-clip-text text-transparent text-6xl">{t('hero.forEveryoneTitle')}</span>
+              <span className="bg-gradient-primary bg-clip-text text-transparent text-6xl">FOR EVERYONE, EVERYWHERE</span>
             </h1>
             
             <p className="text-xl text-muted-foreground mb-8 max-w-lg">{t('hero.subtitle')}</p>
