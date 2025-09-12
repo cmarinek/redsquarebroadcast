@@ -11,7 +11,7 @@ import { Separator } from "@/components/ui/separator";
 import { supabase } from "@/integrations/supabase/client";
 import { optimizeImageUrl } from "@/utils/media";
 import { useToast } from "@/hooks/use-toast";
-import { Layout } from "@/components/Layout";
+
 import { useAuth } from "@/contexts/AuthContext";
 import { format } from "date-fns";
 import { useUserRoles } from "@/hooks/useUserRoles";
@@ -163,20 +163,17 @@ const Profile = () => {
 
   if (loading) {
     return (
-      <Layout>
-        <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-8">
           <div className="animate-pulse space-y-4">
             <div className="h-8 bg-muted rounded w-1/4"></div>
             <div className="h-64 bg-muted rounded"></div>
           </div>
         </div>
-      </Layout>
     );
   }
 
   return (
-    <Layout>
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
+    <div className="container mx-auto px-4 py-8 max-w-4xl">
         <div className="flex items-center gap-3 mb-8">
           <User className="h-8 w-8 text-primary" />
           <div>
@@ -373,7 +370,6 @@ const Profile = () => {
           </Card>
         </div>
       </div>
-    </Layout>
   );
 };
 

@@ -22,7 +22,7 @@ import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Layout } from "@/components/Layout";
+
 import { useAuth } from "@/contexts/AuthContext";
 import { format } from "date-fns";
 
@@ -164,8 +164,7 @@ const Dashboard = () => {
 
   if (loading) {
     return (
-      <Layout>
-        <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-8">
           <div className="animate-pulse space-y-4">
             <div className="h-8 bg-muted rounded w-1/4"></div>
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -175,13 +174,11 @@ const Dashboard = () => {
             </div>
           </div>
         </div>
-      </Layout>
     );
   }
 
   return (
-    <Layout>
-      <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-4 py-8">
         <div className="flex justify-between items-center mb-8">
           <div>
             <h1 className="text-3xl font-bold text-foreground mb-2">
@@ -382,7 +379,6 @@ const Dashboard = () => {
           </div>
         )}
       </div>
-    </Layout>
   );
 };
 

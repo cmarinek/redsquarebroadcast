@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Layout } from "@/components/Layout";
+
 import { Link } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -141,7 +141,8 @@ const DownloadApp = () => {
     }
   };
   if (!userChoice) {
-    return <Layout>
+    return (
+      <>
         <SEO title="Download Red Square Apps | Free Digital Advertising Platform" description="Download the Red Square mobile apps to start advertising on digital screens or earn money by renting your screen space. Easy setup, no subscription required." path="/download" />
         
         <div className="min-h-screen bg-gradient-to-br from-background via-secondary/5 to-primary/5">
@@ -307,13 +308,14 @@ const DownloadApp = () => {
             </div>
           </div>
         </div>
-      </Layout>;
+      </>
+    );
   }
 
   // Show installation wizard if requested
   if (showInstallWizard && selectedPlatform) {
     return (
-      <Layout>
+      <>
         <SEO title="Installation Guide | RedSquare Screens" description="Step-by-step installation guide for RedSquare Screens applications" path="/download/install" />
         
         <div className="min-h-screen bg-gradient-to-br from-background via-secondary/5 to-primary/5">
@@ -342,12 +344,13 @@ const DownloadApp = () => {
             />
           </div>
         </div>
-      </Layout>
+      </>
     );
   }
 
   // Show platform-specific downloads based on user choice
-  return <Layout>
+  return (
+    <>
       <SEO title="Download Red Square Apps | Free Digital Advertising Platform" description="Download the Red Square mobile apps to start advertising on digital screens or earn money by renting your screen space. Easy setup, no subscription required." path="/download" />
       
       <div className="min-h-screen bg-gradient-to-br from-background via-secondary/5 to-primary/5">
@@ -752,6 +755,7 @@ const DownloadApp = () => {
           </div>
         </div>
       </div>
-    </Layout>;
+    </>
+  );
 };
 export default DownloadApp;
