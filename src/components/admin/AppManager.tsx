@@ -3,6 +3,9 @@ import { Upload, Download, Trash2, FileArchive, Users, Calendar, CheckCircle, Sm
 import { AppBuildHistory } from "./AppBuildHistory";
 import { BuildSystemTest } from "./BuildSystemTest";
 import { PlatformSpecifications } from "./PlatformSpecifications";
+import { EnhancedBuildDashboard } from "./EnhancedBuildDashboard";
+import { BuildConfigManager } from "./BuildConfigManager";
+import { BuildSecurityCenter } from "./BuildSecurityCenter";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
