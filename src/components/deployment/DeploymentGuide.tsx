@@ -169,8 +169,8 @@ export function DeploymentGuide() {
               </a>
             </Button>
             <Button variant="outline" asChild>
-              <a href="https://docs.lovable.dev/tips-tricks/mobile-development" target="_blank">
-                Mobile Guide <ExternalLink className="h-4 w-4 ml-1" />
+              <a href="https://github.com/your-org/redsquare-docs" target="_blank">
+                Documentation <ExternalLink className="h-4 w-4 ml-1" />
               </a>
             </Button>
           </div>

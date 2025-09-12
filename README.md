@@ -1,152 +1,141 @@
-# Welcome to your Lovable project
+# Red Square - Digital Broadcasting Platform
 
-## Project info
+Red Square is a platform that democratizes access to screen-based advertising. It allows the public to upload media content to nearby digital screens via a hardware dongle or smart TV app. Users can find, schedule, and pay for time slots to broadcast their content. Screen owners earn income from renting out their screen space.
 
-**URL**: https://lovable.dev/projects/fa57035e-3e6a-41a8-925f-189bf7d71e9b
+## Features
 
-## How can I edit this code?
+- **Screen Discovery**: Find screens nearby or via search methods
+- **Content Scheduling**: Upload and schedule images, videos, and GIFs for broadcast
+- **Monetization**: Revenue split system for screen owners and platform
+- **Multi-platform Support**: Web, mobile, and smart TV applications
 
-There are several ways of editing your application.
+## Getting Started
 
-**Use Lovable**
+### Prerequisites
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/fa57035e-3e6a-41a8-925f-189bf7d71e9b) and start prompting.
+- Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
 
-Changes made via Lovable will be committed automatically to this repo.
-
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
+### Development Setup
 
 ```sh
-# Step 1: Clone the repository using the project's Git URL.
+# Clone the repository
 git clone <YOUR_GIT_URL>
 
-# Step 2: Navigate to the project directory.
+# Navigate to the project directory
 cd <YOUR_PROJECT_NAME>
 
-# Step 3: Install the necessary dependencies.
-npm i
+# Install dependencies
+npm install
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+# Start the development server
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
-
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
-
-**Use GitHub Codespaces**
-
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
-
-## What technologies are used for this project?
+## Tech Stack
 
 This project is built with:
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+- **Frontend**: React, TypeScript, Vite
+- **Styling**: Tailwind CSS, shadcn/ui
+- **Backend**: Supabase (Database, Auth, Storage, Edge Functions)
+- **Mobile**: Capacitor (iOS/Android)
+- **Maps**: Mapbox for screen discovery
+- **Payments**: Stripe integration
 
-## How can I deploy this project?
+## Project Structure
 
-Simply open [Lovable](https://lovable.dev/projects/fa57035e-3e6a-41a8-925f-189bf7d71e9b) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
-
----
-
-## Android TV (Capacitor) — Build APK
-
-Follow these one-time steps to produce an installable Android TV APK of the Smart TV app (/tv route):
-
-1) Export & clone
-- Export this project to your GitHub, then clone locally.
-
-2) Install and build web assets
-- npm install
-- npm run build
-
-3) Add Android platform (Capacitor)
-- npx cap add android
-
-4) Update AndroidManifest for TV
-Edit android/app/src/main/AndroidManifest.xml and ensure:
-
-```xml
-<manifest ...>
-  <uses-feature android:name="android.software.leanback" android:required="true" />
-  <uses-feature android:name="android.hardware.touchscreen" android:required="false" />
-  <uses-feature android:name="android.hardware.telephony" android:required="false" />
-  <!-- Optional if you want strict D-Pad control -->
-  <uses-feature android:name="android.hardware.gamepad" android:required="false" />
-
-  <application
-      android:banner="@mipmap/ic_launcher"
-      android:icon="@mipmap/ic_launcher"
-      ...>
-
-    <activity
-        android:name="com.getcapacitor.BridgeActivity"
-        android:exported="true"
-        android:launchMode="singleTask"
-        android:screenOrientation="landscape">
-      <intent-filter>
-        <action android:name="android.intent.action.MAIN" />
-        <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
-      </intent-filter>
-      <!-- Keep the standard launcher too if you want it visible on non-TV launchers -->
-      <intent-filter>
-        <action android:name="android.intent.action.MAIN" />
-        <category android:name="android.intent.category.LAUNCHER" />
-      </intent-filter>
-    </activity>
-  </application>
-</manifest>
+```
+src/
+├── components/          # Reusable UI components
+├── pages/              # Route components
+├── hooks/              # Custom React hooks
+├── contexts/           # React contexts
+├── utils/              # Utility functions
+├── integrations/       # External service integrations
+└── types/              # TypeScript type definitions
 ```
 
-5) Sync native project
-- npx cap sync android
+## Key Components
 
-6) Run on device/emulator
-- npx cap run android
+- **User Features**: Content upload, scheduling, payment processing
+- **Screen Owner Features**: Screen registration, availability management, revenue tracking
+- **Admin Features**: Platform management, analytics, user management
+- **Mobile Apps**: Native iOS/Android applications via Capacitor
 
-7) Build APK in Android Studio
-- Open android/ in Android Studio
-- Build > Generate Signed Bundle/APK… (or Build APKs for debug)
+## Database
 
-Optional: start directly on the TV UI (/tv)
-If you want the app to open on the TV screen by default, add this tiny redirect near the top of src/main.tsx (before createRoot):
+The platform uses Supabase as the backend with:
+- User authentication and profiles
+- Screen registration and management
+- Content storage and scheduling
+- Payment processing and revenue tracking
+- Real-time updates for live content delivery
 
-```ts
-const isAndroidTV = /Android TV|BRAVIA|AFTT|AFTM|AFTS|AFTB|SMART-TV/i.test(navigator.userAgent);
-if (isAndroidTV && !location.pathname.startsWith('/tv')) {
-  history.replaceState(null, '', '/tv');
-}
+## Deployment
+
+### Web Application
+
+1. Build the project:
+   ```sh
+   npm run build
+   ```
+
+2. Deploy the `dist` folder to your hosting provider
+
+### Mobile Applications
+
+#### Android
+
+1. Add Android platform:
+   ```sh
+   npx cap add android
+   ```
+
+2. Build and sync:
+   ```sh
+   npm run build
+   npx cap sync android
+   ```
+
+3. Open in Android Studio:
+   ```sh
+   npx cap open android
+   ```
+
+#### iOS
+
+1. Add iOS platform:
+   ```sh
+   npx cap add ios
+   ```
+
+2. Build and sync:
+   ```sh
+   npm run build
+   npx cap sync ios
+   ```
+
+3. Open in Xcode:
+   ```sh
+   npx cap open ios
+   ```
+
+## Environment Variables
+
+Create a `.env` file with:
+
+```
+VITE_SUPABASE_URL=your_supabase_url
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
 ```
 
-Notes
-- Our Capacitor config already allows remote hot-reload (server.url) and cleartext traffic is enabled for dev.
-- tvOS/Apple TV: Capacitor doesn’t target tvOS; ship a native tvOS shell or focus Android TV first.
+## Contributing
 
-After pulling changes, always run: npx cap sync
-For a detailed mobile guide, read: https://lovable.dev/blogs/TODO
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Submit a pull request
 
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.

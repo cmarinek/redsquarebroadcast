@@ -51,7 +51,7 @@ const Learn = () => {
     "@type": "Organization",
     name: "Red Square",
     url: typeof window !== "undefined" ? window.location.origin : "",
-    logo: typeof window !== "undefined" ? `${window.location.origin}/lovable-uploads/901ca0b5-a900-440e-b16d-bdd30112cc94.png` : "",
+    logo: typeof window !== "undefined" ? `${window.location.origin}/icon-512x512.png` : "",
   };
 
   const appJsonLd = {

@@ -102,7 +102,7 @@ export function EnterpriseFeatures() {
                       onChange={(e) => 
                         setWhiteLabel(prev => ({ ...prev, logoUrl: e.target.value }))
                       }
-                      placeholder="/lovable-uploads/901ca0b5-a900-440e-b16d-bdd30112cc94.png"
+                      placeholder="/icon-192x192.png"
                     />
                   </div>
                   <Button onClick={handleSaveWhiteLabel}>
