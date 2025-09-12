@@ -198,15 +198,15 @@ export const Navigation = () => {
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="bg-background">
                     <DropdownMenuItem asChild>
-                      <Link to="/download-app" className="flex items-center">
+                      <Link to="/download" className="flex items-center">
                         <Smartphone className="w-4 h-4 mr-2" />
-                        Platform App
+                        Mobile App
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
-                      <Link to="/redsquare-screens" className="flex items-center">
+                      <Link to="/setup-redsquare-screen" className="flex items-center">
                         <Cast className="w-4 h-4 mr-2" />
-                        Screens App
+                        Screen App
                       </Link>
                     </DropdownMenuItem>
                   </DropdownMenuContent>
@@ -297,18 +297,18 @@ export const Navigation = () => {
                      <Button variant="outline" asChild className="w-full justify-start">
                        <Link to="/how-it-works">How It Works</Link>
                      </Button>
-                      <Button variant="outline" asChild className="w-full justify-start">
-                        <Link to="/download-app">
-                          <Smartphone className="w-4 h-4 mr-2" />
-                          Platform App
-                        </Link>
-                      </Button>
-                      <Button variant="outline" asChild className="w-full justify-start">
-                        <Link to="/redsquare-screens">
-                          <Cast className="w-4 h-4 mr-2" />
-                          Screens App
-                        </Link>
-                      </Button>
+                     <Button variant="outline" asChild className="w-full justify-start">
+                       <Link to="/download">
+                         <Smartphone className="w-4 h-4 mr-2" />
+                         Mobile App
+                       </Link>
+                     </Button>
+                     <Button variant="outline" asChild className="w-full justify-start">
+                       <Link to="/setup-redsquare-screen">
+                         <Cast className="w-4 h-4 mr-2" />
+                         Screen App
+                       </Link>
+                     </Button>
                      <div className="border-t pt-3 space-y-3">
                        <Button variant="outline" asChild className="w-full justify-start">
                          <Link to="/auth">Sign In</Link>
