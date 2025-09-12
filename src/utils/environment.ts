@@ -50,7 +50,3 @@ export const getApplicationMode = (): 'web' | 'mobile' | 'screen' | 'tv' => {
     return 'web';
   }
 };
-
-export const shouldAutoRedirectToScreen = (): boolean => {
-  return isScreenApplication();
-};

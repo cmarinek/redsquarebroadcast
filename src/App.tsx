@@ -6,7 +6,7 @@ import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
 import { Footer } from "@/components/Footer";
 import { Navigation } from "@/components/Navigation";
 import { StatusIndicator } from "@/components/StatusIndicator";
-import { shouldAutoRedirectToScreen, getApplicationMode } from "@/utils/environment";
+import { getApplicationMode } from "@/utils/environment";
 import { assets } from "@/utils/assets";
 
 const Index = lazy(() => import("./pages/Index"));
@@ -54,17 +54,6 @@ const App = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  useEffect(() => {
-    // Auto-redirect screen applications to RedSquare Screens interface
-    // For HashRouter, we need to check both pathname and hash
-    const currentPath = window.location.hash ? window.location.hash.slice(1) : location.pathname;
-    const isAtRoot = currentPath === '/' || currentPath === '' || currentPath === '#/';
-    
-    if (shouldAutoRedirectToScreen() && isAtRoot) {
-      console.log('Auto-redirecting screen application to RedSquare Screens interface');
-      navigate('/redsquare-screens', { replace: true });
-    }
-  }, [navigate, location.pathname]);
 
   const applicationMode = getApplicationMode();
   console.log(`RedSquare App Mode: ${applicationMode}, Path: ${location.pathname}`);
@@ -87,16 +76,15 @@ const App = () => {
               }}
             />
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary hidden"></div>
-            <p className="text-sm text-muted-foreground">Loading RedSquare Screens...</p>
+            <p className="text-sm text-muted-foreground">Loading RedSquare...</p>
             <div className="text-xs opacity-50">Mode: {applicationMode}</div>
           </div>
         </div>
       }>
         <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
-          {/* Hide navigation and footer for screen/TV applications */}
-          {!shouldAutoRedirectToScreen() && <Navigation />}
+          <Navigation />
           <StatusIndicator />
-          <main className={shouldAutoRedirectToScreen() ? "" : "pt-16"}>
+          <main className="pt-16">
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/demo" element={<Demo />} />
@@ -142,8 +130,7 @@ const App = () => {
               <Route path="*" element={<NotFound />} />
             </Routes>
           </main>
-          {/* Hide footer for screen/TV applications */}
-          {!shouldAutoRedirectToScreen() && <Footer />}
+          <Footer />
         </div>
       </Suspense>
     </TooltipProvider>
