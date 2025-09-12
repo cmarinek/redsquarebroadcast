@@ -32,9 +32,9 @@ export const PlatformHero = () => {
             </div>
             
             <h1 className="text-5xl lg:text-7xl font-bold mb-6 leading-tight">
-              <span className="text-foreground text-6xl">Broadcast Your</span>
+              <span className="text-foreground text-6xl">Advetising Your</span>
               <br />
-              <span className="bg-gradient-primary bg-clip-text text-transparent text-6xl">Message Everywhere</span>
+              <span className="bg-gradient-primary bg-clip-text text-transparent text-6xl">For Everyone, Everywhere</span>
             </h1>
             
             <p className="text-xl text-muted-foreground mb-8 max-w-lg">
