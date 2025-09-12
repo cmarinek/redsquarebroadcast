@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Play, Monitor, Smartphone, Upload, CheckCircle } from "lucide-react";
 import heroImage from "/lovable-uploads/901ca0b5-a900-440e-b16d-bdd30112cc94.png";
-import heroImageAlt from "/lovable-uploads/fde5225e-2841-4fa5-8e8d-341970e467d2.png";
+import heroImageAlt from "@/assets/hero-screen.jpg";
 import { Link } from "react-router-dom";
 import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from 'react';
@@ -13,8 +13,8 @@ export const Hero = () => {
   const [isTransitioning, setIsTransitioning] = useState(false);
   
   const heroImages = [
-    { src: heroImage, alt: "RedSquare platform showcase" },
-    { src: heroImageAlt, alt: "Digital advertising network" }
+    { src: heroImage, alt: "Original futuristic RedSquare platform" },
+    { src: heroImageAlt, alt: "Professional office with digital screen display" }
   ];
 
   useEffect(() => {
