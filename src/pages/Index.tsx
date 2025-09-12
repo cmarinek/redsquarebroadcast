@@ -9,7 +9,9 @@ import { useDeploymentStatus } from "@/hooks/useDeploymentStatus";
 
 
 const Index = () => {
+  console.log('🏠 Index page component loading...');
   useDeploymentStatus();
+  console.log('✅ Index page initialized successfully');
   
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
