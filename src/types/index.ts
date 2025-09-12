@@ -2,6 +2,7 @@
 
 // Database enums and types
 export type AppRole = 'admin' | 'moderator' | 'user';
+export type UserRole = 'broadcaster' | 'screen_owner' | 'admin' | 'advertiser' | 'support';
 export type BookingStatus = 'pending' | 'active' | 'completed' | 'cancelled';
 export type PaymentStatus = 'pending' | 'completed' | 'failed' | 'refunded';
 export type BuildStatus = 'pending' | 'in_progress' | 'success' | 'failed' | 'cancelled';

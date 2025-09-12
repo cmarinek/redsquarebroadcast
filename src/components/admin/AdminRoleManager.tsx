@@ -28,6 +28,7 @@ const roleLabel: Record<UserRole, string> = {
   broadcaster: "Broadcaster",
   screen_owner: "Screen Owner",
   admin: "Admin",
+  support: "Support",
 };
 
 const roleBadgeVariant = (role: UserRole) => {
@@ -36,6 +37,8 @@ const roleBadgeVariant = (role: UserRole) => {
       return "default" as const;
     case "screen_owner":
       return "secondary" as const;
+    case "support":
+      return "destructive" as const;
     case "advertiser":
     case "broadcaster":
       return "outline" as const;

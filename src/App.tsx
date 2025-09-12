@@ -48,6 +48,7 @@ const RegionalSettings = lazy(() => import("./pages/RegionalSettings"));
 const SetupGuide = lazy(() => import("./pages/SetupGuide"));
 const RedSquareScreens = lazy(() => import("./pages/RedSquareScreens"));
 const SetupRedSquareScreen = lazy(() => import("./pages/SetupRedSquareScreen"));
+const Support = lazy(() => import("./pages/Support"));
 import AdminRoute from "@/components/routing/AdminRoute";
 
 const App = () => {
@@ -96,6 +97,7 @@ const App = () => {
               <Route path="/admin/monetization" element={<AdminRoute><AdminMonetization /></AdminRoute>} />
               <Route path="/admin/ops-infra" element={<AdminRoute><AdminOpsInfra /></AdminRoute>} />
               <Route path="/admin/documentation" element={<AdminRoute><AdminDocumentation /></AdminRoute>} />
+              <Route path="/support" element={<Support />} />
               <Route path="/my-campaigns" element={<AdvertiserDashboard />} />
               <Route path="/my-screens" element={<ScreenOwnerDashboard />} />
               <Route path="/profile" element={<Profile />} />
