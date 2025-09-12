@@ -1,8 +1,7 @@
 import React, { Suspense } from 'react'
 import { createRoot } from 'react-dom/client'
-import { BrowserRouter } from 'react-router-dom'
+import { BrowserRouter, HashRouter } from 'react-router-dom'
 import App from './App.tsx'
-import ScreenOwnerMobile from './pages/ScreenOwnerMobile.tsx'
 import './index.css'
 import { Toaster } from "@/components/ui/toaster"
 import { AuthProvider } from '@/contexts/AuthContext'
@@ -34,23 +33,25 @@ const queryClient = new QueryClient({
   }
 })
 
-// Handle Supabase project switching cleanup
+// Handle Supabase project switching cleanup (non-blocking)
 const LAST_REF_KEY = 'active_supabase_ref';
-const lastRef = localStorage.getItem(LAST_REF_KEY);
-if (lastRef && lastRef !== SUPABASE_PROJECT_REF) {
-  try {
+try {
+  const lastRef = localStorage.getItem(LAST_REF_KEY);
+  if (lastRef && lastRef !== SUPABASE_PROJECT_REF) {
+    // Clean up but don't block app initialization
     cleanupAuthState();
-    try {
-      (supabase.auth as any).signOut({ scope: 'global' });
-    } catch {
-      supabase.auth.signOut();
-    }
-  } finally {
+    supabase.auth.signOut().catch(() => {});
     localStorage.setItem(LAST_REF_KEY, SUPABASE_PROJECT_REF);
-    window.location.href = '/auth';
+    // Schedule redirect after React mounts
+    setTimeout(() => {
+      window.location.href = '/auth';
+    }, 100);
+  } else {
+    if (!lastRef) localStorage.setItem(LAST_REF_KEY, SUPABASE_PROJECT_REF);
   }
-} else {
-  if (!lastRef) localStorage.setItem(LAST_REF_KEY, SUPABASE_PROJECT_REF);
+} catch {
+  // Fallback if localStorage fails
+  localStorage.setItem(LAST_REF_KEY, SUPABASE_PROJECT_REF);
 }
 
 // Initialize monitoring
@@ -61,12 +62,25 @@ initErrorReporting(0.5) // 50% sampling rate
 const isMobileApp = !!(window as any).Capacitor && (window as any).Capacitor.isNativePlatform;
 const isElectron = !!(window as any).electronAPI || !!(window as any).require || navigator.userAgent.indexOf('Electron') !== -1;
 
-console.log('Environment detection:', {
+// Use HashRouter for file:// protocols and Capacitor/Electron apps
+const isFileProtocol = window.location.protocol === 'file:';
+const shouldUseHashRouter = isFileProtocol || isMobileApp || isElectron;
+const Router = shouldUseHashRouter ? HashRouter : BrowserRouter;
+
+// App will handle internal routing - no conditional app swapping here
+
+console.log('App initialization:', {
   isMobileApp,
   isElectron,
+  pathname: window.location.pathname,
+  hash: window.location.hash,
   userAgent: navigator.userAgent,
-  location: window.location.href
+  protocol: window.location.protocol,
+  shouldUseHashRouter,
+  Router: shouldUseHashRouter ? 'HashRouter' : 'BrowserRouter'
 });
+
+// Environment detection completed
 
 // Add error event listener for debugging
 window.addEventListener('error', (event) => {
@@ -79,15 +93,11 @@ window.addEventListener('unhandledrejection', (event) => {
 
 // Add CSS loading check for Electron
 if (isElectron) {
-  console.log('Running in Electron - checking CSS loading...');
+  // Checking CSS variables in Electron
   const checkCSS = () => {
     const computedStyle = getComputedStyle(document.documentElement);
     const bgColor = computedStyle.getPropertyValue('--background');
-    console.log('CSS variables check:', {
-      background: bgColor,
-      primary: computedStyle.getPropertyValue('--primary'),
-      foreground: computedStyle.getPropertyValue('--foreground')
-    });
+    // CSS variables validated
     
     if (!bgColor) {
       console.warn('CSS variables not loaded properly');
@@ -98,32 +108,32 @@ if (isElectron) {
   setTimeout(checkCSS, 100);
 }
 
-console.log('Rendering React application...');
+// Starting React application
 
 const rootElement = document.getElementById("root");
 if (!rootElement) {
   console.error('Root element not found!');
 } else {
-  console.log('Root element found, creating React root...');
+  // Root element ready for React mounting
 }
 
 createRoot(rootElement!).render(
   <ErrorBoundary>
     <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
+      <Router>
         <I18nextProvider i18n={i18n}>
           <LanguageProvider>
             <AuthProvider>
-              <Suspense fallback={<LoadingFallback message="Loading application..." />}>
-                {isMobileApp ? <ScreenOwnerMobile /> : <App />}
+              <Suspense fallback={<LoadingFallback message="Loading..." />}>
+                <App />
               </Suspense>
               <Toaster />
             </AuthProvider>
           </LanguageProvider>
         </I18nextProvider>
-      </BrowserRouter>
+      </Router>
     </QueryClientProvider>
   </ErrorBoundary>
 );
 
-console.log('React application rendered');
+// React application initialized

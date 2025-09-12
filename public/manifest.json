@@ -2,19 +2,19 @@
   "name": "RedSquare - Digital Advertising Platform",
   "short_name": "RedSquare",
   "description": "Democratizing access to screen-based advertising",
-  "start_url": "/",
+  "start_url": "./",
   "display": "standalone",
   "theme_color": "#DC2626",
   "background_color": "#DC2626",
   "icons": [
     {
-      "src": "/lovable-uploads/901ca0b5-a900-440e-b16d-bdd30112cc94.png",
+      "src": "./lovable-uploads/901ca0b5-a900-440e-b16d-bdd30112cc94.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "maskable any"
     },
     {
-      "src": "/lovable-uploads/901ca0b5-a900-440e-b16d-bdd30112cc94.png",
+      "src": "./lovable-uploads/901ca0b5-a900-440e-b16d-bdd30112cc94.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable any"

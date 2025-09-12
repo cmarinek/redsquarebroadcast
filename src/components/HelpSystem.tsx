@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { SafeMarkdown } from "@/components/ui/safe-html";
 import { cn } from "@/lib/utils";
 
 interface HelpArticle {
@@ -644,22 +645,10 @@ Need immediate help? Use the chat button in the bottom right corner for fastest 
               </Card>
             )}
 
-            <div className="prose prose-sm max-w-none dark:prose-invert">
-              <div 
-                className="space-y-4"
-                dangerouslySetInnerHTML={{ 
-                  __html: selectedArticleData.content
-                    .replace(/\n/g, '<br />')
-                    .replace(/#{1}\s/g, '<h1 class="text-2xl font-bold mt-6 mb-3">')
-                    .replace(/#{2}\s/g, '<h2 class="text-xl font-semibold mt-5 mb-2">')
-                    .replace(/#{3}\s/g, '<h3 class="text-lg font-medium mt-4 mb-2">')
-                    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-                    .replace(/\*(.*?)\*/g, '<em>$1</em>')
-                    .replace(/❌\s(.*?)$/gm, '<div class="flex items-start gap-2 p-3 bg-red-50 dark:bg-red-950 rounded-lg mb-2"><span class="text-red-500">❌</span><span class="text-red-800 dark:text-red-200">$1</span></div>')
-                    .replace(/✅\s(.*?)$/gm, '<div class="flex items-start gap-2 p-3 bg-green-50 dark:bg-green-950 rounded-lg mb-2"><span class="text-green-500">✅</span><span class="text-green-800 dark:text-green-200">$1</span></div>')
-                }}
-              />
-            </div>
+            <SafeMarkdown 
+              content={selectedArticleData.content}
+              className="space-y-4"
+            />
 
             <Card>
               <CardContent className="p-4">

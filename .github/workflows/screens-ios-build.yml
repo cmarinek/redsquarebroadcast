@@ -54,6 +54,16 @@ jobs:
       - name: Build Web App
         run: npx vite build
 
+      - name: Validate build assets
+        run: |
+          echo "Checking for absolute asset paths in build..."
+          if grep -r '"/assets' dist/ 2>/dev/null; then
+            echo "❌ Found absolute /assets paths in build - this will cause issues in Capacitor apps"
+            echo "Build artifacts should use relative paths for compatibility"
+            exit 1
+          fi
+          echo "✅ Build validation passed - no absolute asset paths found"
+
       - name: Set up Xcode
         uses: maxim-lobanov/setup-xcode@v1
         with:
