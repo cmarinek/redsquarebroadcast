@@ -15,6 +15,7 @@ import { cleanupAuthState } from '@/utils/authCleanup'
 import { supabase, SUPABASE_PROJECT_REF } from '@/integrations/supabase/client'
 import i18n from './lib/i18n'
 import { I18nextProvider } from 'react-i18next'
+import { ENVIRONMENT, isMobileApp } from '@/config/environment'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -58,18 +59,20 @@ try {
 initWebVitals(0.1) // 10% sampling rate
 initErrorReporting(0.5) // 50% sampling rate
 
-// Environment detection for mobile apps
-const isMobileApp = !!(window as any).Capacitor && (window as any).Capacitor.isNativePlatform;
+// Environment detection for Red Square platform
+const isCapacitorApp = isMobileApp();
 
 // Use HashRouter for Capacitor mobile apps, BrowserRouter for web
-const Router = isMobileApp ? HashRouter : BrowserRouter;
+const Router = isCapacitorApp ? HashRouter : BrowserRouter;
 
-console.log('App initialization:', {
-  isMobileApp,
+console.log(`🚀 ${ENVIRONMENT.APP_NAME} v${ENVIRONMENT.APP_VERSION} initializing...`);
+console.log('Platform configuration:', {
+  isCapacitorApp,
+  buildTarget: ENVIRONMENT.BUILD_TARGET,
+  isDevelopment: ENVIRONMENT.IS_DEVELOPMENT,
   pathname: window.location.pathname,
   hash: window.location.hash,
-  protocol: window.location.protocol,
-  router: isMobileApp ? 'HashRouter' : 'BrowserRouter'
+  router: isCapacitorApp ? 'HashRouter' : 'BrowserRouter'
 });
 
 // Add error event listener for debugging
@@ -97,7 +100,7 @@ createRoot(rootElement!).render(
         <I18nextProvider i18n={i18n}>
           <LanguageProvider>
             <AuthProvider>
-              <Suspense fallback={<LoadingFallback message="Loading..." />}>
+              <Suspense fallback={<LoadingFallback message={`Loading ${ENVIRONMENT.APP_NAME}...`} />}>
                 <App />
               </Suspense>
               <Toaster />
@@ -109,4 +112,4 @@ createRoot(rootElement!).render(
   </ErrorBoundary>
 );
 
-// React application initialized
+console.log(`✅ ${ENVIRONMENT.APP_NAME} initialized successfully`);

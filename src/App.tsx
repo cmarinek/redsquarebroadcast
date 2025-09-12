@@ -46,7 +46,6 @@ const DownloadApp = lazy(() => import("./pages/DownloadApp"));
 const ScreenOwnerMobile = lazy(() => import("./pages/ScreenOwnerMobile"));
 const RegionalSettings = lazy(() => import("./pages/RegionalSettings"));
 const SetupGuide = lazy(() => import("./pages/SetupGuide"));
-const WebApp = lazy(() => import("./pages/WebApp"));
 const RedSquareScreens = lazy(() => import("./pages/RedSquareScreens"));
 const SetupRedSquareScreen = lazy(() => import("./pages/SetupRedSquareScreen"));
 import AdminRoute from "@/components/routing/AdminRoute";
@@ -120,8 +119,7 @@ const App = () => {
               <Route path="/screen-owner-mobile" element={<ScreenOwnerMobile />} />
               <Route path="/mobile-app" element={<ScreenOwnerMobile />} /> {/* Legacy redirect */}
               <Route path="/regional-settings" element={<RegionalSettings />} />
-          <Route path="/web-app" element={<WebApp />} />
-          <Route path="/redsquare-screens" element={<RedSquareScreens />} />
+              <Route path="/redsquare-screens" element={<RedSquareScreens />} />
               <Route path="/setup-redsquare-screen" element={<SetupRedSquareScreen />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />

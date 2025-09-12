@@ -6,7 +6,7 @@ import { Dashboard } from "@/components/Dashboard";
 import { DeploymentGuide } from "@/components/deployment/DeploymentGuide";
 import { PlatformOverview } from "@/features/shared";
 import { useDeploymentStatus } from "@/hooks/useDeploymentStatus";
-
+import { ENVIRONMENT } from "@/config/environment";
 
 const Index = () => {
   useDeploymentStatus();
@@ -18,14 +18,18 @@ const Index = () => {
         <PlatformOverview />
         <Features />
         <HowItWorks />
+        
+        {/* Unified Dashboard - role-aware, no duplicates */}
         <Dashboard />
         
-        {/* Deployment Guide Section */}
-        <div className="py-20 bg-muted/30">
-          <div className="container mx-auto px-4">
-            <DeploymentGuide />
+        {/* Deployment Guide Section - showing Red Square platform capabilities */}
+        {ENVIRONMENT.IS_DEVELOPMENT && (
+          <div className="py-20 bg-muted/30">
+            <div className="container mx-auto px-4">
+              <DeploymentGuide />
+            </div>
           </div>
-        </div>
+        )}
       </Layout>
     </div>
   );
