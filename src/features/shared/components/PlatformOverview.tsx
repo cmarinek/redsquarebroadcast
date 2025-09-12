@@ -13,6 +13,12 @@ export const PlatformOverview = () => {
           <Badge className="mb-4 bg-primary/10 text-primary border-primary/20">
             Platform Architecture
           </Badge>
+          
+          {/* Subtitle from screenshot */}
+          <p className="text-lg text-muted-foreground max-w-4xl mx-auto mb-8">
+            Install RedSquare Screens on any device and start earning money by displaying content from advertisers and broadcasters.
+          </p>
+          
           <h2 className="text-3xl font-bold text-foreground mb-4">
             One Platform, Two Powerful Applications
           </h2>
