@@ -1,33 +1,11 @@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Play, Monitor, Smartphone, Upload, CheckCircle } from "lucide-react";
-import heroImage from "/lovable-uploads/901ca0b5-a900-440e-b16d-bdd30112cc94.png";
-import heroImageAlt from "@/assets/hero-screen.jpg";
+import heroImage from "@/assets/hero-screen.jpg";
 import { Link } from "react-router-dom";
 import { useTranslation } from 'react-i18next';
-import { useState, useEffect } from 'react';
-
 export const Hero = () => {
   const { t } = useTranslation();
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [isTransitioning, setIsTransitioning] = useState(false);
-  
-  const heroImages = [
-    { src: heroImage, alt: "Original futuristic RedSquare platform" },
-    { src: heroImageAlt, alt: "Professional office with digital screen display" }
-  ];
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setIsTransitioning(true);
-      setTimeout(() => {
-        setCurrentImageIndex((prev) => (prev + 1) % heroImages.length);
-        setIsTransitioning(false);
-      }, 800); // Slower transition duration
-    }, 10000); // Display each image for 10 seconds
-
-    return () => clearInterval(interval);
-  }, [heroImages.length]);
   
   return <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
       {/* Background with gradient overlay */}
@@ -99,32 +77,8 @@ export const Hero = () => {
           {/* Right Column - Hero Image */}
           <div className="relative">
             <div className="relative group">
-              <img 
-                src={heroImages[currentImageIndex].src} 
-                alt={heroImages[currentImageIndex].alt} 
-                className={`w-full h-auto rounded-2xl shadow-2xl transition-all duration-800 group-hover:scale-105 ${
-                  isTransitioning ? 'opacity-0' : 'opacity-100'
-                }`} 
-                decoding="async" 
-                sizes="(min-width: 1024px) 50vw, 100vw" 
-              />
+              <img src={heroImage} alt="Digital screen displaying content" className="w-full h-auto rounded-2xl shadow-2xl transition-transform duration-500 group-hover:scale-105" decoding="async" sizes="(min-width: 1024px) 50vw, 100vw" />
               <div className="absolute inset-0 bg-gradient-glow rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-              
-              {/* Image indicators */}
-              <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
-                {heroImages.map((_, index) => (
-                  <button
-                    key={index}
-                    onClick={() => setCurrentImageIndex(index)}
-                    className={`w-2 h-2 rounded-full transition-all duration-300 ${
-                      currentImageIndex === index 
-                        ? 'bg-primary scale-125' 
-                        : 'bg-white/50 hover:bg-white/80'
-                    }`}
-                    aria-label={`View hero image ${index + 1}`}
-                  />
-                ))}
-              </div>
             </div>
 
             {/* Floating UI elements */}
