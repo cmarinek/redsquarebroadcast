@@ -1,8 +1,8 @@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Play, Monitor, Smartphone, Upload, CheckCircle } from "lucide-react";
-import heroImage from "@/assets/hero-screen.jpg";
-import heroImageAlt from "@/assets/hero-redsquare.jpg";
+import heroImage from "/lovable-uploads/901ca0b5-a900-440e-b16d-bdd30112cc94.png";
+import heroImageAlt from "/lovable-uploads/fde5225e-2841-4fa5-8e8d-341970e467d2.png";
 import { Link } from "react-router-dom";
 import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from 'react';
@@ -13,8 +13,8 @@ export const Hero = () => {
   const [isTransitioning, setIsTransitioning] = useState(false);
   
   const heroImages = [
-    { src: heroImage, alt: "Digital screen displaying content" },
-    { src: heroImageAlt, alt: "RedSquare advertising platform" }
+    { src: heroImage, alt: "RedSquare platform showcase" },
+    { src: heroImageAlt, alt: "Digital advertising network" }
   ];
 
   useEffect(() => {
@@ -23,8 +23,8 @@ export const Hero = () => {
       setTimeout(() => {
         setCurrentImageIndex((prev) => (prev + 1) % heroImages.length);
         setIsTransitioning(false);
-      }, 150); // Half of transition duration
-    }, 4000); // Change every 4 seconds
+      }, 800); // Slower transition duration
+    }, 10000); // Display each image for 10 seconds
 
     return () => clearInterval(interval);
   }, [heroImages.length]);
@@ -102,8 +102,8 @@ export const Hero = () => {
               <img 
                 src={heroImages[currentImageIndex].src} 
                 alt={heroImages[currentImageIndex].alt} 
-                className={`w-full h-auto rounded-2xl shadow-2xl transition-all duration-300 group-hover:scale-105 ${
-                  isTransitioning ? 'opacity-0 scale-95' : 'opacity-100 scale-100'
+                className={`w-full h-auto rounded-2xl shadow-2xl transition-all duration-800 group-hover:scale-105 ${
+                  isTransitioning ? 'opacity-0' : 'opacity-100'
                 }`} 
                 decoding="async" 
                 sizes="(min-width: 1024px) 50vw, 100vw" 
