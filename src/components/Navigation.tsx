@@ -152,9 +152,11 @@ export const Navigation = () => {
                     
                     {/* Help & Guides */}
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={() => setShowAdvertiserOnboarding(true)}>
-                      <HelpCircle className="w-4 h-4 mr-2" />
-                      Help & Guides
+                    <DropdownMenuItem asChild>
+                      <Link to="/how-it-works" className="flex items-center">
+                        <HelpCircle className="w-4 h-4 mr-2" />
+                        Help & Guides
+                      </Link>
                     </DropdownMenuItem>
                     
                     <DropdownMenuSeparator />

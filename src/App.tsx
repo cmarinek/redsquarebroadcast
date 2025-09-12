@@ -6,6 +6,7 @@ import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
 import { Footer } from "@/components/Footer";
 import { Navigation } from "@/components/Navigation";
 import { StatusIndicator } from "@/components/StatusIndicator";
+import { ContextualNavigation } from "@/features/shared";
 
 import { assets } from "@/utils/assets";
 
@@ -80,6 +81,7 @@ const App = () => {
       }>
         <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
           <Navigation />
+          <ContextualNavigation />
           <StatusIndicator />
           <main className="pt-16">
             <Routes>
