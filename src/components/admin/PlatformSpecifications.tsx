@@ -10,7 +10,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 
-type Platform = 'redsquare_android' | 'redsquare_ios' | 'redsquare_web' | 'screens_android_tv' | 'screens_android_mobile' | 'screens_ios' | 'screens_windows' | 'screens_macos' | 'screens_linux' | 'screens_amazon_fire' | 'screens_roku' | 'screens_samsung_tizen' | 'screens_lg_webos' | 'system_test';
+type Platform = 'redsquare_android' | 'redsquare_ios' | 'redsquare_web' | 'screens_android_tv' | 'screens_android_mobile' | 'screens_ios' | 'screens_amazon_fire' | 'screens_roku' | 'screens_samsung_tizen' | 'screens_lg_webos' | 'system_test';
 
 interface PlatformSpec {
   icon: React.ComponentType<any>;
@@ -320,133 +320,6 @@ const PLATFORM_SPECIFICATIONS: Record<Platform, PlatformSpec> = {
       massSideload: false,
       remoteManagement: true,
       updateMechanism: 'App Store or enterprise distribution'
-    }
-  },
-  screens_windows: {
-    icon: Monitor,
-    name: "RedSquare Screens (Windows)",
-    description: "Content display app for Windows-based screens",
-    category: 'screens',
-    status: 'stable',
-    fileExtension: 'exe',
-    fileSize: '~80MB installer',
-    technical: {
-      buildSystem: 'Electron + Windows SDK',
-      runtime: 'Electron/Chromium',
-      architecture: ['x64', 'arm64'],
-      frameworks: ['React', 'Electron', 'Windows APIs']
-    },
-    requirements: {
-      os: ['Windows 10 (1809+)', 'Windows 11'],
-      ram: '4GB minimum, 8GB recommended',
-      storage: '2GB free space',
-      network: 'Ethernet or WiFi connection',
-      display: '1280x720 minimum, 4K supported',
-      hardware: ['Hardware video acceleration recommended']
-    },
-    installation: {
-      methods: ['MSI installer', 'Portable executable', 'Group Policy deployment'],
-      complexity: 'easy'
-    },
-    features: {
-      core: ['Full-screen kiosk mode', 'Multi-monitor support', 'Hardware acceleration', 'Auto-start'],
-      platformSpecific: ['Windows services integration', 'Group Policy support', 'DirectX acceleration', 'UWP notifications'],
-      limitations: ['Requires Windows defender exclusions for optimal performance']
-    },
-    compatibility: {
-      devices: ['Desktop PCs', 'All-in-one computers', 'Mini PCs', 'Digital signage players'],
-      versions: ['Windows 10 (1809+)', 'Windows 11 all versions'],
-      tested: ['Intel NUC', 'Dell OptiPlex', 'HP Elite series', 'Lenovo ThinkCentre']
-    },
-    deployment: {
-      enterprise: true,
-      massSideload: false,
-      remoteManagement: true,
-      updateMechanism: 'Auto-updater or MSI deployment'
-    }
-  },
-  screens_macos: {
-    icon: Monitor,
-    name: "RedSquare Screens (macOS)",
-    description: "Content display app for macOS-based screens",
-    category: 'screens',
-    status: 'beta',
-    fileExtension: 'dmg',
-    fileSize: '~120MB disk image',
-    technical: {
-      buildSystem: 'Electron + Xcode tools',
-      runtime: 'Electron/Chromium',
-      architecture: ['x64', 'arm64 (Apple Silicon)'],
-      frameworks: ['React', 'Electron', 'macOS APIs']
-    },
-    requirements: {
-      os: ['macOS 10.15+', 'macOS Big Sur+', 'macOS Monterey+'],
-      ram: '4GB minimum, 8GB recommended',
-      storage: '2GB free space',
-      network: 'WiFi or Ethernet connection',
-      display: '1280x800 minimum, Retina supported'
-    },
-    installation: {
-      methods: ['DMG installer', 'Mac App Store (future)', 'Enterprise deployment'],
-      complexity: 'easy'
-    },
-    features: {
-      core: ['Full-screen display', 'Multi-display support', 'Retina optimization', 'Menu bar integration'],
-      platformSpecific: ['Touch Bar support', 'macOS notifications', 'Spotlight integration', 'AirPlay receiver'],
-      limitations: ['Gatekeeper may require manual approval', 'Notarization required for distribution']
-    },
-    compatibility: {
-      devices: ['MacBook Pro/Air', 'iMac', 'Mac mini', 'Mac Studio', 'Mac Pro'],
-      versions: ['macOS 10.15 - 14.0'],
-      tested: ['MacBook Pro (Intel/M1/M2)', 'iMac 24-inch', 'Mac mini M1/M2']
-    },
-    deployment: {
-      enterprise: true,
-      massSideload: false,
-      remoteManagement: true,
-      updateMechanism: 'Auto-updater or App Store'
-    }
-  },
-  screens_linux: {
-    icon: Monitor,
-    name: "RedSquare Screens (Linux)",
-    description: "Content display app for Linux-based screens",
-    category: 'screens',
-    status: 'beta',
-    fileExtension: 'AppImage',
-    fileSize: '~90MB AppImage',
-    technical: {
-      buildSystem: 'Electron + Linux build tools',
-      runtime: 'Electron/Chromium',
-      architecture: ['x64', 'arm64'],
-      frameworks: ['React', 'Electron', 'Linux APIs']
-    },
-    requirements: {
-      os: ['Ubuntu 18.04+', 'Debian 10+', 'CentOS 8+', 'Fedora 32+'],
-      ram: '4GB minimum, 8GB recommended',
-      storage: '2GB free space',
-      network: 'Network connection required',
-      display: 'X11 or Wayland display server'
-    },
-    installation: {
-      methods: ['AppImage (portable)', 'DEB package', 'RPM package', 'Snap package'],
-      complexity: 'moderate'
-    },
-    features: {
-      core: ['Full-screen kiosk mode', 'Multi-monitor support', 'Auto-start with systemd', 'Hardware acceleration'],
-      platformSpecific: ['Systemd integration', 'D-Bus notifications', 'Wayland support', 'GTK theming'],
-      limitations: ['May require additional codecs for some video formats']
-    },
-    compatibility: {
-      devices: ['Desktop PCs', 'Single-board computers', 'Raspberry Pi 4+', 'Industrial PCs'],
-      versions: ['Ubuntu 18.04+', 'Debian 10+', 'RHEL 8+', 'Arch Linux'],
-      tested: ['Ubuntu 20.04/22.04', 'Raspberry Pi OS', 'CentOS 8', 'Fedora 36+']
-    },
-    deployment: {
-      enterprise: true,
-      massSideload: false,
-      remoteManagement: true,
-      updateMechanism: 'Package manager or AppImage update'
     }
   },
   screens_amazon_fire: {

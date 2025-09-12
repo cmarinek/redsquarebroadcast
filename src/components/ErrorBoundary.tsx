@@ -25,19 +25,6 @@ export class ErrorBoundary extends Component<Props, State> {
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     console.error('ErrorBoundary caught an error:', error, errorInfo);
     
-    // Enhanced logging for Electron environment
-    const isElectron = !!(window as any).electronAPI || !!(window as any).require || navigator.userAgent.indexOf('Electron') !== -1;
-    if (isElectron) {
-      console.error('Running in Electron environment - Error details:', {
-        error: error.message,
-        stack: error.stack,
-        componentStack: errorInfo.componentStack,
-        userAgent: navigator.userAgent,
-        location: window.location.href,
-        timestamp: Date.now()
-      });
-    }
-    
     // Report to error tracking service
     if (typeof window !== 'undefined') {
       window.dispatchEvent(new CustomEvent('app-error', {
@@ -45,8 +32,7 @@ export class ErrorBoundary extends Component<Props, State> {
           error: error.message,
           stack: error.stack,
           componentStack: errorInfo.componentStack,
-          timestamp: Date.now(),
-          isElectron
+          timestamp: Date.now()
         }
       }));
     }
@@ -79,7 +65,7 @@ export class ErrorBoundary extends Component<Props, State> {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              {(process.env.NODE_ENV === 'development' || navigator.userAgent.indexOf('Electron') !== -1) && this.state.error && (
+              {process.env.NODE_ENV === 'development' && this.state.error && (
                 <div className="p-3 bg-muted rounded text-sm font-mono text-xs overflow-auto max-h-32">
                   <div>Error: {this.state.error.message}</div>
                   {this.state.error.stack && (

@@ -19,9 +19,6 @@ export const LoadingFallback = ({ message = "Loading..." }: { message?: string }
       <div className="flex flex-col items-center gap-4">
         <LoadingSpinner size="lg" />
         <p className="text-sm text-muted-foreground">{message}</p>
-        <div className="text-xs opacity-50">
-          App Environment: {navigator.userAgent.indexOf('Electron') !== -1 ? 'Electron' : 'Web'}
-        </div>
       </div>
     </div>
   );

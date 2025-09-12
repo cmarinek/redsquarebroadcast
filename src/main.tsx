@@ -58,29 +58,19 @@ try {
 initWebVitals(0.1) // 10% sampling rate
 initErrorReporting(0.5) // 50% sampling rate
 
-// Enhanced environment detection
+// Environment detection for mobile apps
 const isMobileApp = !!(window as any).Capacitor && (window as any).Capacitor.isNativePlatform;
-const isElectron = !!(window as any).electronAPI || !!(window as any).require || navigator.userAgent.indexOf('Electron') !== -1;
 
-// Use HashRouter for file:// protocols and Capacitor/Electron apps
-const isFileProtocol = window.location.protocol === 'file:';
-const shouldUseHashRouter = isFileProtocol || isMobileApp || isElectron;
-const Router = shouldUseHashRouter ? HashRouter : BrowserRouter;
-
-// App will handle internal routing - no conditional app swapping here
+// Use HashRouter for Capacitor mobile apps, BrowserRouter for web
+const Router = isMobileApp ? HashRouter : BrowserRouter;
 
 console.log('App initialization:', {
   isMobileApp,
-  isElectron,
   pathname: window.location.pathname,
   hash: window.location.hash,
-  userAgent: navigator.userAgent,
   protocol: window.location.protocol,
-  shouldUseHashRouter,
-  Router: shouldUseHashRouter ? 'HashRouter' : 'BrowserRouter'
+  router: isMobileApp ? 'HashRouter' : 'BrowserRouter'
 });
-
-// Environment detection completed
 
 // Add error event listener for debugging
 window.addEventListener('error', (event) => {
@@ -90,23 +80,6 @@ window.addEventListener('error', (event) => {
 window.addEventListener('unhandledrejection', (event) => {
   console.error('Unhandled promise rejection:', event.reason);
 });
-
-// Add CSS loading check for Electron
-if (isElectron) {
-  // Checking CSS variables in Electron
-  const checkCSS = () => {
-    const computedStyle = getComputedStyle(document.documentElement);
-    const bgColor = computedStyle.getPropertyValue('--background');
-    // CSS variables validated
-    
-    if (!bgColor) {
-      console.warn('CSS variables not loaded properly');
-    }
-  };
-  
-  // Check CSS after a short delay
-  setTimeout(checkCSS, 100);
-}
 
 // Starting React application
 

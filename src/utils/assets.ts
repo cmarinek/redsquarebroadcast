@@ -1,15 +1,9 @@
 /**
  * Asset resolution utility for different runtime environments
- * Handles file:// protocols, Capacitor apps, and Electron applications
+ * Handles Capacitor mobile apps
  */
 
 const isCapacitor = typeof window !== 'undefined' && !!(window as any).Capacitor;
-const isElectron = typeof window !== 'undefined' && (
-  !!(window as any).electronAPI || 
-  !!(window as any).require || 
-  (typeof navigator !== 'undefined' && navigator.userAgent.includes('Electron'))
-);
-const isFileProtocol = typeof window !== 'undefined' && window.location.protocol === 'file:';
 
 /**
  * Resolves asset paths for different environments
@@ -22,11 +16,6 @@ export function resolveAsset(path: string): string {
   
   // For Capacitor apps, use the bundled assets
   if (isCapacitor) {
-    return `./${relativePath}`;
-  }
-  
-  // For Electron or file:// protocol, use relative paths
-  if (isElectron || isFileProtocol) {
     return `./${relativePath}`;
   }
   
