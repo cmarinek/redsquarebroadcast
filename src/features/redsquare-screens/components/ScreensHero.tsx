@@ -32,7 +32,7 @@ export const ScreensHero = () => {
             </div>
             
             <h1 className="text-5xl lg:text-7xl font-bold mb-6 leading-tight">
-              <span className="text-foreground text-6xl">Turn Any Screen</span>
+              <span className="text-foreground text-6xl">Turn Your Screens</span>
               <br />
               <span className="bg-gradient-primary bg-clip-text text-transparent text-6xl">Into Revenue</span>
             </h1>
