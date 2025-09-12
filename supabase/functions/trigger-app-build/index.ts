@@ -75,7 +75,24 @@ serve(async (req) => {
 
     console.log("✅ Admin access confirmed");
 
-    const allowedAppTypes = ['redsquare_android', 'redsquare_ios', 'redsquare_web', 'screens_android_tv', 'screens_android_mobile', 'screens_ios', 'screens_windows', 'screens_macos', 'screens_linux', 'screens_amazon_fire', 'screens_roku', 'screens_samsung_tizen', 'screens_lg_webos'] as const;
+    const allowedAppTypes = [
+      'redsquare_android', 
+      'redsquare_ios', 
+      'redsquare_web',
+      // Screen applications - Mobile platforms 
+      'screens_android_mobile', 
+      'screens_ios',
+      // Screen applications - TV platforms
+      'screens_android_tv', 
+      'screens_amazon_fire', 
+      'screens_roku', 
+      'screens_samsung_tizen', 
+      'screens_lg_webos',
+      // Screen applications - Desktop platforms
+      'screens_windows', 
+      'screens_macos', 
+      'screens_linux'
+    ] as const;
     type AppType = typeof allowedAppTypes[number];
 
     let requestBody;

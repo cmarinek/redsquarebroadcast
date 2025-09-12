@@ -1,0 +1,134 @@
+{
+  "appId": "com.redsquare.screens",
+  "productName": "RedSquare Screens",
+  "copyright": "Copyright © 2024 RedSquare",
+  "directories": {
+    "output": "dist-electron",
+    "assets": "assets"
+  },
+  "files": [
+    "dist/**/*",
+    "electron/**/*",
+    "node_modules/**/*",
+    "public/icon-*.png"
+  ],
+  "extraResources": [
+    {
+      "from": "public/",
+      "to": "public/",
+      "filter": ["icon-*.png", "manifest.json"]
+    }
+  ],
+  "win": {
+    "target": [
+      {
+        "target": "nsis",
+        "arch": ["x64", "arm64"]
+      },
+      {
+        "target": "portable",
+        "arch": ["x64"]
+      },
+      {
+        "target": "7z",
+        "arch": ["x64", "arm64"]
+      }
+    ],
+    "icon": "public/icon-512x512.png",
+    "requestedExecutionLevel": "asInvoker",
+    "artifactName": "${productName}-${version}-${os}-${arch}.${ext}"
+  },
+  "mac": {
+    "target": [
+      {
+        "target": "dmg",
+        "arch": ["x64", "arm64"]
+      },
+      {
+        "target": "zip",
+        "arch": ["x64", "arm64"]
+      }
+    ],
+    "icon": "assets/dmg-background.png",
+    "category": "public.app-category.business",
+    "artifactName": "${productName}-${version}-${os}-${arch}.${ext}",
+    "hardenedRuntime": true,
+    "entitlements": "assets/entitlements.mac.plist",
+    "entitlementsInherit": "assets/entitlements.mac.plist"
+  },
+  "linux": {
+    "target": [
+      {
+        "target": "AppImage",
+        "arch": ["x64", "arm64"]
+      },
+      {
+        "target": "snap",
+        "arch": ["x64"]
+      },
+      {
+        "target": "deb",
+        "arch": ["x64", "arm64"]
+      }
+    ],
+    "icon": "public/icon-512x512.png",
+    "category": "Office",
+    "artifactName": "${productName}-${version}-${os}-${arch}.${ext}",
+    "desktop": {
+      "Name": "RedSquare Screens",
+      "Comment": "Digital signage and screen management application",
+      "Categories": "Office;Presentation;AudioVideo;",
+      "Keywords": "digital;signage;display;screen;broadcast;"
+    }
+  },
+  "nsis": {
+    "oneClick": false,
+    "allowElevation": true,
+    "allowToChangeInstallationDirectory": true,
+    "createDesktopShortcut": true,
+    "createStartMenuShortcut": true,
+    "installerIcon": "public/icon-512x512.png",
+    "uninstallerIcon": "public/icon-512x512.png",
+    "installerHeaderIcon": "public/icon-512x512.png",
+    "deleteAppDataOnUninstall": true
+  },
+  "dmg": {
+    "background": "assets/dmg-background.png",
+    "iconSize": 100,
+    "contents": [
+      {
+        "x": 380,
+        "y": 280,
+        "type": "link",
+        "path": "/Applications"
+      },
+      {
+        "x": 110,
+        "y": 280,
+        "type": "file"
+      }
+    ],
+    "window": {
+      "width": 500,
+      "height": 400
+    }
+  },
+  "snap": {
+    "grade": "stable",
+    "confinement": "strict",
+    "plugs": [
+      "default",
+      "network",
+      "network-bind",
+      "audio-playback",
+      "screen-inhibit-control",
+      "browser-support"
+    ]
+  },
+  "publish": {
+    "provider": "generic",
+    "url": "https://releases.redsquare.com/"
+  },
+  "compression": "maximum",
+  "buildVersion": "1.0.0"
+}

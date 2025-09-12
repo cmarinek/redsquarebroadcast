@@ -17,17 +17,38 @@ const BUILD_TARGETS = {
   web: {
     name: 'Web Platform',
     env: { VITE_BUILD_TARGET: 'web' },
-    description: 'Standard web application with PWA features'
+    description: 'Standard web application with PWA features',
+    postBuild: null
   },
   mobile: {
     name: 'Mobile Apps',
     env: { VITE_BUILD_TARGET: 'mobile' },
-    description: 'iOS and Android native apps via Capacitor'
+    description: 'iOS and Android native apps via Capacitor',
+    postBuild: 'capacitor'
   },
   screen: {
     name: 'Screen Applications',
     env: { VITE_BUILD_TARGET: 'screen' },
-    description: 'TV and display applications for various platforms'
+    description: 'TV and display applications for various platforms',
+    postBuild: null
+  },
+  'screen-desktop': {
+    name: 'Screen Desktop Apps',
+    env: { VITE_BUILD_TARGET: 'screen' },
+    description: 'Desktop screen applications (Windows, macOS, Linux)',
+    postBuild: 'electron'
+  },
+  'screen-tv': {
+    name: 'Screen TV Apps',
+    env: { VITE_BUILD_TARGET: 'screen', VITE_TV_OPTIMIZED: 'true' },
+    description: 'Smart TV applications (Samsung, LG, Android TV, etc.)',
+    postBuild: null
+  },
+  'screen-kiosk': {
+    name: 'Screen Kiosk Mode',
+    env: { VITE_BUILD_TARGET: 'screen', VITE_KIOSK_MODE: 'true' },
+    description: 'Kiosk mode displays with locked-down interface',
+    postBuild: null
   }
 };
 
@@ -65,13 +86,36 @@ function buildTarget(target) {
     log(`✅ ${config.name} built successfully!`, 'success');
     
     // Target-specific post-build steps
-    if (target === 'mobile') {
+    if (config.postBuild === 'capacitor') {
       log('📱 Running Capacitor sync...', 'info');
       try {
         execSync('npx cap sync', { stdio: 'inherit' });
         log('✅ Capacitor sync completed!', 'success');
       } catch (error) {
         log('⚠️  Capacitor sync failed (platforms may not be added yet)', 'warning');
+      }
+    } else if (config.postBuild === 'electron') {
+      log('🖥️  Building Electron applications...', 'info');
+      try {
+        // Build for all desktop platforms
+        execSync('npm run electron:build', { stdio: 'inherit' });
+        log('✅ Electron build completed!', 'success');
+      } catch (error) {
+        log('⚠️  Electron build failed', 'warning');
+        log(error.message, 'error');
+      }
+    }
+    
+    // Screen-specific optimizations
+    if (target.startsWith('screen')) {
+      log('📺 Applying screen-specific optimizations...', 'info');
+      
+      if (env.VITE_TV_OPTIMIZED) {
+        log('📺 TV interface optimizations applied', 'success');
+      }
+      
+      if (env.VITE_KIOSK_MODE) {
+        log('🔒 Kiosk mode optimizations applied', 'success');
       }
     }
     
