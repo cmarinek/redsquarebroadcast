@@ -9,9 +9,12 @@ export default defineConfig(({ mode }) => {
   const isTVOptimized = process.env.VITE_TV_OPTIMIZED === 'true';
   const isKioskMode = process.env.VITE_KIOSK_MODE === 'true';
   const isScreenTarget = buildTarget === 'screen';
+  const isMobileTarget = buildTarget === 'mobile';
+  const isElectronTarget = buildTarget === 'electron';
   
   return {
-    base: '/',
+    // Use relative base for mobile and electron builds, absolute for web
+    base: (isMobileTarget || isElectronTarget) ? './' : '/',
     define: {
       'process.env.NODE_ENV': JSON.stringify(mode),
       'import.meta.env.VITE_BUILD_TARGET': JSON.stringify(buildTarget),

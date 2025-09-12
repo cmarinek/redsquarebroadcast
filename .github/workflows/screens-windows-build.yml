@@ -68,41 +68,36 @@ jobs:
         run: npm install
 
       - name: Build Web App
-        run: npm run build
+        run: npm run build:electron
 
       - name: Build Desktop App
         run: |
           Write-Host "Building Electron app with optimizations..."
           
-          # Ensure release directory exists
-          if (-not (Test-Path "release")) {
-            New-Item -ItemType Directory -Path "release" -Force
-            Write-Host "Created release directory"
+          # Run electron builder for Windows
+          npm run electron:build:win -- --config electron-builder.json --config.compression=maximum
           }
           
           try {
-            # Build with optimizations to reduce file size
-            npm run electron:build -- --win --x64 --config electron-builder.json --config.compression=maximum --config.nsis.differentialPackage=false
-            
             Write-Host "Build command completed. Checking output..."
             
-            # List all files in release directory for debugging
-            if (Test-Path "release") {
-              Write-Host "Contents of release directory:"
-              Get-ChildItem -Path "release" -Recurse | ForEach-Object {
+            # List all files in dist-electron directory for debugging
+            if (Test-Path "dist-electron") {
+              Write-Host "Contents of dist-electron directory:"
+              Get-ChildItem -Path "dist-electron" -Recurse | ForEach-Object {
                 Write-Host "  $($_.FullName) ($(if($_.PSIsContainer){'Directory'}else{[math]::Round($_.Length/1MB,2).ToString() + ' MB'}))"
               }
             } else {
-              Write-Error "Release directory was not created by build process"
+              Write-Error "dist-electron directory was not created by build process"
               exit 1
             }
             
             # Check if build was successful
-            $file = Get-ChildItem -Path release -Filter "*.exe" | Select-Object -First 1
+            $file = Get-ChildItem -Path dist-electron -Filter "*.exe" | Select-Object -First 1
             if (-not $file) {
-              Write-Error "No executable file found in release directory. Build may have failed."
+              Write-Error "No executable file found in dist-electron directory. Build may have failed."
               Write-Host "Available files:"
-              Get-ChildItem -Path release -File | ForEach-Object { Write-Host "  $($_.Name)" }
+              Get-ChildItem -Path dist-electron -File | ForEach-Object { Write-Host "  $($_.Name)" }
               exit 1
             }
             

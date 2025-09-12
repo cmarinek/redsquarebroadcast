@@ -66,23 +66,23 @@ jobs:
           rm -rf release/ dist-electron/ || true
           
           # Run the build
-          npm run electron:build -- --linux --x64 --config electron-builder.json --config.compression=maximum
+          npm run electron:build:linux -- --config electron-builder.json --config.compression=maximum
           
-          # Check if release directory exists
-          if [ ! -d "release" ]; then
-            echo "❌ Release directory was not created"
-            echo "Available directories:"
-            ls -la
-            exit 1
-          fi
-          
-          # Check if build was successful
-          if [ ! -f release/*.AppImage ]; then
-            echo "❌ No AppImage file found in release directory"
-            echo "Contents of release directory:"
-            ls -la release/ || echo "Release directory is empty or doesn't exist"
-            exit 1
-          fi
+            # Check if release directory exists
+            if [ ! -d "dist-electron" ]; then
+              echo "❌ dist-electron directory was not created"
+              echo "Available directories:"
+              ls -la
+              exit 1
+            fi
+            
+            # Check if build was successful
+            if [ ! -f dist-electron/*.AppImage ]; then
+              echo "❌ No AppImage file found in dist-electron directory"
+              echo "Contents of dist-electron directory:"
+              ls -la dist-electron/ || echo "dist-electron directory is empty or doesn't exist"
+              exit 1
+            fi
           
           echo "✅ AppImage build completed successfully"
           
@@ -103,12 +103,12 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: screens-linux-app
-          path: release/*.AppImage
+          path: dist-electron/*.AppImage
 
       - name: Create GitHub Release and Upload AppImage
         id: upload_appimage
         run: |
-          FILE_PATH=$(ls release/*.AppImage | head -1)
+          FILE_PATH=$(ls dist-electron/*.AppImage | head -1)
           if [ -z "$FILE_PATH" ]; then
             echo "No AppImage file found"
             exit 1

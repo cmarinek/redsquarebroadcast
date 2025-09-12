@@ -66,28 +66,28 @@ jobs:
           rm -rf release/ dist-electron/ || true
           
           # Run the build
-          npm run electron:build -- --mac --x64 --config electron-builder.json --config.compression=maximum
+          npm run electron:build:mac -- --config electron-builder.json --config.compression=maximum
           
           # Check if release directory exists
-          if [ ! -d "release" ]; then
-            echo "❌ Release directory was not created"
+          if [ ! -d "dist-electron" ]; then
+            echo "❌ Electron dist directory was not created"
             echo "Available directories:"
             ls -la
             exit 1
           fi
           
           # Check if build was successful
-          if [ ! -f release/*.dmg ]; then
-            echo "❌ No DMG file found in release directory"
-            echo "Contents of release directory:"
-            ls -la release/ || echo "Release directory is empty or doesn't exist"
+          if [ ! -f dist-electron/*.dmg ]; then
+            echo "❌ No DMG file found in dist-electron directory"
+            echo "Contents of dist-electron directory:"
+            ls -la dist-electron/ || echo "dist-electron directory is empty or doesn't exist"
             exit 1
           fi
           
           echo "✅ DMG build completed successfully"
           
           # Check file size
-          file=$(ls release/*.dmg | head -1)
+          file=$(ls dist-electron/*.dmg | head -1)
           fileSize=$(stat -f%z "$file")
           fileSizeMB=$((fileSize / 1024 / 1024))
           echo "Built DMG size: ${fileSizeMB}MB"
@@ -103,12 +103,12 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: screens-macos-app
-          path: release/*.dmg
+          path: dist-electron/*.dmg
 
       - name: Create GitHub Release and Upload DMG
         id: upload_dmg
         run: |
-          FILE_PATH=$(ls release/*.dmg | head -1)
+          FILE_PATH=$(ls dist-electron/*.dmg | head -1)
           if [ -z "$FILE_PATH" ]; then
             echo "No DMG file found"
             exit 1
