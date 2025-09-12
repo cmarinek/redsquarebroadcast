@@ -82,39 +82,31 @@ window.addEventListener('unhandledrejection', (event) => {
 });
 
 // Starting React application
-console.log('🚀 Starting React application initialization...');
 
 const rootElement = document.getElementById("root");
 if (!rootElement) {
-  console.error('❌ Root element not found!');
+  console.error('Root element not found!');
 } else {
-  console.log('✅ Root element found, preparing React mount...');
+  // Root element ready for React mounting
 }
 
-console.log('🔄 Rendering React application...');
-
-try {
-  createRoot(rootElement!).render(
-    <ErrorBoundary>
-      <QueryClientProvider client={queryClient}>
-        <Router>
-          <I18nextProvider i18n={i18n}>
-            <LanguageProvider>
-              <AuthProvider>
-                <Suspense fallback={<LoadingFallback message="Loading..." />}>
-                  <App />
-                </Suspense>
-                <Toaster />
-              </AuthProvider>
-            </LanguageProvider>
-          </I18nextProvider>
-        </Router>
-      </QueryClientProvider>
-    </ErrorBoundary>
-  );
-  console.log('✅ React application rendered successfully!');
-} catch (error) {
-  console.error('❌ Failed to render React application:', error);
-}
+createRoot(rootElement!).render(
+  <ErrorBoundary>
+    <QueryClientProvider client={queryClient}>
+      <Router>
+        <I18nextProvider i18n={i18n}>
+          <LanguageProvider>
+            <AuthProvider>
+              <Suspense fallback={<LoadingFallback message="Loading..." />}>
+                <App />
+              </Suspense>
+              <Toaster />
+            </AuthProvider>
+          </LanguageProvider>
+        </I18nextProvider>
+      </Router>
+    </QueryClientProvider>
+  </ErrorBoundary>
+);
 
 // React application initialized

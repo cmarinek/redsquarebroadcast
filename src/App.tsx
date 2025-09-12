@@ -52,10 +52,8 @@ const SetupRedSquareScreen = lazy(() => import("./pages/SetupRedSquareScreen"));
 import AdminRoute from "@/components/routing/AdminRoute";
 
 const App = () => {
-  console.log('🎯 App component initializing...');
   const navigate = useNavigate();
   const location = useLocation();
-  console.log('📍 Current location:', location.pathname);
 
 
   
