@@ -55,6 +55,9 @@ const App = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
+  useEffect(() => {
+    console.log('Route changed:', location.pathname);
+  }, [location.pathname]);
 
   
   return (

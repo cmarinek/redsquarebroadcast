@@ -7,16 +7,7 @@ interface LayoutProps {
   className?: string;
 }
 
-export const Layout = ({ children, className = "" }: LayoutProps) => {
-  return (
-    <div 
-      className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20"
-    >
-      <Navigation />
-      <StatusIndicator />
-      <main className={`pt-16 ${className}`} style={{ paddingTop: '4rem' }}>
-        {children}
-      </main>
-    </div>
-  );
+export const Layout = ({ children }: LayoutProps) => {
+  // Deprecated wrapper: App.tsx now provides global layout (Navigation, StatusIndicator, main)
+  return <>{children}</>;
 };
