@@ -1,7 +1,7 @@
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
 export const LoadingFallback = ({ message = "Loading..." }: { message?: string }) => {
-  // LoadingFallback rendered: ${message}
+  console.log('LoadingFallback rendered:', message);
   
   return (
     <div 

@@ -1,30 +1,24 @@
 import { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'com.redsquare.screens',
-  appName: 'RedSquare Screens',
+  appId: 'com.redsquare.broadcast',
+  appName: 'redsquarebroadcast',
   webDir: 'dist',
-  ...(process.env.CAP_SERVER_URL && {
-    server: {
-      url: process.env.CAP_SERVER_URL,
-      cleartext: true
-    }
-  }),
   plugins: {
     SplashScreen: {
-      launchShowDuration: 2000,
+      launchShowDuration: 3000,
       launchAutoHide: true,
-      backgroundColor: "#0a0a0a",
+      backgroundColor: "#DC2626",
       androidSplashResourceName: "splash",
       androidScaleType: "CENTER_CROP",
-      showSpinner: true,
+      showSpinner: false,
       androidSpinnerStyle: "large",
       iosSpinnerStyle: "small",
       spinnerColor: "#ffffff",
       splashFullScreen: true,
       splashImmersive: true,
       layoutName: "launch_screen",
-      useDialog: false,
+      useDialog: true,
     },
   },
 };

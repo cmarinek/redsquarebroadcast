@@ -804,109 +804,6 @@ export type Database = {
         }
         Relationships: []
       }
-      deployment_backups: {
-        Row: {
-          backup_location: string | null
-          backup_type: string
-          completed_at: string | null
-          created_at: string
-          deployment_id: string | null
-          file_size: number | null
-          id: string
-          status: string
-        }
-        Insert: {
-          backup_location?: string | null
-          backup_type: string
-          completed_at?: string | null
-          created_at?: string
-          deployment_id?: string | null
-          file_size?: number | null
-          id?: string
-          status?: string
-        }
-        Update: {
-          backup_location?: string | null
-          backup_type?: string
-          completed_at?: string | null
-          created_at?: string
-          deployment_id?: string | null
-          file_size?: number | null
-          id?: string
-          status?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "deployment_backups_deployment_id_fkey"
-            columns: ["deployment_id"]
-            isOneToOne: false
-            referencedRelation: "deployments"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      deployments: {
-        Row: {
-          branch: string | null
-          commit_hash: string
-          completed_at: string | null
-          config: Json | null
-          created_at: string
-          deployed_at: string | null
-          environment: string
-          id: string
-          is_rollback: boolean | null
-          logs: string | null
-          rollback_from: string | null
-          started_at: string
-          status: string
-          updated_at: string
-          version: string
-        }
-        Insert: {
-          branch?: string | null
-          commit_hash: string
-          completed_at?: string | null
-          config?: Json | null
-          created_at?: string
-          deployed_at?: string | null
-          environment: string
-          id?: string
-          is_rollback?: boolean | null
-          logs?: string | null
-          rollback_from?: string | null
-          started_at?: string
-          status?: string
-          updated_at?: string
-          version: string
-        }
-        Update: {
-          branch?: string | null
-          commit_hash?: string
-          completed_at?: string | null
-          config?: Json | null
-          created_at?: string
-          deployed_at?: string | null
-          environment?: string
-          id?: string
-          is_rollback?: boolean | null
-          logs?: string | null
-          rollback_from?: string | null
-          started_at?: string
-          status?: string
-          updated_at?: string
-          version?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "deployments_rollback_from_fkey"
-            columns: ["rollback_from"]
-            isOneToOne: false
-            referencedRelation: "deployments"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       device_commands: {
         Row: {
           command: string
@@ -1547,6 +1444,7 @@ export type Database = {
           has_completed_advertiser_onboarding: boolean
           has_completed_broadcaster_onboarding: boolean
           has_completed_screen_owner_onboarding: boolean
+          role: string
           stripe_account_id: string | null
           updated_at: string
           user_id: string
@@ -1558,6 +1456,7 @@ export type Database = {
           has_completed_advertiser_onboarding?: boolean
           has_completed_broadcaster_onboarding?: boolean
           has_completed_screen_owner_onboarding?: boolean
+          role?: string
           stripe_account_id?: string | null
           updated_at?: string
           user_id: string
@@ -1569,6 +1468,7 @@ export type Database = {
           has_completed_advertiser_onboarding?: boolean
           has_completed_broadcaster_onboarding?: boolean
           has_completed_screen_owner_onboarding?: boolean
+          role?: string
           stripe_account_id?: string | null
           updated_at?: string
           user_id?: string
@@ -2121,10 +2021,6 @@ export type Database = {
       resolve_security_alert: {
         Args: { alert_id: string; resolved_by_user_id?: string }
         Returns: undefined
-      }
-      validate_schema_integrity: {
-        Args: Record<PropertyKey, never>
-        Returns: boolean
       }
     }
     Enums: {

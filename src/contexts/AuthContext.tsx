@@ -87,7 +87,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       }
     }
 
-    // Handle roles separately in user_roles table
     try {
       const { data: rolesData, error: rolesErr } = await supabase
         .from('user_roles')

@@ -2,9 +2,3 @@ project_id = "hqeyyutbuxhyildsasqq"
 
 [functions.update-build-status]
 verify_jwt = false
-
-[functions.production-alerts]
-verify_jwt = false
-
-[functions.deployment-pipeline]
-verify_jwt = false

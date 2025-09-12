@@ -19,12 +19,15 @@ import { useUserRoles } from "@/hooks/useUserRoles";
 interface ProfileData {
   id: string;
   display_name: string;
+  bio: string;
+  phone: string;
+  avatar_url: string;
+  role: string;
   has_completed_advertiser_onboarding: boolean;
   has_completed_screen_owner_onboarding: boolean;
   has_completed_broadcaster_onboarding: boolean;
   created_at: string;
   updated_at: string;
-  avatar_url: string;
 }
 
 const Profile = () => {
@@ -36,7 +39,9 @@ const Profile = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [formData, setFormData] = useState({
-    display_name: ''
+    display_name: '',
+    bio: '',
+    phone: ''
   });
 
   const avatarInputRef = useRef<HTMLInputElement>(null);
@@ -102,7 +107,10 @@ const Profile = () => {
         const profileData: ProfileData = {
           id: data.user_id,
           display_name: data.display_name || '',
+          bio: '', // Not stored in profiles table
+          phone: '', // Not stored in profiles table
           avatar_url: data.avatar_url || '',
+          role: data.role,
           has_completed_advertiser_onboarding: data.has_completed_advertiser_onboarding,
           has_completed_screen_owner_onboarding: data.has_completed_screen_owner_onboarding,
           has_completed_broadcaster_onboarding: data.has_completed_broadcaster_onboarding,
@@ -111,7 +119,9 @@ const Profile = () => {
         };
         setProfile(profileData);
         setFormData({
-          display_name: profileData.display_name || ''
+          display_name: profileData.display_name || '',
+          bio: profileData.bio || '',
+          phone: profileData.phone || ''
         });
       }
     } catch (error) {
@@ -133,6 +143,8 @@ const Profile = () => {
         .from('profiles')
         .update({
           display_name: formData.display_name,
+          bio: formData.bio,
+          phone: formData.phone,
           updated_at: new Date().toISOString()
         })
         .eq('user_id', user.id);
@@ -234,6 +246,9 @@ const Profile = () => {
                   <p className="text-sm text-muted-foreground">
                     Upload a photo to personalize your account
                   </p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Coming soon - Avatar upload functionality
+                  </p>
                 </div>
               </div>
 
@@ -250,7 +265,7 @@ const Profile = () => {
                     placeholder="Enter your display name"
                   />
                 </div>
-                
+
                 <div className="grid gap-2">
                   <Label htmlFor="email">Email</Label>
                   <Input
@@ -262,6 +277,27 @@ const Profile = () => {
                   <p className="text-xs text-muted-foreground">
                     Email cannot be changed. Contact support if needed.
                   </p>
+                </div>
+
+                <div className="grid gap-2">
+                  <Label htmlFor="phone">Phone Number</Label>
+                  <Input
+                    id="phone"
+                    value={formData.phone}
+                    onChange={(e) => handleInputChange('phone', e.target.value)}
+                    placeholder="Enter your phone number"
+                  />
+                </div>
+
+                <div className="grid gap-2">
+                  <Label htmlFor="bio">Bio</Label>
+                  <Textarea
+                    id="bio"
+                    value={formData.bio}
+                    onChange={(e) => handleInputChange('bio', e.target.value)}
+                    placeholder="Tell us a bit about yourself..."
+                    className="min-h-[100px]"
+                  />
                 </div>
               </div>
 

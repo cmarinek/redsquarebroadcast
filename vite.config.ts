@@ -6,7 +6,6 @@ import { componentTagger } from "lovable-tagger";
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
-  base: mode === 'development' ? '/' : './',
   server: {
     host: "::",
     port: 8080,
@@ -18,11 +17,12 @@ export default defineConfig(({ mode }) => ({
   ].filter(Boolean),
   build: {
     target: 'esnext',
-    minify: 'esbuild', // Use esbuild for safer minification
-    sourcemap: true, // Enable source maps temporarily for debugging
+    minify: 'terser',
+    sourcemap: false, // Disable source maps in production
     rollupOptions: {
       output: {
         compact: true,
+        // Reduce function names and variable names
         generatedCode: {
           arrowFunctions: true,
           constBindings: true,
@@ -34,7 +34,32 @@ export default defineConfig(({ mode }) => ({
         moduleSideEffects: false,
       },
     },
-    chunkSizeWarningLimit: 1000,
+    terserOptions: {
+      compress: {
+        drop_console: false, // Keep console.log for Electron debugging
+        drop_debugger: true,
+        pure_funcs: ['console.debug', 'console.trace'], // Only remove debug/trace
+        passes: 3, // Multiple compression passes
+        unsafe: true,
+        unsafe_comps: true,
+        unsafe_Function: true,
+        unsafe_math: true,
+        unsafe_symbols: true,
+        unsafe_methods: true,
+        unsafe_proto: true,
+        unsafe_regexp: true,
+        unsafe_undefined: true,
+      },
+      mangle: {
+        toplevel: true,
+        safari10: true,
+      },
+      format: {
+        beautify: false,
+        comments: false,
+      },
+    },
+    chunkSizeWarningLimit: 1000, // Reduce chunk size warning
   },
   test: {
     globals: true,

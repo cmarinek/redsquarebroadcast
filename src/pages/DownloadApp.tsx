@@ -647,7 +647,7 @@ const DownloadApp = () => {
                         <AlertDescription>
                           <strong>Use the web version now:</strong> While we prepare the downloadable app, you can use{' '}
                           <Button variant="link" className="p-0 h-auto" asChild>
-                            <Link to="/redsquare-screens" target="_blank">RedSquare Screens Web App</Link>
+                            <Link to="/broadcast-app" target="_blank">RedSquare Broadcast Web App</Link>
                           </Button>
                           {' '}on any device with a browser.
                         </AlertDescription>
