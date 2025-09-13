@@ -127,9 +127,68 @@ export const PlatformOverview = () => {
         </div>
 
         {/* Flow Diagram */}
-        <div className="bg-card rounded-lg p-8 border">
-          <h3 className="text-xl font-semibold text-center mb-8">How Content Flows Through The Ecosystem</h3>
-          <div className="flex items-center justify-center space-x-8 max-w-4xl mx-auto">
+        <div className="bg-card rounded-lg p-4 sm:p-6 lg:p-8 border">
+          <h3 className="text-lg sm:text-xl font-semibold text-center mb-6 sm:mb-8">How Content Flows Through The Ecosystem</h3>
+          
+          {/* Mobile: Vertical Layout */}
+          <div className="flex flex-col space-y-6 md:hidden max-w-sm mx-auto">
+            {/* Step 1 */}
+            <div className="text-center">
+              <div className="w-12 h-12 sm:w-16 sm:h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
+                <Upload className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
+              </div>
+              <h4 className="font-semibold mb-2 text-sm sm:text-base">1. Upload Content</h4>
+              <p className="text-xs sm:text-sm text-muted-foreground">Advertisers upload content via the Platform</p>
+            </div>
+
+            <div className="flex justify-center">
+              <div className="w-6 h-6 bg-muted rounded-full flex items-center justify-center">
+                <ArrowRight className="w-4 h-4 text-muted-foreground rotate-90" />
+              </div>
+            </div>
+
+            {/* Step 2 */}
+            <div className="text-center">
+              <div className="w-12 h-12 sm:w-16 sm:h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
+                <Users className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
+              </div>
+              <h4 className="font-semibold mb-2 text-sm sm:text-base">2. Book Screens</h4>
+              <p className="text-xs sm:text-sm text-muted-foreground">Content is scheduled on available screens</p>
+            </div>
+
+            <div className="flex justify-center">
+              <div className="w-6 h-6 bg-muted rounded-full flex items-center justify-center">
+                <ArrowRight className="w-4 h-4 text-muted-foreground rotate-90" />
+              </div>
+            </div>
+
+            {/* Step 3 */}
+            <div className="text-center">
+              <div className="w-12 h-12 sm:w-16 sm:h-16 bg-green-500/10 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
+                <Monitor className="w-6 h-6 sm:w-8 sm:h-8 text-green-600" />
+              </div>
+              <h4 className="font-semibold mb-2 text-sm sm:text-base">3. Display Content</h4>
+              <p className="text-xs sm:text-sm text-muted-foreground">Screen Apps automatically display scheduled content</p>
+            </div>
+
+            <div className="flex justify-center">
+              <div className="w-6 h-6 bg-muted rounded-full flex items-center justify-center">
+                <ArrowRight className="w-4 h-4 text-muted-foreground rotate-90" />
+              </div>
+            </div>
+
+            {/* Step 4 */}
+            <div className="text-center">
+              <div className="w-12 h-12 sm:w-16 sm:h-16 bg-green-500/10 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
+                <DollarSign className="w-6 h-6 sm:w-8 sm:h-8 text-green-600" />
+              </div>
+              <h4 className="font-semibold mb-2 text-sm sm:text-base">4. Earn Revenue</h4>
+              <p className="text-xs sm:text-sm text-muted-foreground">Screen owners earn money automatically</p>
+            </div>
+          </div>
+
+          {/* Desktop: Horizontal Layout */}
+          <div className="hidden md:flex items-center justify-center space-x-4 lg:space-x-8 max-w-4xl mx-auto">
             {/* Step 1 */}
             <div className="text-center flex-1">
               <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
