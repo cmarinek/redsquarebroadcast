@@ -70,7 +70,7 @@ const App = () => {
             <img 
               src={assets.logo192} 
               alt="RedSquare Logo" 
-              className="h-16 w-16 rounded-full animate-pulse"
+              className="h-16 w-16 animate-pulse"
               onError={(e) => {
                 const target = e.target as HTMLImageElement;
                 target.style.display = 'none';
