@@ -44,35 +44,34 @@ export const Features = () => {
     }
   ];
   return (
-    <section id="features" className="py-24 bg-secondary/20">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-16">
-          <h2 className="text-4xl lg:text-5xl font-bold mb-4">
-            <span className="text-foreground">{t('features.title')}</span>
-            <br />
-            <span className="bg-gradient-primary bg-clip-text text-transparent">
+    <section id="features" className="py-12 sm:py-16 lg:py-24 bg-secondary/20">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 xl:px-8">
+        <div className="text-center mb-8 sm:mb-12 lg:mb-16">
+          <h2 className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-bold mb-3 sm:mb-4">
+            <span className="text-foreground block">{t('features.title')}</span>
+            <span className="bg-gradient-primary bg-clip-text text-transparent block">
               {t('features.subtitle')}
             </span>
           </h2>
-          <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+          <p className="text-base sm:text-lg lg:text-xl text-muted-foreground max-w-3xl mx-auto px-4 sm:px-0">
             {t('features.description')}
           </p>
         </div>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid gap-4 sm:gap-6 lg:gap-8 sm:grid-cols-2 lg:grid-cols-3">
           {features.map((feature, index) => (
             <Card 
               key={index} 
               className="group hover:shadow-[var(--shadow-red)] transition-all duration-300 border-border/50 hover:border-primary/20 bg-card/50 backdrop-blur-sm"
             >
-              <CardHeader>
-                <div className={`w-12 h-12 rounded-lg bg-gradient-to-br ${feature.gradient} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300`}>
-                  <feature.icon className="w-6 h-6 text-white" />
+              <CardHeader className="p-4 sm:p-6">
+                <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-lg bg-gradient-to-br ${feature.gradient} flex items-center justify-center mb-3 sm:mb-4 group-hover:scale-110 transition-transform duration-300`}>
+                  <feature.icon className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
                 </div>
-                <CardTitle className="text-xl">{feature.title}</CardTitle>
+                <CardTitle className="text-lg sm:text-xl">{feature.title}</CardTitle>
               </CardHeader>
-              <CardContent>
-                <CardDescription className="text-muted-foreground">
+              <CardContent className="p-4 sm:p-6 pt-0">
+                <CardDescription className="text-muted-foreground text-sm sm:text-base">
                   {feature.description}
                 </CardDescription>
               </CardContent>
