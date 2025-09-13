@@ -236,7 +236,7 @@ const ScreenOwnerDashboard = () => {
             </p>
           </div>
           <div className="flex items-center gap-3">
-            <Button variant="outline" size="lg">
+            <Button variant="outline" size="lg" onClick={() => navigate('/profile')}>
               <Settings className="h-4 w-4 mr-2" />
               Settings
             </Button>

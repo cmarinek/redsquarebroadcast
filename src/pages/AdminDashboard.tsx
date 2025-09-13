@@ -756,7 +756,7 @@ const AdminDashboard = () => {
               <Download className="h-4 w-4 mr-2" />
               Export Data
             </Button>
-            <Button variant="outline" size="lg">
+            <Button variant="outline" size="lg" onClick={() => navigate('/admin/settings')}>
               <Settings className="h-4 w-4 mr-2" />
               Settings
             </Button>

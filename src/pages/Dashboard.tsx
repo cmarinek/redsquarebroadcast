@@ -365,10 +365,10 @@ const Dashboard = () => {
                     </div>
                     
                     <div className="flex gap-2">
-                      <Button variant="ghost" size="sm">
+                      <Button variant="ghost" size="sm" onClick={() => navigate(`/screen/${screen.id}/analytics`)}>
                         <BarChart3 className="h-4 w-4" />
                       </Button>
-                      <Button variant="ghost" size="sm">
+                      <Button variant="ghost" size="sm" onClick={() => navigate(`/screen/${screen.id}/settings`)}>
                         <Settings className="h-4 w-4" />
                       </Button>
                     </div>

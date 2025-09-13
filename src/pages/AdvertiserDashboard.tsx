@@ -431,12 +431,17 @@ const AdvertiserDashboard = () => {
                                         <Eye className="w-4 h-4 mr-2" />
                                         View Details
                                       </DropdownMenuItem>
-                                      {booking.status === 'pending' && (
-                                        <DropdownMenuItem>
-                                          <Settings className="w-4 h-4 mr-2" />
-                                          Cancel Campaign
-                                        </DropdownMenuItem>
-                                      )}
+                                       {booking.status === 'pending' && (
+                                         <DropdownMenuItem onClick={() => {
+                                           toast({
+                                             title: "Campaign Management",
+                                             description: "Campaign management features are being implemented."
+                                           });
+                                         }}>
+                                           <Settings className="w-4 h-4 mr-2" />
+                                           Cancel Campaign
+                                         </DropdownMenuItem>
+                                       )}
                                     </DropdownMenuContent>
                                   </DropdownMenu>
                                 </div>

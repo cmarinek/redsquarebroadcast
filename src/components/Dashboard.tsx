@@ -114,7 +114,7 @@ export const Dashboard = () => {
                       </div>
                       <div className="flex items-center space-x-2">
                         <Badge variant="secondary">{t('dashboard.live')}</Badge>
-                        <Button size="sm" variant="outline">
+                        <Button size="sm" variant="outline" onClick={() => console.log('Campaign settings for', campaign)}>
                           <Settings className="w-4 h-4" />
                         </Button>
                       </div>
