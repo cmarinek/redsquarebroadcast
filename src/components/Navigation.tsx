@@ -40,12 +40,14 @@ export const Navigation = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16 items-center">
           <div className="flex items-center space-x-4">
-            <img 
-              src="/lovable-uploads/901ca0b5-a900-440e-b16d-bdd30112cc94.png" 
-              alt="Red Square Logo" 
-              className="w-8 h-8 rounded-lg"
-            />
-            <span className="text-xl font-bold text-foreground">RedSquare</span>
+            <Link to="/" className="flex items-center space-x-2 hover:opacity-80 transition-opacity">
+              <img 
+                src="/lovable-uploads/901ca0b5-a900-440e-b16d-bdd30112cc94.png" 
+                alt="Red Square Logo" 
+                className="w-8 h-8 rounded-lg"
+              />
+              <span className="text-xl font-bold text-foreground">RedSquare</span>
+            </Link>
             
             {/* Language selector for mobile-first approach */}
             <div className="hidden lg:block">
