@@ -48,6 +48,7 @@ const RegionalSettings = lazy(() => import("./pages/RegionalSettings"));
 const SetupGuide = lazy(() => import("./pages/SetupGuide"));
 const RedSquareScreens = lazy(() => import("./pages/RedSquareScreens"));
 const SetupRedSquareScreen = lazy(() => import("./pages/SetupRedSquareScreen"));
+const TVScreenDemo = lazy(() => import("./pages/TVScreenDemo"));
 const Support = lazy(() => import("./pages/Support"));
 import AdminRoute from "@/components/routing/AdminRoute";
 
@@ -126,6 +127,7 @@ const App = () => {
               <Route path="/regional-settings" element={<RegionalSettings />} />
               <Route path="/redsquare-screens" element={<RedSquareScreens />} />
               <Route path="/setup-redsquare-screen" element={<SetupRedSquareScreen />} />
+              <Route path="/tv-screen-demo" element={<TVScreenDemo />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>

@@ -9,6 +9,13 @@
     "build:dev": "vite build --mode development",
     "build:mobile": "BUILD_TARGET=mobile vite build",
     "build:electron": "BUILD_TARGET=electron vite build && node scripts/electron-build.js build",
+    "build:tv": "BUILD_TARGET=screen VITE_TV_OPTIMIZED=true vite build",
+    "build:tv:samsung": "BUILD_TARGET=screen VITE_TV_OPTIMIZED=true VITE_TV_PLATFORM=samsung_tizen vite build",
+    "build:tv:lg": "BUILD_TARGET=screen VITE_TV_OPTIMIZED=true VITE_TV_PLATFORM=lg_webos vite build",
+    "build:tv:roku": "BUILD_TARGET=screen VITE_TV_OPTIMIZED=true VITE_TV_PLATFORM=roku VITE_PERFORMANCE_MODE=low vite build",
+    "build:tv:fire": "BUILD_TARGET=screen VITE_TV_OPTIMIZED=true VITE_TV_PLATFORM=amazon_fire_tv vite build",
+    "build:tv:android": "BUILD_TARGET=screen VITE_TV_OPTIMIZED=true VITE_TV_PLATFORM=android_tv vite build",
+    "build:kiosk": "BUILD_TARGET=screen VITE_KIOSK_MODE=true vite build",
     "electron:build": "node scripts/electron-build.js build",
     "lint": "eslint .",
     "preview": "vite preview"

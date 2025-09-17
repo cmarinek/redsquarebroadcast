@@ -12,6 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 import SEO from "@/components/SEO";
 import QRCode from "react-qr-code";
+import { detectPlatform, type ScreenPlatform } from "@/utils/platformDetection";
 
 interface ScreenAppRelease {
   id: string;
@@ -27,7 +28,7 @@ interface ScreenAppRelease {
   created_at: string;
 }
 
-type ScreenType = 'screens_android_mobile' | 'screens_ios' | 'screens_windows' | 'screens_macos' | 'screens_linux' | 'screens_android_tv' | 'screens_amazon_fire' | 'screens_roku' | 'screens_samsung_tizen' | 'screens_lg_webos' | 'unknown';
+type ScreenType = ScreenPlatform;
 
 const SetupRedSquareScreen = () => {
   const { toast } = useToast();
@@ -43,23 +44,16 @@ const SetupRedSquareScreen = () => {
   }, []);
 
   const detectPlatform = () => {
-    const userAgent = navigator.userAgent.toLowerCase();
+    const platformInfo = detectPlatform();
+    setDetectedPlatform(platformInfo.platform);
     
-    if (userAgent.includes('android')) {
-      if (userAgent.includes('tv') || userAgent.includes('googletv')) {
-        setDetectedPlatform('screens_android_tv');
-      } else {
-        setDetectedPlatform('screens_android_mobile');
-      }
-    } else if (userAgent.includes('iphone') || userAgent.includes('ipad') || userAgent.includes('ipod')) {
-      setDetectedPlatform('screens_ios');
-    } else if (userAgent.includes('mac os')) {
-      setDetectedPlatform('screens_macos');
-    } else if (userAgent.includes('windows')) {
-      setDetectedPlatform('screens_windows');
-    } else if (userAgent.includes('linux')) {
-      setDetectedPlatform('screens_linux');
-    }
+    // Show additional platform information in console for debugging
+    console.log('Enhanced Platform Detection:', {
+      platform: platformInfo.platform,
+      tvPlatform: platformInfo.tvPlatform,
+      capabilities: platformInfo.capabilities,
+      displayInfo: platformInfo.displayInfo
+    });
   };
 
   const fetchScreenReleases = async () => {

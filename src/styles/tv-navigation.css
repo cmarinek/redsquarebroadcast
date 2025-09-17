@@ -1,0 +1,298 @@
+/* TV Remote Navigation Styles */
+/* Provides visual feedback and optimized styling for TV remote navigation */
+
+/* Base TV navigation styles */
+.tv-navigation-enabled {
+  /* Disable default focus outlines on TV platforms */
+  button:focus,
+  a:focus,
+  input:focus,
+  select:focus,
+  [tabindex]:focus {
+    outline: none;
+  }
+}
+
+/* TV Focus indicator - prominent and visible from distance */
+.tv-focused {
+  position: relative;
+  transform: scale(1.05);
+  transition: all 0.2s ease-in-out;
+  z-index: 10;
+}
+
+.tv-focused::before {
+  content: '';
+  position: absolute;
+  top: -4px;
+  left: -4px;
+  right: -4px;
+  bottom: -4px;
+  border: 3px solid #3b82f6;
+  border-radius: 8px;
+  background: rgba(59, 130, 246, 0.1);
+  z-index: -1;
+  animation: tv-focus-pulse 1.5s ease-in-out infinite;
+}
+
+/* Focus pulse animation for better visibility */
+@keyframes tv-focus-pulse {
+  0%, 100% {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4);
+  }
+  50% {
+    border-color: #60a5fa;
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.2);
+  }
+}
+
+/* Platform-specific focus styles */
+.tv-platform-samsung .tv-focused::before {
+  border-color: #1e40af;
+  background: rgba(30, 64, 175, 0.1);
+}
+
+.tv-platform-lg .tv-focused::before {
+  border-color: #dc2626;
+  background: rgba(220, 38, 38, 0.1);
+}
+
+.tv-platform-roku .tv-focused::before {
+  border-color: #7c3aed;
+  background: rgba(124, 58, 237, 0.1);
+}
+
+.tv-platform-amazon .tv-focused::before {
+  border-color: #f59e0b;
+  background: rgba(245, 158, 11, 0.1);
+}
+
+.tv-platform-android .tv-focused::before {
+  border-color: #10b981;
+  background: rgba(16, 185, 129, 0.1);
+}
+
+/* TV-optimized button styling */
+.tv-button {
+  min-height: 48px;
+  min-width: 120px;
+  padding: 12px 24px;
+  font-size: 18px;
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+
+.tv-button:hover,
+.tv-button.tv-focused {
+  transform: scale(1.05);
+}
+
+/* TV navigation grid helpers */
+.tv-navigation-grid {
+  display: grid;
+  gap: 16px;
+  padding: 16px;
+}
+
+.tv-navigation-row {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  justify-content: center;
+}
+
+.tv-navigation-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 64px;
+  padding: 16px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  transition: all 0.2s ease-in-out;
+}
+
+.tv-navigation-item[data-tv-focusable] {
+  cursor: pointer;
+}
+
+/* Ten-foot UI optimizations */
+.ten-foot-ui {
+  /* Larger text for readability from distance */
+  font-size: 120%;
+  line-height: 1.6;
+}
+
+.ten-foot-ui h1 { font-size: 3rem; }
+.ten-foot-ui h2 { font-size: 2.5rem; }
+.ten-foot-ui h3 { font-size: 2rem; }
+.ten-foot-ui h4 { font-size: 1.75rem; }
+.ten-foot-ui h5 { font-size: 1.5rem; }
+.ten-foot-ui h6 { font-size: 1.25rem; }
+
+.ten-foot-ui p,
+.ten-foot-ui span,
+.ten-foot-ui div {
+  font-size: 1.25rem;
+}
+
+.ten-foot-ui button,
+.ten-foot-ui .tv-button {
+  min-height: 56px;
+  font-size: 1.25rem;
+  padding: 16px 32px;
+}
+
+/* High contrast mode for better TV visibility */
+.tv-high-contrast {
+  filter: contrast(1.2) brightness(1.1);
+}
+
+.tv-high-contrast .tv-focused::before {
+  border-width: 4px;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.8);
+}
+
+/* TV-safe area (overscan protection) */
+.tv-safe-area {
+  padding: 5vh 5vw;
+  box-sizing: border-box;
+}
+
+/* TV navigation hints */
+.tv-navigation-hints {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  z-index: 1000;
+}
+
+.tv-navigation-hint {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 4px 0;
+}
+
+.tv-navigation-hint kbd {
+  background: rgba(255, 255, 255, 0.2);
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  min-width: 24px;
+  text-align: center;
+}
+
+/* Spatial navigation optimization */
+.spatial-navigation-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.spatial-navigation-row {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+}
+
+/* TV loading states */
+.tv-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+  gap: 16px;
+}
+
+.tv-loading-spinner {
+  width: 48px;
+  height: 48px;
+  border: 4px solid rgba(255, 255, 255, 0.3);
+  border-top: 4px solid #3b82f6;
+  border-radius: 50%;
+  animation: tv-loading-spin 1s linear infinite;
+}
+
+@keyframes tv-loading-spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* TV modal and overlay styling */
+.tv-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.tv-modal-content {
+  background: white;
+  padding: 32px;
+  border-radius: 12px;
+  max-width: 80vw;
+  max-height: 80vh;
+  overflow: auto;
+}
+
+/* Responsive TV breakpoints */
+@media (min-width: 1920px) {
+  .tv-responsive {
+    font-size: 110%;
+  }
+}
+
+@media (min-width: 3840px) {
+  .tv-responsive {
+    font-size: 130%;
+  }
+  
+  .tv-focused::before {
+    border-width: 4px;
+  }
+}
+
+/* Dark theme optimizations for TV */
+@media (prefers-color-scheme: dark) {
+  .tv-navigation-item {
+    background: rgba(255, 255, 255, 0.1);
+  }
+  
+  .tv-focused::before {
+    border-color: #60a5fa;
+    background: rgba(96, 165, 250, 0.2);
+  }
+}
+
+/* Reduced motion for sensitive users */
+@media (prefers-reduced-motion: reduce) {
+  .tv-focused {
+    transform: none;
+    transition: none;
+  }
+  
+  .tv-focused::before {
+    animation: none;
+  }
+  
+  .tv-loading-spinner {
+    animation: none;
+  }
+}
