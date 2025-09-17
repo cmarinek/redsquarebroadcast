@@ -1,6 +1,9 @@
 /* Map library styles */
 @import 'leaflet/dist/leaflet.css';
 
+/* TV Navigation styles */
+@import './styles/tv-navigation.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;

@@ -113,6 +113,7 @@ function validateBuildOutput(target, distPath = 'dist') {
 
   if (rules.checkTVOptimizations) {
     validateTVOptimizations(distPath, warnings);
+    validatePlatformOptimizations(distPath, warnings);
   }
 
   if (rules.checkKioskLockdown) {
@@ -239,6 +240,56 @@ function validateTVOptimizations(distPath, warnings) {
     if (!manifest.display || manifest.display !== 'fullscreen') {
       warnings.push('TV apps should use fullscreen display mode');
     }
+    
+    // Check for TV-specific orientation
+    if (!manifest.orientation || manifest.orientation !== 'landscape') {
+      warnings.push('TV apps should be optimized for landscape orientation');
+    }
+    
+    // Check for TV navigation support
+    if (!manifest.tv_navigation_enabled) {
+      warnings.push('TV apps should enable navigation support');
+    }
+  }
+  
+  // Check for TV-specific stylesheets
+  const indexPath = path.join(distPath, 'index.html');
+  if (fs.existsSync(indexPath)) {
+    const indexContent = fs.readFileSync(indexPath, 'utf8');
+    if (!indexContent.includes('tv-focused') && !indexContent.includes('remote-navigation')) {
+      warnings.push('TV apps should include remote navigation CSS classes');
+    }
+  }
+  
+  // Check for performance optimization assets
+  const performanceConfig = path.join(distPath, 'tv-config.json');
+  if (!fs.existsSync(performanceConfig)) {
+    warnings.push('Missing TV performance configuration file: tv-config.json');
+  }
+}
+
+function validatePlatformOptimizations(distPath, warnings) {
+  log('🎯 Checking platform-specific optimizations...', 'info');
+  
+  // Check for platform detection utilities
+  const platformDetectionPath = path.join(distPath, 'assets');
+  if (fs.existsSync(platformDetectionPath)) {
+    const files = fs.readdirSync(platformDetectionPath);
+    const hasPlatformDetection = files.some(file => 
+      file.includes('platformDetection') || file.includes('platform-detection')
+    );
+    
+    if (!hasPlatformDetection) {
+      warnings.push('Missing platform detection utilities in build');
+    }
+  }
+  
+  // Check for TV remote navigation support
+  const hasRemoteNavigation = fs.readdirSync(platformDetectionPath || distPath, { recursive: true })
+    .some(file => file.includes('TVRemoteNavigation') || file.includes('tv-remote'));
+    
+  if (!hasRemoteNavigation) {
+    warnings.push('Missing TV remote navigation support in build');
   }
 }
 
