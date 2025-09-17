@@ -105,37 +105,42 @@ export function useTVRemoteNavigation(options: TVRemoteNavigationOptions = {}) {
       case 'Tab': return event.shiftKey ? 'left' : 'right';
     }
     
-    // Platform-specific mappings
-    switch (keyCode) {
-      // Samsung Tizen
-      case 10009: return 'back'; // Tizen back
-      case 10182: return 'home'; // Tizen home
-      case 412: return 'rewind';
-      case 417: return 'fast_forward';
-      case 19: return 'up';
-      case 20: return 'down';
-      case 21: return 'left';
-      case 22: return 'right';
-      case 23: return 'select';
-      
-      // LG webOS
-      case 461: return 'back'; // webOS back
-      case 172: return 'home';
-      
-      // Amazon Fire TV
-      case 166: return 'back'; // Fire TV back
-      case 3: return 'home'; // Fire TV home
-      
-      // Android TV
-      case 4: return 'back'; // Android TV back
-      case 23: return 'select'; // Android TV select
-      case 85: return 'play_pause';
-      case 89: return 'rewind';
-      case 90: return 'fast_forward';
-      
-      // Roku
-      case 27: return 'back'; // Roku back
-      case 36: return 'home'; // Roku home
+    // Platform-specific mappings based on current platform
+    if (platform === 'screens_samsung_tizen') {
+      switch (keyCode) {
+        case 10009: return 'back'; // Tizen back
+        case 10182: return 'home'; // Tizen home
+        case 412: return 'rewind';
+        case 417: return 'fast_forward';
+        case 19: return 'up';
+        case 20: return 'down';
+        case 21: return 'left';
+        case 22: return 'right';
+        case 23: return 'select'; // Tizen select
+      }
+    } else if (platform === 'screens_lg_webos') {
+      switch (keyCode) {
+        case 461: return 'back'; // webOS back
+        case 172: return 'home';
+      }
+    } else if (platform === 'screens_amazon_fire') {
+      switch (keyCode) {
+        case 166: return 'back'; // Fire TV back
+        case 3: return 'home'; // Fire TV home
+      }
+    } else if (platform === 'screens_android_tv') {
+      switch (keyCode) {
+        case 4: return 'back'; // Android TV back
+        case 23: return 'select'; // Android TV select
+        case 85: return 'play_pause';
+        case 89: return 'rewind';
+        case 90: return 'fast_forward';
+      }
+    } else if (platform === 'screens_roku') {
+      switch (keyCode) {
+        case 27: return 'back'; // Roku back
+        case 36: return 'home'; // Roku home
+      }
     }
     
     // Additional key codes
@@ -149,7 +154,7 @@ export function useTVRemoteNavigation(options: TVRemoteNavigationOptions = {}) {
     }
     
     return null;
-  }, []);
+  }, [platform]);
 
   // Build navigation grid from focusable elements
   const buildNavigationGrid = useCallback(() => {
