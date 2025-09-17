@@ -120,7 +120,6 @@ export function useTVRemoteNavigation(options: TVRemoteNavigationOptions = {}) {
       
       // LG webOS
       case 461: return 'back'; // webOS back
-      case 4: return 'back';
       case 172: return 'home';
       
       // Amazon Fire TV
@@ -129,7 +128,7 @@ export function useTVRemoteNavigation(options: TVRemoteNavigationOptions = {}) {
       
       // Android TV
       case 4: return 'back'; // Android TV back
-      case 3: return 'home'; // Android TV home
+      case 23: return 'select'; // Android TV select
       case 85: return 'play_pause';
       case 89: return 'rewind';
       case 90: return 'fast_forward';
