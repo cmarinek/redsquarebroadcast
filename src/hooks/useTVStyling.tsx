@@ -71,7 +71,8 @@ export function useTVStyling() {
         'tv-platform-lg',
         'tv-platform-roku',
         'tv-platform-amazon',
-        'tv-platform-android'
+        'tv-platform-android',
+        'tv-platform-apple'
       );
     };
   }, []);

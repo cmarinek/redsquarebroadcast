@@ -15,6 +15,7 @@
     "build:tv:roku": "BUILD_TARGET=screen VITE_TV_OPTIMIZED=true VITE_TV_PLATFORM=roku VITE_PERFORMANCE_MODE=low vite build",
     "build:tv:fire": "BUILD_TARGET=screen VITE_TV_OPTIMIZED=true VITE_TV_PLATFORM=amazon_fire_tv vite build",
     "build:tv:android": "BUILD_TARGET=screen VITE_TV_OPTIMIZED=true VITE_TV_PLATFORM=android_tv vite build",
+    "build:tv:apple": "BUILD_TARGET=screen VITE_TV_OPTIMIZED=true VITE_TV_PLATFORM=apple_tv vite build",
     "build:kiosk": "BUILD_TARGET=screen VITE_KIOSK_MODE=true vite build",
     "electron:build": "node scripts/electron-build.js build",
     "lint": "eslint .",

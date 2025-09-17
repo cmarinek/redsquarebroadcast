@@ -15,6 +15,7 @@ export type TVPlatformType =
   | 'amazon_fire_tv' 
   | 'android_tv' 
   | 'chromecast' 
+  | 'apple_tv'
   | 'generic_tv';
 
 export const getBuildConfig = (): BuildConfig => {
@@ -245,6 +246,16 @@ export const getPlatformPerformanceProfile = (tvPlatform: TVPlatformType) => {
         maxResolution: '1080p',
         hdrSupport: false,
         recommendedPerformance: 'low' as const,
+      };
+    case 'apple_tv':
+      return {
+        memoryLimit: '2GB',
+        cpuCores: 4,
+        gpuTier: 'high',
+        supportedCodecs: ['h264', 'h265', 'dolby_vision'],
+        maxResolution: '4K',
+        hdrSupport: true,
+        recommendedPerformance: 'high' as const,
       };
     default:
       return {

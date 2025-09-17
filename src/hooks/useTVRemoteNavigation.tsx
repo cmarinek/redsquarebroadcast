@@ -128,7 +128,7 @@ export function useTVRemoteNavigation(options: TVRemoteNavigationOptions = {}) {
       
       // Android TV
       case 4: return 'back'; // Android TV back
-      case 23: return 'select'; // Android TV select
+      case 66: return 'select'; // Android TV select (KEYCODE_ENTER)
       case 85: return 'play_pause';
       case 89: return 'rewind';
       case 90: return 'fast_forward';
@@ -136,6 +136,11 @@ export function useTVRemoteNavigation(options: TVRemoteNavigationOptions = {}) {
       // Roku
       case 27: return 'back'; // Roku back
       case 36: return 'home'; // Roku home
+      
+      // Apple TV
+      case 8: return 'back'; // Apple TV back
+      case 13: return 'select'; // Apple TV select
+      case 32: return 'play_pause'; // Apple TV play/pause
     }
     
     // Additional key codes
