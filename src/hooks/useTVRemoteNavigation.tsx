@@ -51,8 +51,15 @@ export interface TVRemoteNavigationOptions {
   autoFocus?: boolean;
   focusClassName?: string;
   navigationDelay?: number;
+  enableGamepad?: boolean;
+  gamepadIndex?: number;
+  enableVoiceControl?: boolean;
+  spatialNavigationAlgorithm?: 'nearest' | 'directional' | 'grid';
+  overscanCompensation?: boolean;
   onButtonPress?: (event: TVRemoteEvent) => void;
   onNavigate?: (from: HTMLElement | null, to: HTMLElement | null) => void;
+  onGamepadConnect?: (gamepad: Gamepad) => void;
+  onGamepadDisconnect?: (gamepad: Gamepad) => void;
   selector?: string; // CSS selector for focusable elements
 }
 
@@ -68,8 +75,15 @@ export function useTVRemoteNavigation(options: TVRemoteNavigationOptions = {}) {
     autoFocus = true,
     focusClassName = 'tv-focused',
     navigationDelay = 150,
+    enableGamepad = true,
+    gamepadIndex = 0,
+    enableVoiceControl = false,
+    spatialNavigationAlgorithm = 'directional',
+    overscanCompensation = true,
     onButtonPress,
     onNavigate,
+    onGamepadConnect,
+    onGamepadDisconnect,
     selector = '[data-tv-focusable], button, a, input, select, [tabindex]:not([tabindex="-1"])'
   } = options;
 
@@ -77,16 +91,197 @@ export function useTVRemoteNavigation(options: TVRemoteNavigationOptions = {}) {
   const [currentFocus, setCurrentFocus] = useState<HTMLElement | null>(null);
   const [navigationGrid, setNavigationGrid] = useState<NavigationGrid | null>(null);
   const [platform, setPlatform] = useState<string>('unknown');
+  const [gamepadConnected, setGamepadConnected] = useState(false);
+  const [connectedGamepads, setConnectedGamepads] = useState<Gamepad[]>([]);
   
   const navigationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const lastNavigationTime = useRef<number>(0);
+  const gamepadPollRef = useRef<number | null>(null);
+  const voiceRecognitionRef = useRef<any>(null);
 
-  // Initialize platform detection
+  // Initialize platform detection and gamepad support
   useEffect(() => {
     const platformInfo = detectPlatform();
     setPlatform(platformInfo.platform);
     setIsActive(enabled && isTVPlatform(platformInfo.platform));
-  }, [enabled]);
+    
+    // Initialize gamepad support if enabled and supported
+    if (enableGamepad && platformInfo.capabilities.supportsGamepad) {
+      initializeGamepadSupport();
+    }
+    
+    // Initialize voice control if enabled and supported
+    if (enableVoiceControl && platformInfo.capabilities.supportsVoiceControl) {
+      initializeVoiceControl();
+    }
+    
+    return () => {
+      cleanupGamepadSupport();
+      cleanupVoiceControl();
+    };
+  }, [enabled, enableGamepad, enableVoiceControl]);
+
+  // Initialize gamepad support
+  const initializeGamepadSupport = useCallback(() => {
+    const handleGamepadConnected = (event: GamepadEvent) => {
+      const gamepad = event.gamepad;
+      setConnectedGamepads(prev => [...prev.filter(g => g.index !== gamepad.index), gamepad]);
+      setGamepadConnected(true);
+      onGamepadConnect?.(gamepad);
+      
+      // Start polling for gamepad input
+      if (!gamepadPollRef.current) {
+        gamepadPollRef.current = requestAnimationFrame(pollGamepadInput);
+      }
+    };
+
+    const handleGamepadDisconnected = (event: GamepadEvent) => {
+      const gamepad = event.gamepad;
+      setConnectedGamepads(prev => prev.filter(g => g.index !== gamepad.index));
+      onGamepadDisconnect?.(gamepad);
+      
+      if (connectedGamepads.length <= 1) {
+        setGamepadConnected(false);
+        if (gamepadPollRef.current) {
+          cancelAnimationFrame(gamepadPollRef.current);
+          gamepadPollRef.current = null;
+        }
+      }
+    };
+
+    window.addEventListener('gamepadconnected', handleGamepadConnected);
+    window.addEventListener('gamepaddisconnected', handleGamepadDisconnected);
+
+    return () => {
+      window.removeEventListener('gamepadconnected', handleGamepadConnected);
+      window.removeEventListener('gamepaddisconnected', handleGamepadDisconnected);
+    };
+  }, [onGamepadConnect, onGamepadDisconnect, connectedGamepads.length]);
+
+  // Cleanup gamepad support
+  const cleanupGamepadSupport = useCallback(() => {
+    if (gamepadPollRef.current) {
+      cancelAnimationFrame(gamepadPollRef.current);
+      gamepadPollRef.current = null;
+    }
+  }, []);
+
+  // Poll gamepad input
+  const pollGamepadInput = useCallback(() => {
+    if (!gamepadConnected || !isActive) {
+      gamepadPollRef.current = null;
+      return;
+    }
+
+    const gamepads = navigator.getGamepads();
+    const gamepad = gamepads[gamepadIndex];
+
+    if (gamepad) {
+      handleGamepadInput(gamepad);
+    }
+
+    gamepadPollRef.current = requestAnimationFrame(pollGamepadInput);
+  }, [gamepadConnected, isActive, gamepadIndex]);
+
+  // Handle gamepad input
+  const handleGamepadInput = useCallback((gamepad: Gamepad) => {
+    const threshold = 0.5;
+    let direction: 'up' | 'down' | 'left' | 'right' | null = null;
+    let button: TVRemoteButton | null = null;
+
+    // D-pad or left stick navigation
+    if (gamepad.axes[0] < -threshold || gamepad.axes[0] > threshold ||
+        gamepad.axes[1] < -threshold || gamepad.axes[1] > threshold) {
+      
+      if (gamepad.axes[0] < -threshold) direction = 'left';
+      else if (gamepad.axes[0] > threshold) direction = 'right';
+      else if (gamepad.axes[1] < -threshold) direction = 'up';
+      else if (gamepad.axes[1] > threshold) direction = 'down';
+    }
+
+    // Button presses
+    if (gamepad.buttons[0].pressed) button = 'select'; // A button
+    if (gamepad.buttons[1].pressed) button = 'back';   // B button
+    if (gamepad.buttons[2].pressed) button = 'menu';   // X button
+    if (gamepad.buttons[3].pressed) button = 'home';   // Y button
+    if (gamepad.buttons[9].pressed) button = 'menu';   // Menu button
+    if (gamepad.buttons[8].pressed) button = 'back';   // Select/back button
+
+    // Handle navigation (will use navigate from the parent scope when called)
+    if (direction) {
+      const now = Date.now();
+      if (now - lastNavigationTime.current >= navigationDelay) {
+        // Navigate function will be available when this is called
+        if (typeof navigate === 'function') {
+          navigate(direction);
+          lastNavigationTime.current = now;
+        }
+      }
+    }
+
+    // Handle button presses
+    if (button) {
+      const mockEvent = new KeyboardEvent('keydown', { key: button });
+      const remoteEvent: TVRemoteEvent = {
+        button,
+        originalEvent: mockEvent,
+        preventDefault: () => {},
+        platform
+      };
+      onButtonPress?.(remoteEvent);
+
+      if (button === 'select' && currentFocus) {
+        currentFocus.click();
+      }
+    }
+  }, [navigationDelay, platform, onButtonPress, currentFocus]); // Removed navigate from deps
+
+  // Initialize voice control
+  const initializeVoiceControl = useCallback(() => {
+    if (typeof window === 'undefined') return;
+
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SpeechRecognition) return;
+
+    const recognition = new SpeechRecognition();
+    recognition.continuous = true;
+    recognition.interimResults = false;
+    recognition.lang = 'en-US';
+
+    recognition.onresult = (event: any) => {
+      const command = event.results[event.results.length - 1][0].transcript.toLowerCase().trim();
+      handleVoiceCommand(command);
+    };
+
+    voiceRecognitionRef.current = recognition;
+  }, []);
+
+  // Handle voice commands
+  const handleVoiceCommand = useCallback((command: string) => {
+    const commands: Record<string, () => void> = {
+      'up': () => typeof navigate === 'function' && navigate('up'),
+      'down': () => typeof navigate === 'function' && navigate('down'),
+      'left': () => typeof navigate === 'function' && navigate('left'),
+      'right': () => typeof navigate === 'function' && navigate('right'),
+      'select': () => currentFocus?.click(),
+      'back': () => window.history.back(),
+      'home': () => window.location.href = '/',
+      'menu': () => {}, // Could trigger a menu
+    };
+
+    const commandFunction = commands[command];
+    if (commandFunction) {
+      commandFunction();
+    }
+  }, [currentFocus]); // Removed navigate from deps
+
+  // Cleanup voice control
+  const cleanupVoiceControl = useCallback(() => {
+    if (voiceRecognitionRef.current) {
+      voiceRecognitionRef.current.stop();
+      voiceRecognitionRef.current = null;
+    }
+  }, []);
 
   // Key mapping for different TV platforms
   const getRemoteButton = useCallback((event: KeyboardEvent): TVRemoteButton | null => {
@@ -247,7 +442,7 @@ export function useTVRemoteNavigation(options: TVRemoteNavigationOptions = {}) {
     };
   }, [currentFocus, focusClassName, onNavigate]);
 
-  // Navigate to next element in specified direction
+  // Enhanced spatial navigation with multiple algorithms
   const navigate = useCallback((direction: 'up' | 'down' | 'left' | 'right') => {
     if (!navigationGrid || !currentFocus) return;
     
@@ -257,55 +452,195 @@ export function useTVRemoteNavigation(options: TVRemoteNavigationOptions = {}) {
     const currentElement = navigationGrid.elements[currentIndex];
     let targetElement: FocusableElement | null = null;
     
-    if (gridMode) {
-      // Grid-based navigation
-      const { row, column } = currentElement;
-      
-      switch (direction) {
-        case 'up':
-          targetElement = navigationGrid.elements.find(el => 
-            el.column === column && el.row < row) || 
-            (wrapNavigation ? navigationGrid.elements.filter(el => el.column === column).pop() : null);
-          break;
-        case 'down':
-          targetElement = navigationGrid.elements.find(el => 
-            el.column === column && el.row > row) || 
-            (wrapNavigation ? navigationGrid.elements.find(el => el.column === column) : null);
-          break;
-        case 'left':
-          targetElement = navigationGrid.elements.find(el => 
-            el.row === row && el.column < column) || 
-            (wrapNavigation ? navigationGrid.elements.filter(el => el.row === row).pop() : null);
-          break;
-        case 'right':
-          targetElement = navigationGrid.elements.find(el => 
-            el.row === row && el.column > column) || 
-            (wrapNavigation ? navigationGrid.elements.find(el => el.row === row) : null);
-          break;
-      }
-    } else {
-      // Linear navigation
-      switch (direction) {
-        case 'up':
-        case 'left':
-          targetElement = navigationGrid.elements[currentIndex - 1] || 
-            (wrapNavigation ? navigationGrid.elements[navigationGrid.elements.length - 1] : null);
-          break;
-        case 'down':
-        case 'right':
-          targetElement = navigationGrid.elements[currentIndex + 1] || 
-            (wrapNavigation ? navigationGrid.elements[0] : null);
-          break;
-      }
+    switch (spatialNavigationAlgorithm) {
+      case 'nearest':
+        targetElement = findNearestElement(currentElement, direction, navigationGrid.elements);
+        break;
+      case 'directional':
+        targetElement = findDirectionalElement(currentElement, direction, navigationGrid.elements);
+        break;
+      case 'grid':
+      default:
+        targetElement = findGridElement(currentElement, direction, navigationGrid.elements);
+        break;
+    }
+    
+    // Apply wrap navigation if no target found
+    if (!targetElement && wrapNavigation) {
+      targetElement = findWrappedElement(currentElement, direction, navigationGrid.elements);
     }
     
     if (targetElement) {
       const previousFocus = currentFocus;
       setCurrentFocus(targetElement.element);
       targetElement.element.focus();
+      
+      // Scroll into view with overscan compensation
+      if (overscanCompensation) {
+        scrollIntoViewWithOverscan(targetElement.element);
+      } else {
+        targetElement.element.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+      
       onNavigate?.(previousFocus, targetElement.element);
     }
-  }, [navigationGrid, currentFocus, gridMode, wrapNavigation, onNavigate]);
+  }, [navigationGrid, currentFocus, spatialNavigationAlgorithm, wrapNavigation, overscanCompensation, onNavigate]);
+
+  // Find nearest element using distance calculation
+  const findNearestElement = useCallback((current: FocusableElement, direction: string, elements: FocusableElement[]): FocusableElement | null => {
+    const currentRect = current.element.getBoundingClientRect();
+    const candidates = elements.filter(el => el.element !== current.element);
+    
+    let bestCandidate: FocusableElement | null = null;
+    let bestDistance = Infinity;
+    
+    candidates.forEach(candidate => {
+      const candidateRect = candidate.element.getBoundingClientRect();
+      const distance = calculateDistance(currentRect, candidateRect, direction);
+      
+      if (distance < bestDistance && isInDirection(currentRect, candidateRect, direction)) {
+        bestDistance = distance;
+        bestCandidate = candidate;
+      }
+    });
+    
+    return bestCandidate;
+  }, []);
+
+  // Find element using directional algorithm
+  const findDirectionalElement = useCallback((current: FocusableElement, direction: string, elements: FocusableElement[]): FocusableElement | null => {
+    const currentRect = current.element.getBoundingClientRect();
+    const candidates = elements.filter(el => el.element !== current.element);
+    
+    // Filter candidates that are in the correct direction
+    const validCandidates = candidates.filter(candidate => {
+      const candidateRect = candidate.element.getBoundingClientRect();
+      return isInDirection(currentRect, candidateRect, direction);
+    });
+    
+    if (validCandidates.length === 0) return null;
+    
+    // Sort by distance and direction alignment
+    validCandidates.sort((a, b) => {
+      const aRect = a.element.getBoundingClientRect();
+      const bRect = b.element.getBoundingClientRect();
+      
+      const aDistance = calculateDistance(currentRect, aRect, direction);
+      const bDistance = calculateDistance(currentRect, bRect, direction);
+      
+      return aDistance - bDistance;
+    });
+    
+    return validCandidates[0];
+  }, []);
+
+  // Find element using grid-based algorithm (original implementation)
+  const findGridElement = useCallback((current: FocusableElement, direction: string, elements: FocusableElement[]): FocusableElement | null => {
+    const { row, column } = current;
+    
+    switch (direction) {
+      case 'up':
+        return elements.find(el => el.column === column && el.row < row) || null;
+      case 'down':
+        return elements.find(el => el.column === column && el.row > row) || null;
+      case 'left':
+        return elements.find(el => el.row === row && el.column < column) || null;
+      case 'right':
+        return elements.find(el => el.row === row && el.column > column) || null;
+      default:
+        return null;
+    }
+  }, []);
+
+  // Find wrapped element for wrap navigation
+  const findWrappedElement = useCallback((current: FocusableElement, direction: string, elements: FocusableElement[]): FocusableElement | null => {
+    const { row, column } = current;
+    
+    switch (direction) {
+      case 'up':
+        return elements.filter(el => el.column === column).pop() || null;
+      case 'down':
+        return elements.find(el => el.column === column) || null;
+      case 'left':
+        return elements.filter(el => el.row === row).pop() || null;
+      case 'right':
+        return elements.find(el => el.row === row) || null;
+      default:
+        return null;
+    }
+  }, []);
+
+  // Calculate distance between two rectangles considering direction
+  const calculateDistance = useCallback((rect1: DOMRect, rect2: DOMRect, direction: string): number => {
+    const center1 = { x: rect1.left + rect1.width / 2, y: rect1.top + rect1.height / 2 };
+    const center2 = { x: rect2.left + rect2.width / 2, y: rect2.top + rect2.height / 2 };
+    
+    switch (direction) {
+      case 'up':
+        return Math.abs(center1.x - center2.x) + Math.max(0, center1.y - center2.y) * 2;
+      case 'down':
+        return Math.abs(center1.x - center2.x) + Math.max(0, center2.y - center1.y) * 2;
+      case 'left':
+        return Math.abs(center1.y - center2.y) + Math.max(0, center1.x - center2.x) * 2;
+      case 'right':
+        return Math.abs(center1.y - center2.y) + Math.max(0, center2.x - center1.x) * 2;
+      default:
+        return Math.sqrt(Math.pow(center1.x - center2.x, 2) + Math.pow(center1.y - center2.y, 2));
+    }
+  }, []);
+
+  // Check if rect2 is in the direction from rect1
+  const isInDirection = useCallback((rect1: DOMRect, rect2: DOMRect, direction: string): boolean => {
+    const center1 = { x: rect1.left + rect1.width / 2, y: rect1.top + rect1.height / 2 };
+    const center2 = { x: rect2.left + rect2.width / 2, y: rect2.top + rect2.height / 2 };
+    
+    switch (direction) {
+      case 'up':
+        return center2.y < center1.y;
+      case 'down':
+        return center2.y > center1.y;
+      case 'left':
+        return center2.x < center1.x;
+      case 'right':
+        return center2.x > center1.x;
+      default:
+        return false;
+    }
+  }, []);
+
+  // Scroll element into view with overscan compensation
+  const scrollIntoViewWithOverscan = useCallback((element: HTMLElement) => {
+    const rect = element.getBoundingClientRect();
+    const viewport = { width: window.innerWidth, height: window.innerHeight };
+    
+    // Calculate overscan safe area (typically 5% on each side for older TVs)
+    const overscan = {
+      top: viewport.height * 0.05,
+      right: viewport.width * 0.05,
+      bottom: viewport.height * 0.05,
+      left: viewport.width * 0.05
+    };
+    
+    let scrollX = 0;
+    let scrollY = 0;
+    
+    // Check if element is outside safe area and calculate scroll needed
+    if (rect.left < overscan.left) {
+      scrollX = rect.left - overscan.left;
+    } else if (rect.right > viewport.width - overscan.right) {
+      scrollX = rect.right - (viewport.width - overscan.right);
+    }
+    
+    if (rect.top < overscan.top) {
+      scrollY = rect.top - overscan.top;
+    } else if (rect.bottom > viewport.height - overscan.bottom) {
+      scrollY = rect.bottom - (viewport.height - overscan.bottom);
+    }
+    
+    if (scrollX !== 0 || scrollY !== 0) {
+      window.scrollBy({ left: scrollX, top: scrollY, behavior: 'smooth' });
+    }
+  }, []);
 
   // Handle remote button presses
   const handleKeyDown = useCallback((event: KeyboardEvent) => {
@@ -368,6 +703,8 @@ export function useTVRemoteNavigation(options: TVRemoteNavigationOptions = {}) {
     platform,
     currentFocus,
     navigationGrid,
+    gamepadConnected,
+    connectedGamepads,
     
     // Manual navigation
     navigateUp: () => navigate('up'),
@@ -379,6 +716,9 @@ export function useTVRemoteNavigation(options: TVRemoteNavigationOptions = {}) {
     focusElement: (element: HTMLElement) => {
       setCurrentFocus(element);
       element.focus();
+      if (overscanCompensation) {
+        scrollIntoViewWithOverscan(element);
+      }
     },
     
     focusFirst: () => {
@@ -386,6 +726,9 @@ export function useTVRemoteNavigation(options: TVRemoteNavigationOptions = {}) {
         const firstElement = navigationGrid.elements[0].element;
         setCurrentFocus(firstElement);
         firstElement.focus();
+        if (overscanCompensation) {
+          scrollIntoViewWithOverscan(firstElement);
+        }
       }
     },
     
@@ -394,6 +737,9 @@ export function useTVRemoteNavigation(options: TVRemoteNavigationOptions = {}) {
         const lastElement = navigationGrid.elements[navigationGrid.elements.length - 1].element;
         setCurrentFocus(lastElement);
         lastElement.focus();
+        if (overscanCompensation) {
+          scrollIntoViewWithOverscan(lastElement);
+        }
       }
     },
     
@@ -405,7 +751,32 @@ export function useTVRemoteNavigation(options: TVRemoteNavigationOptions = {}) {
     
     // State management
     activate: () => setIsActive(true),
-    deactivate: () => setIsActive(false)
+    deactivate: () => setIsActive(false),
+    
+    // Gamepad control
+    getConnectedGamepads: () => connectedGamepads,
+    
+    // Voice control
+    startVoiceRecognition: () => {
+      if (voiceRecognitionRef.current) {
+        voiceRecognitionRef.current.start();
+      }
+    },
+    
+    stopVoiceRecognition: () => {
+      if (voiceRecognitionRef.current) {
+        voiceRecognitionRef.current.stop();
+      }
+    },
+    
+    // Overscan utilities
+    scrollIntoViewSafe: scrollIntoViewWithOverscan,
+    
+    // Algorithm switching
+    setSpatialNavigationAlgorithm: (algorithm: 'nearest' | 'directional' | 'grid') => {
+      // This would require updating the options, but for now we'll document it
+      console.warn('Algorithm switching requires reinitializing the hook with new options');
+    }
   };
 
   return api;

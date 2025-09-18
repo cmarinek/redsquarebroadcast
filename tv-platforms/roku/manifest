@@ -1,0 +1,46 @@
+title=Red Square TV
+subtitle=Smart TV Broadcasting Platform
+major_version=1
+minor_version=0
+build_version=1
+
+# Icons and splash screens
+mm_icon_focus_hd=pkg:/images/icon_focus_hd.png
+mm_icon_side_hd=pkg:/images/icon_side_hd.png
+mm_icon_focus_sd=pkg:/images/icon_focus_sd.png
+mm_icon_side_sd=pkg:/images/icon_side_sd.png
+splash_screen_hd=pkg:/images/splash_hd.jpg
+splash_screen_sd=pkg:/images/splash_sd.jpg
+splash_color=#000000
+splash_min_time=2000
+
+# UI Configuration
+ui_resolutions=hd
+supports_input_launch=1
+bs_const=DEBUG=false
+
+# Network permissions
+network_api_permissions=networking
+
+# Remote control support
+remote_control_support=1
+
+# Screensaver settings
+screensaver_title=Red Square TV
+screensaver_private=1
+
+# Memory and performance
+bs_libs_required=rokucoreuiutils,v30_utils
+
+# Channel store metadata
+channel_store_description=Watch and manage your digital signage content on your TV
+channel_store_poster_hd=pkg:/images/channel_poster_hd.jpg
+channel_store_poster_sd=pkg:/images/channel_poster_sd.jpg
+
+# Content rating
+content_rating=Unrated
+content_rating_reason=No objectionable content
+
+# Accessibility
+accessibility_text=Red Square TV provides accessible digital signage content
+accessibility_usage=This app displays digital signage content and provides remote control navigation

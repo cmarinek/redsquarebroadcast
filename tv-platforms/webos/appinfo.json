@@ -1,0 +1,65 @@
+{
+  "id": "com.redsquare.tv",
+  "version": "1.0.0",
+  "vendor": "Red Square Broadcasting",
+  "type": "web",
+  "main": "index.html",
+  "title": "Red Square TV",
+  "icon": "icon-80.png",
+  "largeIcon": "icon-130.png",
+  "splashBackground": "splash.png",
+  "transparent": false,
+  "enableSearchAPI": true,
+  "requestedWindowOrientation": "landscape",
+  "supportGIP": true,
+  "handlesRelaunch": true,
+  "iconColor": "#1a365d",
+  "bgColor": "#000000",
+  "imageForRecents": "icon-80.png",
+  "spinnerOnLaunch": true,
+  "removable": true,
+  "privileged": false,
+  "supportQuickStart": false,
+  "resolution": "1920x1080",
+  "allowVideoCapture": false,
+  "allowAudioCapture": false,
+  "displayAffinity": 0,
+  "trustLevel": "default",
+  "folderPath": "/",
+  "accessibility": {
+    "supportsAudioGuidance": true,
+    "supportsHighContrast": true
+  },
+  "mediaOption": {
+    "option": "audioGuidance",
+    "value": "on"
+  },
+  "requiredPermissions": [
+    "time.query",
+    "activities.read",
+    "activities.write",
+    "applications.read"
+  ],
+  "supportedFileFormat": [
+    "jpg",
+    "png",
+    "gif",
+    "mp4",
+    "mp3",
+    "aac"
+  ],
+  "webOSSystem": {
+    "accessibilityEnabled": true,
+    "allowCrossDomainRequest": true,
+    "allowedOrigins": ["*"],
+    "enableBackgroundProcessing": true,
+    "enableNodeModules": false,
+    "v8SnapshotFile": "",
+    "enableInspector": false,
+    "inspectorPort": 9998
+  },
+  "servicesRequired": {
+    "media": "1.0.0",
+    "webAppMgr": "1.0.0"
+  }
+}
