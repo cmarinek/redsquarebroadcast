@@ -207,12 +207,15 @@ export function useTVRemoteNavigation(options: TVRemoteNavigationOptions = {}) {
     if (gamepad.buttons[9].pressed) button = 'menu';   // Menu button
     if (gamepad.buttons[8].pressed) button = 'back';   // Select/back button
 
-    // Handle navigation
+    // Handle navigation (will use navigate from the parent scope when called)
     if (direction) {
       const now = Date.now();
       if (now - lastNavigationTime.current >= navigationDelay) {
-        navigate(direction);
-        lastNavigationTime.current = now;
+        // Navigate function will be available when this is called
+        if (typeof navigate === 'function') {
+          navigate(direction);
+          lastNavigationTime.current = now;
+        }
       }
     }
 
@@ -231,7 +234,7 @@ export function useTVRemoteNavigation(options: TVRemoteNavigationOptions = {}) {
         currentFocus.click();
       }
     }
-  }, [navigate, navigationDelay, platform, onButtonPress, currentFocus]);
+  }, [navigationDelay, platform, onButtonPress, currentFocus]); // Removed navigate from deps
 
   // Initialize voice control
   const initializeVoiceControl = useCallback(() => {
@@ -256,10 +259,10 @@ export function useTVRemoteNavigation(options: TVRemoteNavigationOptions = {}) {
   // Handle voice commands
   const handleVoiceCommand = useCallback((command: string) => {
     const commands: Record<string, () => void> = {
-      'up': () => navigate('up'),
-      'down': () => navigate('down'),
-      'left': () => navigate('left'),
-      'right': () => navigate('right'),
+      'up': () => typeof navigate === 'function' && navigate('up'),
+      'down': () => typeof navigate === 'function' && navigate('down'),
+      'left': () => typeof navigate === 'function' && navigate('left'),
+      'right': () => typeof navigate === 'function' && navigate('right'),
       'select': () => currentFocus?.click(),
       'back': () => window.history.back(),
       'home': () => window.location.href = '/',
@@ -270,7 +273,7 @@ export function useTVRemoteNavigation(options: TVRemoteNavigationOptions = {}) {
     if (commandFunction) {
       commandFunction();
     }
-  }, [navigate, currentFocus]);
+  }, [currentFocus]); // Removed navigate from deps
 
   // Cleanup voice control
   const cleanupVoiceControl = useCallback(() => {
