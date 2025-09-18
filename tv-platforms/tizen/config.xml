@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<widget xmlns="http://www.w3.org/ns/widgets" xmlns:tizen="http://tizen.org/ns/widgets" 
+        id="http://redsquarebroadcast.com/tv" version="1.0.0" viewmodes="maximized">
+    <tizen:application id="redSquareTV" package="redSquareTV" required_version="6.0"/>
+    <content src="index.html"/>
+    
+    <!-- Screen size support -->
+    <feature name="http://tizen.org/feature/screen.size.all"/>
+    <feature name="http://tizen.org/feature/screen.size.normal.1080.1920"/>
+    <feature name="http://tizen.org/feature/screen.size.normal.720.1280"/>
+    
+    <!-- Network features -->
+    <feature name="http://tizen.org/feature/network.wifi"/>
+    <feature name="http://tizen.org/feature/network.ethernet"/>
+    
+    <!-- Media features -->
+    <feature name="http://tizen.org/feature/multimedia.player"/>
+    <feature name="http://tizen.org/feature/multimedia.stream_recording"/>
+    
+    <!-- Icon and branding -->
+    <icon src="icon.png"/>
+    <name>Red Square TV</name>
+    <description>Smart TV broadcasting platform</description>
+    <author>Red Square Broadcasting</author>
+    
+    <!-- Privileges -->
+    <tizen:privilege name="http://tizen.org/privilege/application.launch"/>
+    <tizen:privilege name="http://tizen.org/privilege/internet"/>
+    <tizen:privilege name="http://tizen.org/privilege/filesystem.read"/>
+    <tizen:privilege name="http://tizen.org/privilege/network.get"/>
+    <tizen:privilege name="http://tizen.org/privilege/tv.inputdevice"/>
+    <tizen:privilege name="http://tizen.org/privilege/tv.window"/>
+    <tizen:privilege name="http://developer.samsung.com/privilege/network.public"/>
+    
+    <!-- TV-specific settings -->
+    <tizen:setting screen-orientation="landscape" 
+                   context-menu="enable" 
+                   background-support="disable" 
+                   encryption="disable" 
+                   install-location="auto" 
+                   hwkey-event="enable"
+                   web-inspector="disable"/>
+    
+    <!-- Content security policy -->
+    <tizen:content-security-policy>default-src 'self' 'unsafe-inline' 'unsafe-eval' https: wss: data: blob:</tizen:content-security-policy>
+    
+    <!-- Navigation and accessibility -->
+    <tizen:metadata key="http://samsung.com/tv/metadata/use.preview" value="endpoint_URL"/>
+    <tizen:metadata key="http://samsung.com/tv/metadata/prelaunch.support" value="true"/>
+    
+</widget>

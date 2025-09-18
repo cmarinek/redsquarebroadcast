@@ -1,0 +1,473 @@
+/**
+ * TV-specific CSS utilities and styles
+ * Optimized for 10-foot UI and remote control navigation
+ */
+
+/* TV Base Styles */
+.tv-navigation-enabled {
+  cursor: none; /* Hide mouse cursor on TV */
+  user-select: none; /* Prevent text selection */
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}
+
+/* Ten-foot UI scaling */
+.ten-foot-ui {
+  font-size: 1.25rem; /* Larger base font size */
+  line-height: 1.6;
+}
+
+.ten-foot-ui h1 { font-size: 3rem; }
+.ten-foot-ui h2 { font-size: 2.5rem; }
+.ten-foot-ui h3 { font-size: 2rem; }
+.ten-foot-ui h4 { font-size: 1.75rem; }
+.ten-foot-ui h5 { font-size: 1.5rem; }
+.ten-foot-ui h6 { font-size: 1.25rem; }
+
+/* TV Safe Area - overscan compensation */
+.tv-safe-area {
+  padding: 5vh 5vw; /* 5% padding on all sides */
+  box-sizing: border-box;
+}
+
+.tv-safe-area--conservative {
+  padding: 8vh 8vw; /* More conservative for older TVs */
+}
+
+.tv-safe-area--minimal {
+  padding: 2vh 2vw; /* Minimal for modern smart TVs */
+}
+
+/* High contrast mode for TV visibility */
+.tv-high-contrast {
+  --tv-contrast-multiplier: 1.5;
+  filter: contrast(var(--tv-contrast-multiplier));
+}
+
+.tv-high-contrast .text-muted {
+  opacity: 0.8 !important; /* Ensure muted text is still visible */
+}
+
+/* TV Focus States */
+.tv-focused {
+  outline: 4px solid #3b82f6 !important;
+  outline-offset: 4px;
+  box-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
+  transform: scale(1.05);
+  transition: all 0.2s ease-in-out;
+  z-index: 10;
+  position: relative;
+}
+
+.tv-focused--subtle {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+  transform: scale(1.02);
+}
+
+.tv-focused--bright {
+  outline: 6px solid #60a5fa;
+  outline-offset: 6px;
+  box-shadow: 0 0 30px rgba(96, 165, 250, 0.7);
+  transform: scale(1.08);
+}
+
+/* Platform-specific focus styles */
+.tv-platform-samsung .tv-focused {
+  outline-color: #0078d4; /* Samsung blue */
+}
+
+.tv-platform-lg .tv-focused {
+  outline-color: #a50034; /* LG red */
+}
+
+.tv-platform-roku .tv-focused {
+  outline-color: #662d91; /* Roku purple */
+}
+
+.tv-platform-amazon .tv-focused {
+  outline-color: #ff9900; /* Amazon orange */
+}
+
+.tv-platform-android .tv-focused {
+  outline-color: #34a853; /* Android green */
+}
+
+/* TV Button Styles */
+.tv-button {
+  min-width: 120px;
+  min-height: 48px;
+  padding: 12px 24px;
+  font-size: 1.125rem;
+  font-weight: 600;
+  border: 2px solid transparent;
+  border-radius: 8px;
+  transition: all 0.2s ease-in-out;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.tv-button:hover,
+.tv-button.tv-focused {
+  transform: scale(1.05);
+  border-color: currentColor;
+}
+
+.tv-button--large {
+  min-width: 160px;
+  min-height: 64px;
+  padding: 16px 32px;
+  font-size: 1.25rem;
+}
+
+.tv-button--primary {
+  background-color: #3b82f6;
+  color: white;
+}
+
+.tv-button--secondary {
+  background-color: #6b7280;
+  color: white;
+}
+
+/* TV Card Components */
+.tv-card {
+  border-radius: 12px;
+  padding: 24px;
+  margin: 16px;
+  border: 2px solid transparent;
+  transition: all 0.2s ease-in-out;
+  background-color: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(8px);
+}
+
+.tv-card.tv-focused {
+  border-color: #3b82f6;
+  background-color: rgba(59, 130, 246, 0.1);
+}
+
+.tv-card--large {
+  padding: 32px;
+  margin: 24px;
+  border-radius: 16px;
+}
+
+/* TV Grid Layouts */
+.tv-grid {
+  display: grid;
+  gap: 24px;
+  padding: 24px;
+}
+
+.tv-grid--2col {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.tv-grid--3col {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.tv-grid--4col {
+  grid-template-columns: repeat(4, 1fr);
+}
+
+.tv-grid--auto {
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+}
+
+/* TV Navigation Indicators */
+.tv-nav-indicator {
+  position: fixed;
+  z-index: 1000;
+  pointer-events: none;
+}
+
+.tv-nav-indicator--arrows {
+  font-size: 2rem;
+  color: #3b82f6;
+  opacity: 0.8;
+  animation: pulse 2s infinite;
+}
+
+.tv-nav-indicator--top {
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.tv-nav-indicator--bottom {
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.tv-nav-indicator--left {
+  left: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.tv-nav-indicator--right {
+  right: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+/* TV Loading Animations */
+@keyframes tv-loading-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.tv-loading {
+  animation: tv-loading-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes tv-focus-glow {
+  0%, 100% { box-shadow: 0 0 20px rgba(59, 130, 246, 0.5); }
+  50% { box-shadow: 0 0 40px rgba(59, 130, 246, 0.8); }
+}
+
+.tv-focused--animated {
+  animation: tv-focus-glow 2s ease-in-out infinite;
+}
+
+/* TV Text Sizing */
+.tv-text--small { font-size: 1rem; }
+.tv-text--medium { font-size: 1.25rem; }
+.tv-text--large { font-size: 1.5rem; }
+.tv-text--xlarge { font-size: 2rem; }
+.tv-text--xxlarge { font-size: 2.5rem; }
+
+/* TV Spacing */
+.tv-spacing--tight > * + * { margin-top: 0.5rem; }
+.tv-spacing--normal > * + * { margin-top: 1rem; }
+.tv-spacing--loose > * + * { margin-top: 1.5rem; }
+.tv-spacing--extra-loose > * + * { margin-top: 2rem; }
+
+/* TV Form Elements */
+.tv-input {
+  min-height: 48px;
+  padding: 12px 16px;
+  font-size: 1.125rem;
+  border: 2px solid #d1d5db;
+  border-radius: 8px;
+  transition: all 0.2s ease-in-out;
+}
+
+.tv-input:focus,
+.tv-input.tv-focused {
+  border-color: #3b82f6;
+  outline: 2px solid rgba(59, 130, 246, 0.2);
+  outline-offset: 2px;
+}
+
+.tv-select {
+  min-height: 48px;
+  padding: 12px 16px;
+  font-size: 1.125rem;
+  border: 2px solid #d1d5db;
+  border-radius: 8px;
+  background-color: white;
+  cursor: pointer;
+}
+
+/* TV Modal/Dialog */
+.tv-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+}
+
+.tv-modal__content {
+  background-color: white;
+  border-radius: 16px;
+  padding: 32px;
+  margin: 5vh 5vw;
+  max-width: 80vw;
+  max-height: 80vh;
+  overflow-y: auto;
+  border: 4px solid #3b82f6;
+}
+
+/* TV Progress Indicators */
+.tv-progress {
+  width: 100%;
+  height: 8px;
+  background-color: #e5e7eb;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.tv-progress__bar {
+  height: 100%;
+  background-color: #3b82f6;
+  transition: width 0.3s ease-in-out;
+}
+
+.tv-progress--large {
+  height: 12px;
+}
+
+.tv-progress--xlarge {
+  height: 16px;
+}
+
+/* TV Status Indicators */
+.tv-status-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-radius: 9999px;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.tv-status-indicator--success {
+  background-color: rgba(34, 197, 94, 0.1);
+  color: #16a34a;
+  border: 2px solid #22c55e;
+}
+
+.tv-status-indicator--error {
+  background-color: rgba(239, 68, 68, 0.1);
+  color: #dc2626;
+  border: 2px solid #ef4444;
+}
+
+.tv-status-indicator--warning {
+  background-color: rgba(251, 191, 36, 0.1);
+  color: #d97706;
+  border: 2px solid #fbbf24;
+}
+
+.tv-status-indicator--info {
+  background-color: rgba(59, 130, 246, 0.1);
+  color: #2563eb;
+  border: 2px solid #3b82f6;
+}
+
+/* TV Image Containers */
+.tv-image-container {
+  position: relative;
+  overflow: hidden;
+  border-radius: 8px;
+}
+
+.tv-image-container img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.2s ease-in-out;
+}
+
+.tv-image-container.tv-focused img {
+  transform: scale(1.05);
+}
+
+.tv-image-placeholder {
+  background: linear-gradient(45deg, #f3f4f6, #e5e7eb);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #6b7280;
+  font-size: 1.125rem;
+}
+
+/* TV Accessibility */
+.tv-screen-reader-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* TV Animation Utilities */
+.tv-animate-fade-in {
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+.tv-animate-slide-up {
+  animation: slideUp 0.5s ease-in-out;
+}
+
+.tv-animate-scale-in {
+  animation: scaleIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes scaleIn {
+  from { transform: scale(0.9); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+/* TV Dark Mode Optimizations */
+@media (prefers-color-scheme: dark) {
+  .tv-navigation-enabled {
+    background-color: #0f172a;
+    color: #f1f5f9;
+  }
+  
+  .tv-card {
+    background-color: rgba(15, 23, 42, 0.8);
+    border-color: rgba(71, 85, 105, 0.3);
+  }
+  
+  .tv-input,
+  .tv-select {
+    background-color: #1e293b;
+    border-color: #475569;
+    color: #f1f5f9;
+  }
+}
+
+/* TV Performance Optimizations */
+.tv-performance-optimized {
+  will-change: transform;
+  transform: translateZ(0); /* Force hardware acceleration */
+  backface-visibility: hidden;
+}
+
+.tv-smooth-scroll {
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* TV Memory Optimization */
+.tv-low-memory .tv-card {
+  backdrop-filter: none; /* Disable expensive blur effects */
+}
+
+.tv-low-memory .tv-focused {
+  box-shadow: none; /* Disable expensive shadows */
+}
+
+.tv-low-memory img {
+  image-rendering: -webkit-optimize-contrast; /* Optimize image rendering */
+}
