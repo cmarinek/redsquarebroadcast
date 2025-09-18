@@ -1,0 +1,80 @@
+/**
+ * Lightweight TV profiling hook.
+ * - Samples FPS via requestAnimationFrame
+ * - Tracks navigation latency if navigation events are emitted
+ * - Batches metrics and sends to /api/metrics/tv-profiling using metricsClient
+ *
+ * Respects the analytics opt-out and sampling rate.
+ */
+
+import { useEffect, useRef } from 'react';
+import { sendTVProfilingMetrics } from '@/utils/metricsClient';
+import { getBuildConfig } from '@/config/buildConfig';
+
+export interface TVProfileSample {
+  timestamp: number;
+  fps?: number;
+  navLatencyMs?: number;
+  memory?: { jsHeapSizeLimit?: number; totalJSHeapSize?: number; usedJSHeapSize?: number };
+}
+
+export function useTVProfiling({ sampleRate = 0.05 } = {}) {
+  const rafRef = useRef<number | null>(null);
+  const lastFrameTime = useRef<number | null>(null);
+  const frameCount = useRef(0);
+  const samples = useRef<TVProfileSample[]>([]);
+  const enabled = getBuildConfig?.().analyticsEnabled === true;
+
+  useEffect(() => {
+    if (!enabled) return;
+
+    function onFrame(now: number) {
+      if (!lastFrameTime.current) lastFrameTime.current = now;
+      frameCount.current++;
+      const elapsed = now - (lastFrameTime.current || now);
+      if (elapsed >= 1000) {
+        const fps = Math.round((frameCount.current * 1000) / elapsed);
+        const sample: TVProfileSample = { timestamp: Date.now(), fps };
+
+        if ((performance as any).memory) {
+          sample.memory = (performance as any).memory;
+        }
+
+        samples.current.push(sample);
+
+        lastFrameTime.current = now;
+        frameCount.current = 0;
+
+        if (samples.current.length >= 5) {
+          const toSend = samples.current.splice(0);
+          if (Math.random() <= sampleRate) {
+            sendTVProfilingMetrics({ samples: toSend }).catch(() => {});
+          }
+        }
+      }
+
+      rafRef.current = requestAnimationFrame(onFrame);
+    }
+
+    rafRef.current = requestAnimationFrame(onFrame);
+    return () => {
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    };
+  }, [enabled, sampleRate]);
+
+  // Navigation latency listener
+  useEffect(() => {
+    function onNavLatency(e: CustomEvent) {
+      const sample: TVProfileSample = { timestamp: Date.now(), navLatencyMs: e.detail?.latencyMs };
+      samples.current.push(sample);
+      if (samples.current.length >= 5 && Math.random() <= sampleRate) {
+        const toSend = samples.current.splice(0);
+        sendTVProfilingMetrics({ samples: toSend }).catch(() => {});
+      }
+    }
+    window.addEventListener('rsb:navlatency', onNavLatency as EventListener);
+    return () => window.removeEventListener('rsb:navlatency', onNavLatency as EventListener);
+  }, [sampleRate]);
+}
+
+export default useTVProfiling;
