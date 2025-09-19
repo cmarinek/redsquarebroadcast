@@ -1,6 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<widget xmlns="http://www.w3.org/ns/widgets" id="com.example.{{name}}" version="{{version}}">
-  <name>{{name}}</name>
-  <author>{{author}}</author>
-  <!-- TODO: add icons, privileges and required Tizen-specific fields -->
-</widget>
+<manifest xmlns="http://tizen.org/ns/packages" package="{{APP_ID}}" version="{{APP_VERSION}}">
+  <label>{{APP_TITLE}}</label>
+  <description>{{DESCRIPTION}}</description>
+  <author>{{AUTHOR}}</author>
+  <!-- Add privileges and other settings as needed -->
+  <profile>tv</profile>
+  <ui-application appid="{{APP_ID}}" exec="index.html" type="web">
+    <label>{{APP_TITLE}}</label>
+  </ui-application>
+</manifest>
