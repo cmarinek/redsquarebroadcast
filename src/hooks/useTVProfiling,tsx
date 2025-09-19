@@ -1,80 +1,91 @@
-/**
- * Lightweight TV profiling hook.
- * - Samples FPS via requestAnimationFrame
- * - Tracks navigation latency if navigation events are emitted
- * - Batches metrics and sends to /api/metrics/tv-profiling using metricsClient
- *
- * Respects the analytics opt-out and sampling rate.
- */
-
 import { useEffect, useRef } from 'react';
-import { sendTVProfilingMetrics } from '@/utils/metricsClient';
-import { getBuildConfig } from '@/config/buildConfig';
+import { postTVProfilingBatch } from '../utils/metricsClient';
 
-export interface TVProfileSample {
-  timestamp: number;
+interface Sample {
+  ts: number;
   fps?: number;
-  navLatencyMs?: number;
-  memory?: { jsHeapSizeLimit?: number; totalJSHeapSize?: number; usedJSHeapSize?: number };
+  event?: string;
+  data?: any;
 }
 
-export function useTVProfiling({ sampleRate = 0.05 } = {}) {
+interface UseTVProfilingOptions {
+  enabled?: boolean;
+  sampleIntervalMs?: number;
+  batchSize?: number;
+  postIntervalMs?: number;
+}
+
+export function useTVProfiling(options: UseTVProfilingOptions = {}) {
+  const opts = {
+    enabled: true,
+    sampleIntervalMs: 1000,
+    batchSize: 50,
+    postIntervalMs: 5000,
+    ...options,
+  };
+
+  const runningRef = useRef(false);
   const rafRef = useRef<number | null>(null);
-  const lastFrameTime = useRef<number | null>(null);
-  const frameCount = useRef(0);
-  const samples = useRef<TVProfileSample[]>([]);
-  const enabled = getBuildConfig?.().analyticsEnabled === true;
+  const lastFrameRef = useRef<number | null>(null);
+  const accumRef = useRef<Sample[]>([]);
+  const lastPostRef = useRef<number>(Date.now());
 
   useEffect(() => {
-    if (!enabled) return;
+    if (!opts.enabled) return;
 
-    function onFrame(now: number) {
-      if (!lastFrameTime.current) lastFrameTime.current = now;
-      frameCount.current++;
-      const elapsed = now - (lastFrameTime.current || now);
-      if (elapsed >= 1000) {
-        const fps = Math.round((frameCount.current * 1000) / elapsed);
-        const sample: TVProfileSample = { timestamp: Date.now(), fps };
+    runningRef.current = true;
+    lastFrameRef.current = null;
 
-        if ((performance as any).memory) {
-          sample.memory = (performance as any).memory;
-        }
+    const tick = (now: number) => {
+      if (!runningRef.current) return;
+      if (lastFrameRef.current != null) {
+        const dt = now - lastFrameRef.current;
+        const fps = dt > 0 ? Math.round(1000 / dt) : undefined;
+        accumRef.current.push({ ts: Date.now(), fps });
+      }
+      lastFrameRef.current = now;
+      rafRef.current = requestAnimationFrame(tick);
 
-        samples.current.push(sample);
-
-        lastFrameTime.current = now;
-        frameCount.current = 0;
-
-        if (samples.current.length >= 5) {
-          const toSend = samples.current.splice(0);
-          if (Math.random() <= sampleRate) {
-            sendTVProfilingMetrics({ samples: toSend }).catch(() => {});
-          }
+      const nowTs = Date.now();
+      if (accumRef.current.length >= opts.batchSize || nowTs - lastPostRef.current >= opts.postIntervalMs) {
+        const toSend = accumRef.current.splice(0, accumRef.current.length);
+        lastPostRef.current = nowTs;
+        if (toSend.length > 0) {
+          postTVProfilingBatch({ samples: toSend }).catch((err) => {
+            // eslint-disable-next-line no-console
+            console.warn('useTVProfiling post failed', err);
+          });
         }
       }
-
-      rafRef.current = requestAnimationFrame(onFrame);
-    }
-
-    rafRef.current = requestAnimationFrame(onFrame);
-    return () => {
-      if (rafRef.current) cancelAnimationFrame(rafRef.current);
     };
-  }, [enabled, sampleRate]);
 
-  // Navigation latency listener
-  useEffect(() => {
-    function onNavLatency(e: CustomEvent) {
-      const sample: TVProfileSample = { timestamp: Date.now(), navLatencyMs: e.detail?.latencyMs };
-      samples.current.push(sample);
-      if (samples.current.length >= 5 && Math.random() <= sampleRate) {
-        const toSend = samples.current.splice(0);
-        sendTVProfilingMetrics({ samples: toSend }).catch(() => {});
+    rafRef.current = requestAnimationFrame(tick);
+
+    const navLatencyHandler = (e: Event) => {
+      const ce = e as CustomEvent;
+      const detail = ce.detail || {};
+      const sample: Sample = {
+        ts: Date.now(),
+        event: 'nav-latency',
+        data: detail,
+      };
+      accumRef.current.push(sample);
+    };
+    window.addEventListener('nav-latency', navLatencyHandler as EventListener);
+
+    return () => {
+      runningRef.current = false;
+      if (rafRef.current != null) {
+        cancelAnimationFrame(rafRef.current);
       }
-    }
-    window.addEventListener('rsb:navlatency', onNavLatency as EventListener);
-    return () => window.removeEventListener('rsb:navlatency', onNavLatency as EventListener);
-  }, [sampleRate]);
-}
+      window.removeEventListener('nav-latency', navLatencyHandler as EventListener);
 
-export default useTVProfiling;
+      const remaining = accumRef.current.splice(0, accumRef.current.length);
+      if (remaining.length > 0) {
+        postTVProfilingBatch({ samples: remaining }).catch(() => {
+          // ignore
+        });
+      }
+    };
+  }, [opts.enabled, opts.sampleIntervalMs, opts.batchSize, opts.postIntervalMs]);
+}
