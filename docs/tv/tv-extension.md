@@ -1,39 +1,44 @@
 ```markdown
-# TV Remote Extension Guide
+# TV Extension: Remote Navigation and Integration
 
-This document explains how to register custom remote button mappings and add gesture handlers.
+This document describes how to use the TV integration added in the TV enhancements.
 
-## Register a custom mapping
+## Hooks
 
-In a module, call:
+### useTVRemoteNavigation(options)
 
-```js
-window.RedSquareTV = window.RedSquareTV || {};
-window.RedSquareTV.registerRemoteMapping({
-  'CustomKeyCodeOrKeyName': 'my_custom_action'
-});
+Imports:
+```ts
+import { useTVRemoteNavigation } from 'src/hooks/useTVRemoteNavigation';
 ```
 
-Your app should listen to the onButtonPress callback in `useTVRemoteNavigation` and handle actions named by the mapping.
+Options:
+- enableGestures?: boolean — whether to enable gesture mappings if available.
+- onNavigate?: (route, params) => void — callback invoked when a navigation action is received.
+- mapping?: Record<string, string> — mapping of runtime action names to app routes.
+- enableLongPress?: boolean
+- enableDoubleTap?: boolean
 
-## Gesture hooks
+Behavior:
+- Attempts to register a mapping with the runtime via `window.RedSquareTV.registerRemoteMapping(mappingPayload)` if present.
+- Fallback: listens for `remote-nav` custom events or `RedSquareTV.onRemoteEvent`.
+- Emits a `nav-latency` event (CustomEvent) on navigation with detail: { action, startTs, endTs } to allow telemetry collection.
 
-When initializing the navigation hook, enable gestures:
-
-```ts
+Example:
+```tsx
 useTVRemoteNavigation({
   enableGestures: true,
-  longPressDelay: 600,
-  doubleTapDelay: 300,
-  onButtonPress: (event) => {
-    if (event.type === 'longpress') { ... }
-    if (event.type === 'doubletap') { ... }
-    if (event.type === 'pointerdown') { ... } // pointer gestures
+  mapping: { 'KEY_ENTER': '/select', 'KEY_UP': '/up' },
+  onNavigate: (route) => {
+    history.push(route);
   }
 });
 ```
 
-Notes:
-- Keep gestures optional to preserve default behavior.
-- Provide accessible keyboard fallbacks for all gestures.
+## Runtime setup
+
+Your TV runtime should:
+- Expose `window.RedSquareTV.registerRemoteMapping(mappingPayload)` to register available actions.
+- Optionally emit remote events via `RedSquareTV.onRemoteEvent(handler)`.
+- If runtime doesn't support registration, the app will still work via custom `remote-nav` events.
 ```
