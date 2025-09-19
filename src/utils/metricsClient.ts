@@ -1,25 +1,39 @@
-/**
- * Minimal metrics client for sending TV profiling metrics.
- * Respects analytics opt-out.
- */
+// Simple metrics client for TV profiling batches.
+// Respects getBuildConfig().analyticsEnabled to avoid sending telemetry when disabled.
 
-import { getBuildConfig } from '@/config/buildConfig';
+import { getBuildConfig } from '../config/getBuildConfig';
 
-export async function sendTVProfilingMetrics(payload: any) {
+interface TVProfilingBatch {
+  samples: Array<any>;
+}
+
+async function doPost(url: string, body: any, retries = 2): Promise<Response> {
+  const headers = { 'Content-Type': 'application/json' };
   try {
-    const buildConfig = getBuildConfig?.();
-    if (!buildConfig || !buildConfig.analyticsEnabled) {
-      return;
+    const res = await fetch(url, { method: 'POST', headers, body: JSON.stringify(body) });
+    if (!res.ok) {
+      throw new Error(`HTTP ${res.status}`);
     }
-
-    await fetch('/api/metrics/tv-profiling', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ payload, client: 'redsquare-tv', timestamp: Date.now() })
-    });
+    return res;
   } catch (err) {
-    // swallow errors; metrics must not impact runtime
-    // eslint-disable-next-line no-console
-    console.warn('Failed to send TV profiling metrics', err);
+    if (retries > 0) {
+      await new Promise((r) => setTimeout(r, 500 * Math.pow(2, 2 - retries)));
+      return doPost(url, body, retries - 1);
+    }
+    throw err;
   }
+}
+
+export async function postTVProfilingBatch(batch: TVProfilingBatch) {
+  const cfg = typeof getBuildConfig === 'function' ? getBuildConfig() : { analyticsEnabled: false };
+  if (!cfg || !cfg.analyticsEnabled) {
+    // do not post when analytics disabled
+    return Promise.resolve();
+  }
+  const url = '/api/metrics/tv-profiling';
+  return doPost(url, {
+    timestamp: Date.now(),
+    build: cfg.buildTag || cfg.version || 'unknown',
+    samples: batch.samples,
+  });
 }

@@ -1,3 +1,4 @@
+
 *** Begin Patch
 *** Add File: src/utils/platformDetection.ts
 +// probePlatformCapabilities and detectPlatformEnhanced
@@ -80,9 +81,6 @@
 +export function detectPlatformEnhanced(): PlatformCapabilities {
 +  return probePlatformCapabilities();
 +}
-+
-*** End Patch
-*** Begin Patch
 *** Add File: src/hooks/useTVRemoteNavigation.tsx
 +import { useEffect, useRef } from 'react';
 +import { PlatformCapabilities, detectPlatformEnhanced } from '../utils/platformDetection';
@@ -209,9 +207,6 @@
 +    opts.enableDoubleTap,
 +  ]);
 +}
-+
-*** End Patch
-*** Begin Patch
 *** Add File: src/hooks/useTVProfiling.tsx
 +import { useEffect, useRef } from 'react';
 +import { postTVProfilingBatch } from '../utils/metricsClient';
@@ -304,9 +299,6 @@
 +    };
 +  }, [opts.enabled, opts.sampleIntervalMs, opts.batchSize, opts.postIntervalMs]);
 +}
-+
-*** End Patch
-*** Begin Patch
 *** Add File: src/utils/metricsClient.ts
 +// Simple metrics client for TV profiling batches.
 +// Respects getBuildConfig().analyticsEnabled to avoid sending telemetry when disabled.
@@ -347,9 +339,6 @@
 +    samples: batch.samples,
 +  });
 +}
-+
-*** End Patch
-*** Begin Patch
 *** Add File: scripts/packaging/generate-manifest.js
 +#!/usr/bin/env node
 +// Simple manifest generator for Tizen (or other TV platforms)
@@ -397,9 +386,7 @@
 +fs.mkdirSync(path.dirname(outPath), { recursive: true });
 +fs.writeFileSync(outPath, out, 'utf8');
 +console.log('Wrote manifest to', outPath);
-+
-*** End Patch
-*** Begin Patch
+
 *** Add File: scripts/packaging/tizen/manifest.tpl
 +<?xml version="1.0" encoding="UTF-8"?>
 +<manifest xmlns="http://tizen.org/ns/packages" package="{{APP_ID}}" version="{{APP_VERSION}}">
@@ -412,9 +399,6 @@
 +    <label>{{APP_TITLE}}</label>
 +  </ui-application>
 +</manifest>
-+
-*** End Patch
-*** Begin Patch
 *** Add File: docs/tv/tv-extension.md
 +````markdown
 +```markdown
@@ -462,9 +446,6 @@
 +- If runtime doesn't support registration, the app will still work via custom `remote-nav` events.
 +```
 +````
-+
-*** End Patch
-*** Begin Patch
 *** Add File: docs/tv/tv-telemetry.md
 +````markdown
 +```markdown
@@ -486,9 +467,6 @@
 +- Keep telemetry aggregated and minimize PII. The current design posts only timing and low-level event data. Do not post user identifiers unless explicitly required and authorized.
 +```
 +````
-+
-*** End Patch
-*** Begin Patch
 *** Add File: src/pages/TVProfilingDashboard.tsx
 +import React, { useEffect, useState } from 'react';
 +
@@ -548,5 +526,3 @@
 +    </div>
 +  );
 +}
-+
-*** End Patch

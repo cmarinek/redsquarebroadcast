@@ -1,36 +1,46 @@
 #!/usr/bin/env node
-/**
- * Simple manifest generator for TV platforms.
- * Usage: node generate-manifest.js --platform tizen --out dist/tizen/manifest.xml --vars ./package.json
- *
- * This is a conservative starter. Does not sign or publish — that is left to release process.
- */
+// Simple manifest generator for Tizen (or other TV platforms)
+// Usage: node scripts/packaging/generate-manifest.js --template scripts/packaging/tizen/manifest.tpl --out build/manifest.xml
 
 const fs = require('fs');
 const path = require('path');
 
-function loadTpl(platform) {
-  const tplPath = path.join(__dirname, platform, 'manifest.tpl');
-  if (!fs.existsSync(tplPath)) throw new Error(`Template not found: ${tplPath}`);
-  return fs.readFileSync(tplPath, 'utf8');
+function readJSON(file) {
+  try {
+    return JSON.parse(fs.readFileSync(file, 'utf8'));
+  } catch (err) {
+    return {};
+  }
 }
 
-function fillTemplate(tpl, vars) {
-  return tpl.replace(/\{\{(\w+)\}\}/g, (_, key) => vars[key] || '');
+const args = require('minimist')(process.argv.slice(2));
+const tplPath = args.template || path.join(__dirname, 'tizen', 'manifest.tpl');
+const outPath = args.out || path.join(process.cwd(), 'build', 'manifest.xml');
+
+const pkg = readJSON(path.join(process.cwd(), 'package.json'));
+const buildConfig = readJSON(path.join(process.cwd(), 'build-config.json'));
+
+let tpl = '';
+try {
+  tpl = fs.readFileSync(tplPath, 'utf8');
+} catch (err) {
+  console.error('Template not found:', tplPath);
+  process.exit(1);
 }
 
-function main() {
-  const argv = require('minimist')(process.argv.slice(2));
-  const platform = argv.platform || 'tizen';
-  const out = argv.out || `dist/${platform}/manifest.out`;
-  const varsFile = argv.vars || 'package.json';
-  const vars = fs.existsSync(varsFile) ? JSON.parse(fs.readFileSync(varsFile, 'utf8')) : {};
+const substitutions = {
+  APP_ID: (pkg.name || 'app').replace(/[^a-zA-Z0-9_.-]/g, '_'),
+  APP_VERSION: (pkg.version || '0.0.0'),
+  APP_TITLE: (pkg.productName || pkg.name || 'App'),
+  AUTHOR: (pkg.author && (pkg.author.name || pkg.author)) || buildConfig.author || 'Unknown Author',
+  DESCRIPTION: pkg.description || '',
+};
 
-  const tpl = loadTpl(platform);
-  const content = fillTemplate(tpl, { name: vars.name || 'redsquare', version: vars.version || '0.0.0', author: (vars.author && vars.author.name) || vars.author || '' });
-  fs.mkdirSync(path.dirname(out), { recursive: true });
-  fs.writeFileSync(out, content);
-  console.log(`Generated manifest at ${out}`);
-}
+let out = tpl;
+Object.keys(substitutions).forEach((k) => {
+  out = out.replace(new RegExp(`\\{\\{${k}\\}\\}`, 'g'), substitutions[k]);
+});
 
-if (require.main === module) main();
+fs.mkdirSync(path.dirname(outPath), { recursive: true });
+fs.writeFileSync(outPath, out, 'utf8');
+console.log('Wrote manifest to', outPath);

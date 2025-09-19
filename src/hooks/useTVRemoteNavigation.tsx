@@ -1,133 +1,125 @@
-// Partial modifications to the existing hook to add gesture, long-press and double-tap support.
-// Preserve your repository's existing navigation logic and adapt naming/imports as needed.
+import { useEffect, useRef } from 'react';
+import { PlatformCapabilities, detectPlatformEnhanced } from '../utils/platformDetection';
 
-import { useEffect, useCallback, useState, useRef } from 'react';
-import { detectPlatform, isTVPlatform } from '@/utils/platformDetection';
+type NavigateCallback = (route: string, params?: Record<string, any>) => void;
 
-export interface TVRemoteNavigationOptions {
-  enabled?: boolean;
-  gridMode?: boolean;
-  wrapNavigation?: boolean;
-  autoFocus?: boolean;
-  focusClassName?: string;
-  navigationDelay?: number;
-  onButtonPress?: (event: any) => void;
-  onNavigate?: (from: HTMLElement | null, to: HTMLElement | null) => void;
-  selector?: string;
+export interface UseTVRemoteNavigationOptions {
   enableGestures?: boolean;
-  longPressDelay?: number;
-  doubleTapDelay?: number;
+  onNavigate?: NavigateCallback;
+  mapping?: Record<string, string>; // action -> route
+  enableLongPress?: boolean;
+  enableDoubleTap?: boolean;
 }
 
-export function useTVRemoteNavigation(options: TVRemoteNavigationOptions = {}) {
-  const {
-    enabled = true,
-    enableGestures = false,
-    longPressDelay = 600,
-    doubleTapDelay = 300,
-  } = options as TVRemoteNavigationOptions;
+/**
+ * Hook to register TV remote mapping with the runtime if present.
+ * - Registers mapping via window.RedSquareTV.registerRemoteMapping if available.
+ * - Listens for 'remote-nav' custom events as a fallback.
+ */
+export function useTVRemoteNavigation(options: UseTVRemoteNavigationOptions = {}) {
+  const opts = {
+    enableGestures: false,
+    enableLongPress: false,
+    enableDoubleTap: false,
+    mapping: {},
+    ...options,
+  };
 
-  const [isActive, setIsActive] = useState(false);
-  const [currentFocus, setCurrentFocus] = useState<HTMLElement | null>(null);
-
-  const lastKeyTimeRef = useRef<number>(0);
-  const lastKeyRef = useRef<string | null>(null);
-  const longPressTimer = useRef<number | null>(null);
+  const onNavigateRef = useRef<NavigateCallback | undefined>(opts.onNavigate);
 
   useEffect(() => {
-    const platformInfo = detectPlatform();
-    setIsActive(enabled && isTVPlatform(platformInfo.platform));
-  }, [enabled]);
+    onNavigateRef.current = opts.onNavigate;
+  }, [opts.onNavigate]);
 
-  // Global registration API for custom mappings
   useEffect(() => {
-    (window as any).RedSquareTV = (window as any).RedSquareTV || {};
-    (window as any).RedSquareTV.registerRemoteMapping = (mapping: Record<string, string>) => {
-      (window as any).RedSquareTV._customMappings = {
-        ...(window as any).RedSquareTV._customMappings || {},
-        ...mapping
-      };
-    };
-  }, []);
-
-  const handleKeyDown = useCallback((event: KeyboardEvent) => {
-    if (!isActive) return;
-
-    const key = event.key || String(event.keyCode);
-    const now = Date.now();
-
-    // Double-tap detection
-    if (lastKeyRef.current === key && now - lastKeyTimeRef.current <= doubleTapDelay) {
-      const doubleTapEvent = { type: 'doubletap', key, originalEvent: event };
-      (options.onButtonPress || (() => {}))(doubleTapEvent);
-      lastKeyRef.current = null;
-      lastKeyTimeRef.current = 0;
-      event.preventDefault();
+    const caps: PlatformCapabilities = detectPlatformEnhanced();
+    if (!caps.hasRemote) {
+      // No remote capability; no-op
       return;
     }
 
-    // Long-press detection: start timer on keydown
-    if (longPressTimer.current) {
-      window.clearTimeout(longPressTimer.current);
-      longPressTimer.current = null;
-    }
+    const win = window as any;
+    let registered = false;
 
-    longPressTimer.current = window.setTimeout(() => {
-      const longPressEvent = { type: 'longpress', key, originalEvent: event };
-      (options.onButtonPress || (() => {}))(longPressEvent);
-    }, longPressDelay);
-
-    lastKeyRef.current = key;
-    lastKeyTimeRef.current = now;
-
-    // Existing mapping/navigation behavior continues here (not overridden)
-    // TODO: integrate with your existing key-to-action mapping and navigation engine.
-  }, [isActive, doubleTapDelay, longPressDelay, options]);
-
-  const handleKeyUp = useCallback((event: KeyboardEvent) => {
-    if (!isActive) return;
-    if (longPressTimer.current) {
-      window.clearTimeout(longPressTimer.current);
-      longPressTimer.current = null;
-    }
-    // Emit normal button press event (short press)
-    const key = event.key || String(event.keyCode);
-    const shortPressEvent = { type: 'press', key, originalEvent: event };
-    (options.onButtonPress || (() => {}))(shortPressEvent);
-  }, [isActive, options]);
-
-  // Pointer-based gesture support (touchpad/air-mouse)
-  useEffect(() => {
-    if (!isActive || !enableGestures) return;
-    const onPointerDown = (ev: PointerEvent) => {
-      const gesture = { type: 'pointerdown', pointerType: ev.pointerType, x: ev.clientX, y: ev.clientY, originalEvent: ev };
-      (options.onButtonPress || (() => {}))(gesture);
+    const dispatchNavigate = (route: string, params?: Record<string, any>) => {
+      if (onNavigateRef.current) {
+        onNavigateRef.current(route, params);
+      } else {
+        const ev = new CustomEvent('tv-navigate', { detail: { route, params } });
+        window.dispatchEvent(ev);
+      }
     };
-    window.addEventListener('pointerdown', onPointerDown);
-    return () => window.removeEventListener('pointerdown', onPointerDown);
-  }, [isActive, enableGestures]);
 
-  useEffect(() => {
-    if (!isActive) return;
-    document.addEventListener('keydown', handleKeyDown);
-    document.addEventListener('keyup', handleKeyUp);
+    // If runtime provides registration API, register mapping
+    try {
+      if (win && win.RedSquareTV && typeof win.RedSquareTV.registerRemoteMapping === 'function') {
+        const mappingPayload = {
+          mapping: opts.mapping || {},
+          gestures: opts.enableGestures && caps.supportsGestures,
+          longPress: opts.enableLongPress && caps.supportsLongPress,
+          doubleTap: opts.enableDoubleTap && caps.supportsDoubleTap,
+        };
+        win.RedSquareTV.registerRemoteMapping(mappingPayload);
+        registered = true;
+      }
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.warn('useTVRemoteNavigation: runtime registration failed', err);
+      registered = false;
+    }
+
+    // Fallback: runtime events or window custom events
+    const runtimeHandler = (e: any) => {
+      try {
+        const detail = e && e.detail ? e.detail : e;
+        const action = detail.action || detail.route || null;
+        if (!action) return;
+        const route = (opts.mapping && opts.mapping[action]) || action;
+        // Emit nav-latency for telemetry
+        const latencyEvent = new CustomEvent('nav-latency', {
+          detail: { action, startTs: detail.startTs || Date.now(), endTs: Date.now() },
+        });
+        window.dispatchEvent(latencyEvent);
+        dispatchNavigate(route, detail.params);
+      } catch (err) {
+        // eslint-disable-next-line no-console
+        console.warn('useTVRemoteNavigation runtimeHandler error', err);
+      }
+    };
+
+    if (win && win.RedSquareTV && typeof win.RedSquareTV.onRemoteEvent === 'function') {
+      try {
+        win.RedSquareTV.onRemoteEvent(runtimeHandler);
+      } catch (err) {
+        // fallback to window events below
+      }
+    }
+
+    const windowHandler = (e: Event) => {
+      const ce = e as CustomEvent;
+      runtimeHandler(ce);
+    };
+    window.addEventListener('remote-nav', windowHandler as EventListener);
+
+    // Clean up on unmount
     return () => {
-      document.removeEventListener('keydown', handleKeyDown);
-      document.removeEventListener('keyup', handleKeyUp);
+      try {
+        if (registered && win && win.RedSquareTV && typeof win.RedSquareTV.unregisterRemoteMapping === 'function') {
+          try {
+            win.RedSquareTV.unregisterRemoteMapping();
+          } catch (err) {
+            // ignore
+          }
+        }
+      } catch (err) {
+        // ignore
+      }
+      window.removeEventListener('remote-nav', windowHandler as EventListener);
     };
-  }, [isActive, handleKeyDown, handleKeyUp]);
-
-  return {
-    isActive,
-    currentFocus,
-    registerMapping: (mapping: Record<string, string>) => {
-      (window as any).RedSquareTV = (window as any).RedSquareTV || {};
-      (window as any).RedSquareTV._customMappings = {
-        ...(window as any).RedSquareTV._customMappings || {},
-        ...mapping
-      };
-    }
-  };
+  }, [
+    JSON.stringify(opts.mapping || {}),
+    opts.enableGestures,
+    opts.enableLongPress,
+    opts.enableDoubleTap,
+  ]);
 }
-
-export default useTVRemoteNavigation;

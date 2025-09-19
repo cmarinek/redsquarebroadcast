@@ -1,14 +1,44 @@
 ```markdown
-# TV Telemetry & Privacy
+# TV Extension: Remote Navigation and Integration
 
-This project collects minimal, aggregated TV profiling metrics to help improve performance on low-powered devices.
+This document describes how to use the TV integration added in the TV enhancements.
 
-Telemetry details:
-- Endpoint: POST /api/metrics/tv-profiling
-- Data: fps samples, navigation latency metrics, lightweight memory snapshots (when available)
-- PII: No personally-identifiable information is sent by default.
-- Sampling: Default sampling is low (configurable); telemetry respects the `analyticsEnabled` flag from build config and the user's opt-out.
-- Opt-out: Telemetry will not be sent if analytics are disabled in the build configuration or the user has opted out.
+## Hooks
 
-If you need stricter compliance, set analyticsEnabled=false in CI/build config and ensure no client metrics are transmitted.
+### useTVRemoteNavigation(options)
+
+Imports:
+```ts
+import { useTVRemoteNavigation } from 'src/hooks/useTVRemoteNavigation';
+```
+
+Options:
+- enableGestures?: boolean — whether to enable gesture mappings if available.
+- onNavigate?: (route, params) => void — callback invoked when a navigation action is received.
+- mapping?: Record<string, string> — mapping of runtime action names to app routes.
+- enableLongPress?: boolean
+- enableDoubleTap?: boolean
+
+Behavior:
+- Attempts to register a mapping with the runtime via `window.RedSquareTV.registerRemoteMapping(mappingPayload)` if present.
+- Fallback: listens for `remote-nav` custom events or `RedSquareTV.onRemoteEvent`.
+- Emits a `nav-latency` event (CustomEvent) on navigation with detail: { action, startTs, endTs } to allow telemetry collection.
+
+Example:
+```tsx
+useTVRemoteNavigation({
+  enableGestures: true,
+  mapping: { 'KEY_ENTER': '/select', 'KEY_UP': '/up' },
+  onNavigate: (route) => {
+    history.push(route);
+  }
+});
+```
+
+## Runtime setup
+
+Your TV runtime should:
+- Expose `window.RedSquareTV.registerRemoteMapping(mappingPayload)` to register available actions.
+- Optionally emit remote events via `RedSquareTV.onRemoteEvent(handler)`.
+- If runtime doesn't support registration, the app will still work via custom `remote-nav` events.
 ```
