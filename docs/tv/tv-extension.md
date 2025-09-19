@@ -29,7 +29,7 @@ Example:
 useTVRemoteNavigation({
   enableGestures: true,
   mapping: { 'KEY_ENTER': '/select', 'KEY_UP': '/up' },
-  onNavigate: (route) => {
+  onNavigate: (route, params) => {
     history.push(route);
   }
 });
