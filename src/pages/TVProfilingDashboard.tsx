@@ -42,7 +42,7 @@ export default function TVProfilingDashboard() {
         </thead>
         <tbody>
           {samples.map((s, i) => (
-            <tr key={i}>
+            <tr key={`${s.ts}-${i}`}>
               <td style={{ padding: '6px 4px' }}>{new Date(s.ts).toLocaleTimeString()}</td>
               <td style={{ padding: '6px 4px' }}>{s.event || '-'}</td>
               <td style={{ padding: '6px 4px' }}>{s.fps ?? '-'}</td>
