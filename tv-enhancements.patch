@@ -1,0 +1,552 @@
+*** Begin Patch
+*** Add File: src/utils/platformDetection.ts
++// probePlatformCapabilities and detectPlatformEnhanced
++// Conservative fallbacks for unknown runtimes.
++
++import { getBuildConfig } from '../config/getBuildConfig';
++
++export type ProbeSource = 'runtime' | 'ua' | 'unknown';
++
++export interface PlatformCapabilities {
++  probeSource: ProbeSource;
++  hasRemote: boolean;
++  supportsGestures: boolean;
++  supportsLongPress: boolean;
++  supportsDoubleTap: boolean;
++  raw?: any;
++}
++
++/**
++ * Runtime probing uses window.RedSquareTV (if present) or other runtime globals.
++ * If runtime probing can't find capabilities, fall back to user-agent heuristics.
++ */
++export function probePlatformCapabilities(): PlatformCapabilities {
++  // Conservative defaults
++  const defaults: PlatformCapabilities = {
++    probeSource: 'unknown',
++    hasRemote: false,
++    supportsGestures: false,
++    supportsLongPress: false,
++    supportsDoubleTap: false,
++  };
++
++  try {
++    const win = window as any;
++    if (win && typeof win.RedSquareTV === 'object' && win.RedSquareTV !== null) {
++      const rt = win.RedSquareTV;
++      const caps: PlatformCapabilities = {
++        probeSource: 'runtime',
++        hasRemote: !!(rt.registerRemoteMapping || rt.onRemoteEvent),
++        supportsGestures: !!rt.supportsGestures || !!rt.enableGestureMode,
++        supportsLongPress: !!rt.supportsLongPress,
++        supportsDoubleTap: !!rt.supportsDoubleTap,
++        raw: rt,
++      };
++      return caps;
++    }
++
++    // Fallback to user-agent heuristics
++    const ua = navigator.userAgent || navigator.vendor || (window as any).opera || '';
++    const uaLower = ua.toLowerCase();
++
++    // Conservative UA checks
++    const isSmartTV = /\b(tizen|webos|smart-tv|smarttv|appletv|bravia|netcast|vizio|roku)\b/i.test(
++      uaLower,
++    );
++    if (isSmartTV) {
++      const caps: PlatformCapabilities = {
++        probeSource: 'ua',
++        hasRemote: true,
++        supportsGestures: /\b(tizen|webos|appletv)\b/i.test(uaLower),
++        supportsLongPress: true,
++        supportsDoubleTap: false,
++        raw: { ua },
++      };
++      return caps;
++    }
++  } catch (err) {
++    // swallow and return defaults
++    // eslint-disable-next-line no-console
++    console.warn('probePlatformCapabilities error', err);
++  }
++
++  return defaults;
++}
++
++/**
++ * Optionally integrates probePlatformCapabilities with any existing detectPlatform logic.
++ * Returns the PlatformCapabilities object for the app to use.
++ */
++export function detectPlatformEnhanced(): PlatformCapabilities {
++  return probePlatformCapabilities();
++}
++
+*** End Patch
+*** Begin Patch
+*** Add File: src/hooks/useTVRemoteNavigation.tsx
++import { useEffect, useRef } from 'react';
++import { PlatformCapabilities, detectPlatformEnhanced } from '../utils/platformDetection';
++
++type NavigateCallback = (route: string, params?: Record<string, any>) => void;
++
++export interface UseTVRemoteNavigationOptions {
++  enableGestures?: boolean;
++  onNavigate?: NavigateCallback;
++  mapping?: Record<string, string>; // action -> route
++  enableLongPress?: boolean;
++  enableDoubleTap?: boolean;
++}
++
++/**
++ * Hook to register TV remote mapping with the runtime if present.
++ * - Registers mapping via window.RedSquareTV.registerRemoteMapping if available.
++ * - Listens for 'remote-nav' custom events as a fallback.
++ */
++export function useTVRemoteNavigation(options: UseTVRemoteNavigationOptions = {}) {
++  const opts = {
++    enableGestures: false,
++    enableLongPress: false,
++    enableDoubleTap: false,
++    mapping: {},
++    ...options,
++  };
++
++  const onNavigateRef = useRef<NavigateCallback | undefined>(opts.onNavigate);
++
++  useEffect(() => {
++    onNavigateRef.current = opts.onNavigate;
++  }, [opts.onNavigate]);
++
++  useEffect(() => {
++    const caps: PlatformCapabilities = detectPlatformEnhanced();
++    if (!caps.hasRemote) {
++      // No remote capability; no-op
++      return;
++    }
++
++    const win = window as any;
++    let registered = false;
++
++    const dispatchNavigate = (route: string, params?: Record<string, any>) => {
++      if (onNavigateRef.current) {
++        onNavigateRef.current(route, params);
++      } else {
++        const ev = new CustomEvent('tv-navigate', { detail: { route, params } });
++        window.dispatchEvent(ev);
++      }
++    };
++
++    // If runtime provides registration API, register mapping
++    try {
++      if (win && win.RedSquareTV && typeof win.RedSquareTV.registerRemoteMapping === 'function') {
++        const mappingPayload = {
++          mapping: opts.mapping || {},
++          gestures: opts.enableGestures && caps.supportsGestures,
++          longPress: opts.enableLongPress && caps.supportsLongPress,
++          doubleTap: opts.enableDoubleTap && caps.supportsDoubleTap,
++        };
++        win.RedSquareTV.registerRemoteMapping(mappingPayload);
++        registered = true;
++      }
++    } catch (err) {
++      // eslint-disable-next-line no-console
++      console.warn('useTVRemoteNavigation: runtime registration failed', err);
++      registered = false;
++    }
++
++    // Fallback: runtime events or window custom events
++    const runtimeHandler = (e: any) => {
++      try {
++        const detail = e && e.detail ? e.detail : e;
++        const action = detail.action || detail.route || null;
++        if (!action) return;
++        const route = (opts.mapping && opts.mapping[action]) || action;
++        // Emit nav-latency for telemetry
++        const latencyEvent = new CustomEvent('nav-latency', {
++          detail: { action, startTs: detail.startTs || Date.now(), endTs: Date.now() },
++        });
++        window.dispatchEvent(latencyEvent);
++        dispatchNavigate(route, detail.params);
++      } catch (err) {
++        // eslint-disable-next-line no-console
++        console.warn('useTVRemoteNavigation runtimeHandler error', err);
++      }
++    };
++
++    if (win && win.RedSquareTV && typeof win.RedSquareTV.onRemoteEvent === 'function') {
++      try {
++        win.RedSquareTV.onRemoteEvent(runtimeHandler);
++      } catch (err) {
++        // fallback to window events below
++      }
++    }
++
++    const windowHandler = (e: Event) => {
++      const ce = e as CustomEvent;
++      runtimeHandler(ce);
++    };
++    window.addEventListener('remote-nav', windowHandler as EventListener);
++
++    // Clean up on unmount
++    return () => {
++      try {
++        if (registered && win && win.RedSquareTV && typeof win.RedSquareTV.unregisterRemoteMapping === 'function') {
++          try {
++            win.RedSquareTV.unregisterRemoteMapping();
++          } catch (err) {
++            // ignore
++          }
++        }
++      } catch (err) {
++        // ignore
++      }
++      window.removeEventListener('remote-nav', windowHandler as EventListener);
++    };
++  }, [
++    JSON.stringify(opts.mapping || {}),
++    opts.enableGestures,
++    opts.enableLongPress,
++    opts.enableDoubleTap,
++  ]);
++}
++
+*** End Patch
+*** Begin Patch
+*** Add File: src/hooks/useTVProfiling.tsx
++import { useEffect, useRef } from 'react';
++import { postTVProfilingBatch } from '../utils/metricsClient';
++
++interface Sample {
++  ts: number;
++  fps?: number;
++  event?: string;
++  data?: any;
++}
++
++interface UseTVProfilingOptions {
++  enabled?: boolean;
++  sampleIntervalMs?: number;
++  batchSize?: number;
++  postIntervalMs?: number;
++}
++
++export function useTVProfiling(options: UseTVProfilingOptions = {}) {
++  const opts = {
++    enabled: true,
++    sampleIntervalMs: 1000,
++    batchSize: 50,
++    postIntervalMs: 5000,
++    ...options,
++  };
++
++  const runningRef = useRef(false);
++  const rafRef = useRef<number | null>(null);
++  const lastFrameRef = useRef<number | null>(null);
++  const accumRef = useRef<Sample[]>([]);
++  const lastPostRef = useRef<number>(Date.now());
++
++  useEffect(() => {
++    if (!opts.enabled) return;
++
++    runningRef.current = true;
++    lastFrameRef.current = null;
++
++    const tick = (now: number) => {
++      if (!runningRef.current) return;
++      if (lastFrameRef.current != null) {
++        const dt = now - lastFrameRef.current;
++        const fps = dt > 0 ? Math.round(1000 / dt) : undefined;
++        accumRef.current.push({ ts: Date.now(), fps });
++      }
++      lastFrameRef.current = now;
++      rafRef.current = requestAnimationFrame(tick);
++
++      const nowTs = Date.now();
++      if (accumRef.current.length >= opts.batchSize || nowTs - lastPostRef.current >= opts.postIntervalMs) {
++        const toSend = accumRef.current.splice(0, accumRef.current.length);
++        lastPostRef.current = nowTs;
++        if (toSend.length > 0) {
++          postTVProfilingBatch({ samples: toSend }).catch((err) => {
++            // eslint-disable-next-line no-console
++            console.warn('useTVProfiling post failed', err);
++          });
++        }
++      }
++    };
++
++    rafRef.current = requestAnimationFrame(tick);
++
++    const navLatencyHandler = (e: Event) => {
++      const ce = e as CustomEvent;
++      const detail = ce.detail || {};
++      const sample: Sample = {
++        ts: Date.now(),
++        event: 'nav-latency',
++        data: detail,
++      };
++      accumRef.current.push(sample);
++    };
++    window.addEventListener('nav-latency', navLatencyHandler as EventListener);
++
++    return () => {
++      runningRef.current = false;
++      if (rafRef.current != null) {
++        cancelAnimationFrame(rafRef.current);
++      }
++      window.removeEventListener('nav-latency', navLatencyHandler as EventListener);
++
++      const remaining = accumRef.current.splice(0, accumRef.current.length);
++      if (remaining.length > 0) {
++        postTVProfilingBatch({ samples: remaining }).catch(() => {
++          // ignore
++        });
++      }
++    };
++  }, [opts.enabled, opts.sampleIntervalMs, opts.batchSize, opts.postIntervalMs]);
++}
++
+*** End Patch
+*** Begin Patch
+*** Add File: src/utils/metricsClient.ts
++// Simple metrics client for TV profiling batches.
++// Respects getBuildConfig().analyticsEnabled to avoid sending telemetry when disabled.
++
++import { getBuildConfig } from '../config/getBuildConfig';
++
++interface TVProfilingBatch {
++  samples: Array<any>;
++}
++
++async function doPost(url: string, body: any, retries = 2): Promise<Response> {
++  const headers = { 'Content-Type': 'application/json' };
++  try {
++    const res = await fetch(url, { method: 'POST', headers, body: JSON.stringify(body) });
++    if (!res.ok) {
++      throw new Error(`HTTP ${res.status}`);
++    }
++    return res;
++  } catch (err) {
++    if (retries > 0) {
++      await new Promise((r) => setTimeout(r, 500 * Math.pow(2, 2 - retries)));
++      return doPost(url, body, retries - 1);
++    }
++    throw err;
++  }
++}
++
++export async function postTVProfilingBatch(batch: TVProfilingBatch) {
++  const cfg = typeof getBuildConfig === 'function' ? getBuildConfig() : { analyticsEnabled: false };
++  if (!cfg || !cfg.analyticsEnabled) {
++    // do not post when analytics disabled
++    return Promise.resolve();
++  }
++  const url = '/api/metrics/tv-profiling';
++  return doPost(url, {
++    timestamp: Date.now(),
++    build: cfg.buildTag || cfg.version || 'unknown',
++    samples: batch.samples,
++  });
++}
++
+*** End Patch
+*** Begin Patch
+*** Add File: scripts/packaging/generate-manifest.js
++#!/usr/bin/env node
++// Simple manifest generator for Tizen (or other TV platforms)
++// Usage: node scripts/packaging/generate-manifest.js --template scripts/packaging/tizen/manifest.tpl --out build/manifest.xml
++
++const fs = require('fs');
++const path = require('path');
++
++function readJSON(file) {
++  try {
++    return JSON.parse(fs.readFileSync(file, 'utf8'));
++  } catch (err) {
++    return {};
++  }
++}
++
++const args = require('minimist')(process.argv.slice(2));
++const tplPath = args.template || path.join(__dirname, 'tizen', 'manifest.tpl');
++const outPath = args.out || path.join(process.cwd(), 'build', 'manifest.xml');
++
++const pkg = readJSON(path.join(process.cwd(), 'package.json'));
++const buildConfig = readJSON(path.join(process.cwd(), 'build-config.json'));
++
++let tpl = '';
++try {
++  tpl = fs.readFileSync(tplPath, 'utf8');
++} catch (err) {
++  console.error('Template not found:', tplPath);
++  process.exit(1);
++}
++
++const substitutions = {
++  APP_ID: (pkg.name || 'app').replace(/[^a-zA-Z0-9_.-]/g, '_'),
++  APP_VERSION: (pkg.version || '0.0.0'),
++  APP_TITLE: (pkg.productName || pkg.name || 'App'),
++  AUTHOR: (pkg.author && (pkg.author.name || pkg.author)) || buildConfig.author || 'Unknown Author',
++  DESCRIPTION: pkg.description || '',
++};
++
++let out = tpl;
++Object.keys(substitutions).forEach((k) => {
++  out = out.replace(new RegExp(`\\{\\{${k}\\}\\}`, 'g'), substitutions[k]);
++});
++
++fs.mkdirSync(path.dirname(outPath), { recursive: true });
++fs.writeFileSync(outPath, out, 'utf8');
++console.log('Wrote manifest to', outPath);
++
+*** End Patch
+*** Begin Patch
+*** Add File: scripts/packaging/tizen/manifest.tpl
++<?xml version="1.0" encoding="UTF-8"?>
++<manifest xmlns="http://tizen.org/ns/packages" package="{{APP_ID}}" version="{{APP_VERSION}}">
++  <label>{{APP_TITLE}}</label>
++  <description>{{DESCRIPTION}}</description>
++  <author>{{AUTHOR}}</author>
++  <!-- Add privileges and other settings as needed -->
++  <profile>tv</profile>
++  <ui-application appid="{{APP_ID}}" exec="index.html" type="web">
++    <label>{{APP_TITLE}}</label>
++  </ui-application>
++</manifest>
++
+*** End Patch
+*** Begin Patch
+*** Add File: docs/tv/tv-extension.md
++````markdown
++```markdown
++# TV Extension: Remote Navigation and Integration
++
++This document describes how to use the TV integration added in the TV enhancements.
++
++## Hooks
++
++### useTVRemoteNavigation(options)
++
++Imports:
++```ts
++import { useTVRemoteNavigation } from 'src/hooks/useTVRemoteNavigation';
++```
++
++Options:
++- enableGestures?: boolean — whether to enable gesture mappings if available.
++- onNavigate?: (route, params) => void — callback invoked when a navigation action is received.
++- mapping?: Record<string, string> — mapping of runtime action names to app routes.
++- enableLongPress?: boolean
++- enableDoubleTap?: boolean
++
++Behavior:
++- Attempts to register a mapping with the runtime via `window.RedSquareTV.registerRemoteMapping(mappingPayload)` if present.
++- Fallback: listens for `remote-nav` custom events or `RedSquareTV.onRemoteEvent`.
++- Emits a `nav-latency` event (CustomEvent) on navigation with detail: { action, startTs, endTs } to allow telemetry collection.
++
++Example:
++```tsx
++useTVRemoteNavigation({
++  enableGestures: true,
++  mapping: { 'KEY_ENTER': '/select', 'KEY_UP': '/up' },
++  onNavigate: (route) => {
++    history.push(route);
++  }
++});
++```
++
++## Runtime setup
++
++Your TV runtime should:
++- Expose `window.RedSquareTV.registerRemoteMapping(mappingPayload)` to register available actions.
++- Optionally emit remote events via `RedSquareTV.onRemoteEvent(handler)`.
++- If runtime doesn't support registration, the app will still work via custom `remote-nav` events.
++```
++````
++
+*** End Patch
+*** Begin Patch
+*** Add File: docs/tv/tv-telemetry.md
++````markdown
++```markdown
++# TV Telemetry and Profiling
++
++This document describes the profiling and telemetry created by the TV enhancements.
++
++## What is collected
++- FPS samples (per animation frame sampling) with timestamp and fps estimate.
++- Navigation latency samples: the remote navigation hook dispatches `nav-latency` CustomEvents with details `{ action, startTs, endTs }`.
++- Batches are posted to `POST /api/metrics/tv-profiling` containing `{ timestamp, build, samples }`.
++
++## Opting out
++Telemetry respects the build configuration:
++- If `getBuildConfig().analyticsEnabled` is `false`, the client will not post any telemetry.
++- To opt out in builds, set analyticsEnabled to `false` (example location: build-config.json or whatever your config system uses).
++
++## Retention and privacy
++- Keep telemetry aggregated and minimize PII. The current design posts only timing and low-level event data. Do not post user identifiers unless explicitly required and authorized.
++```
++````
++
+*** End Patch
+*** Begin Patch
+*** Add File: src/pages/TVProfilingDashboard.tsx
++import React, { useEffect, useState } from 'react';
++
++type Sample = {
++  ts: number;
++  fps?: number;
++  event?: string;
++  data?: any;
++};
++
++export default function TVProfilingDashboard() {
++  const [samples, setSamples] = useState<Sample[]>([]);
++
++  useEffect(() => {
++    // Live preview via custom events for local/dev testing
++    const handler = (e: Event) => {
++      const ce = e as CustomEvent;
++      const detail = ce.detail;
++      setSamples((s) => [detail, ...s].slice(0, 200));
++    };
++    window.addEventListener('tv-profiling-sample', handler as EventListener);
++
++    // Optionally: fetch recent samples from server endpoint if available
++    // fetch('/api/metrics/tv-profiling/recent').then(...)
++
++    return () => {
++      window.removeEventListener('tv-profiling-sample', handler as EventListener);
++    };
++  }, []);
++
++  return (
++    <div style={{ padding: 20 }}>
++      <h2>TV Profiling Dashboard (dev preview)</h2>
++      <p>Live preview shows last samples as they arrive.</p>
++      <table style={{ width: '100%', borderCollapse: 'collapse' }}>
++        <thead>
++          <tr>
++            <th style={{ borderBottom: '1px solid #ccc', textAlign: 'left' }}>Time</th>
++            <th style={{ borderBottom: '1px solid #ccc', textAlign: 'left' }}>Event</th>
++            <th style={{ borderBottom: '1px solid #ccc', textAlign: 'left' }}>FPS</th>
++            <th style={{ borderBottom: '1px solid #ccc', textAlign: 'left' }}>Data</th>
++          </tr>
++        </thead>
++        <tbody>
++          {samples.map((s, i) => (
++            <tr key={i}>
++              <td style={{ padding: '6px 4px' }}>{new Date(s.ts).toLocaleTimeString()}</td>
++              <td style={{ padding: '6px 4px' }}>{s.event || '-'}</td>
++              <td style={{ padding: '6px 4px' }}>{s.fps ?? '-'}</td>
++              <td style={{ padding: '6px 4px' }}>
++                <pre style={{ whiteSpace: 'pre-wrap', margin: 0 }}>{JSON.stringify(s.data)}</pre>
++              </td>
++            </tr>
++          ))}
++        </tbody>
++      </table>
++    </div>
++  );
++}
++
+*** End Patch
