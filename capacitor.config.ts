@@ -1,8 +1,8 @@
 import { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'com.redsquare.platform',
-  appName: 'Red Square Platform',
+  appId: 'com.redsquare.screens',
+  appName: 'RedSquare Screens',
   webDir: 'dist',
   ...(process.env.CAP_SERVER_URL && {
     server: {

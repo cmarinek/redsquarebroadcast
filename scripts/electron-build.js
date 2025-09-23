@@ -30,6 +30,12 @@ function buildElectronApp(platform = 'all') {
     process.exit(1);
   }
   
+  // Clean previous builds
+  if (fs.existsSync('dist-electron')) {
+    log('🧹 Cleaning previous Electron builds...', 'info');
+    fs.rmSync('dist-electron', { recursive: true, force: true });
+  }
+  
   try {
     // Platform-specific builds
     const commands = {
@@ -52,8 +58,21 @@ function buildElectronApp(platform = 'all') {
     
     execSync(command, { 
       stdio: 'inherit',
-      env
+      env,
+      timeout: 600000 // 10 minutes timeout
     });
+    
+    // Verify build output exists
+    if (!fs.existsSync('dist-electron')) {
+      log('❌ Build completed but dist-electron directory not found!', 'error');
+      process.exit(1);
+    }
+    
+    const distFiles = fs.readdirSync('dist-electron');
+    if (distFiles.length === 0) {
+      log('❌ Build completed but no output files found in dist-electron!', 'error');
+      process.exit(1);
+    }
     
     log(`✅ Electron build completed for ${platform}!`, 'success');
     

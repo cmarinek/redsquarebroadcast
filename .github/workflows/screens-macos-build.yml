@@ -58,6 +58,7 @@ jobs:
         run: npm run build
         env:
           VITE_BUILD_TARGET: electron
+          VITE_APP_TYPE: screens
 
       - name: Build macOS Desktop App
         run: |

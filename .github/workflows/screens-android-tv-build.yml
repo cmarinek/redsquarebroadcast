@@ -59,7 +59,7 @@ jobs:
       - name: Build Web App
         run: npm run build:mobile
         env:
-          VITE_BUILD_TARGET: mobile
+          VITE_APP_TYPE: screens
           VITE_TV_OPTIMIZED: 'true'
           VITE_CAPACITOR: 'true'
 
@@ -84,10 +84,17 @@ jobs:
 
       - name: Setup Capacitor Android Platform
         run: |
-          # Ensure Capacitor is initialized
-          if [ ! -f "capacitor.config.ts" ] && [ ! -f "capacitor.config.js" ]; then
-            echo "Capacitor config not found, initializing..."
-            npx cap init
+          # Ensure Capacitor is initialized with correct config
+          echo "Verifying Capacitor configuration..."
+          if [ ! -f "capacitor.config.ts" ]; then
+            echo "ERROR: Capacitor config not found"
+            exit 1
+          fi
+          
+          # Verify the correct app ID is set
+          if ! grep -q "com.redsquare.screens" capacitor.config.ts; then
+            echo "ERROR: Incorrect app ID in capacitor.config.ts"
+            exit 1
           fi
           
           # Check if Android platform exists and is complete
@@ -101,9 +108,15 @@ jobs:
               echo "ERROR: Failed to create Android platform"
               exit 1
             fi
+            
+            # Set proper permissions for gradlew
+            chmod +x android/gradlew
           else
-            echo "Android platform properly configured, skipping add"
+            echo "Android platform properly configured, ensuring gradlew permissions"
+            chmod +x android/gradlew
           fi
+          
+          echo "✅ Android platform setup completed"
 
       - name: Sync Capacitor Project
         run: |
@@ -171,13 +184,35 @@ jobs:
       - name: Build RedSquare Screens Android TV APK
         run: |
           cd android
+          
+          # Ensure gradlew has proper permissions
           chmod +x ./gradlew
-          ./gradlew assembleRelease
-          echo "Listing build outputs:"
-          find . -name "*.apk" -type f
-          ls -la app/build/outputs/ || echo "outputs directory not found"
-          ls -la app/build/outputs/apk/ || echo "apk directory not found"
-          ls -la app/build/outputs/apk/release/ || echo "release directory not found"
+          
+          # Check Gradle and Java versions for debugging
+          ./gradlew --version
+          java -version
+          
+          # Clean previous builds
+          ./gradlew clean
+          
+          # Build the release APK
+          echo "Starting assembleRelease build..."
+          ./gradlew assembleRelease --stacktrace --info
+          
+          echo "Build completed. Checking output files..."
+          find . -name "*.apk" -type f -exec ls -la {} \;
+          
+          # Verify APK was created
+          if [ ! -f "app/build/outputs/apk/release/app-release-unsigned.apk" ] && [ ! -f "app/build/outputs/apk/release/app-release.apk" ]; then
+            echo "❌ APK build failed - no release APK found"
+            echo "Available APK files:"
+            find . -name "*.apk" -type f || echo "No APK files found"
+            echo "Contents of outputs directory:"
+            ls -la app/build/outputs/ 2>/dev/null || echo "No outputs directory"
+            exit 1
+          fi
+          
+          echo "✅ APK build completed successfully"
         env:
           SIGNING_KEY_ALIAS: ${{ secrets.ANDROID_SIGNING_KEY_ALIAS }}
           SIGNING_KEY_PASSWORD: ${{ secrets.ANDROID_SIGNING_KEY_PASSWORD }}
