@@ -880,14 +880,14 @@ const AdminDashboard = () => {
                      <Shield className="h-4 w-4 mr-2" />
                      Security
                    </TabsTrigger>
-                   <TabsTrigger value="mobile" className="py-4 whitespace-nowrap data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-50 data-[state=active]:to-purple-100 text-sm text-red-700">
-                     <Smartphone className="h-4 w-4 mr-2" />
-                     Apps
-                   </TabsTrigger>
-                   <TabsTrigger value="monitoring" className="py-4 whitespace-nowrap data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-50 data-[state=active]:to-orange-100 text-sm text-red-700">
-                     <Activity className="h-4 w-4 mr-2" />
-                     Monitoring
-                   </TabsTrigger>
+                    <TabsTrigger value="mobile" className="py-4 whitespace-nowrap data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-sm">
+                      <Smartphone className="h-4 w-4 mr-2" />
+                      Apps
+                    </TabsTrigger>
+                    <TabsTrigger value="monitoring" className="py-4 whitespace-nowrap data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-sm">
+                      <Activity className="h-4 w-4 mr-2" />
+                      Monitoring
+                    </TabsTrigger>
                  </TabsList>
               </div>
 
