@@ -1,7 +1,7 @@
 // probePlatformCapabilities and detectPlatformEnhanced
 // Conservative fallbacks for unknown runtimes.
 
-import { getBuildConfig } from '../config/getBuildConfig';
+import { getBuildConfig } from '../config/buildConfig';
 
 export type ProbeSource = 'runtime' | 'ua' | 'unknown';
 
@@ -11,6 +11,13 @@ export interface PlatformCapabilities {
   supportsGestures: boolean;
   supportsLongPress: boolean;
   supportsDoubleTap: boolean;
+  supportsRemoteNavigation?: boolean;
+  supports4K?: boolean;
+  supportsVoiceControl?: boolean;
+  supportsTouch?: boolean;
+  supportsHDMI_CEC?: boolean;
+  maxResolution?: string;
+  maxMemory?: string;
   raw?: any;
 }
 
@@ -78,3 +85,40 @@ export function probePlatformCapabilities(): PlatformCapabilities {
 export function detectPlatformEnhanced(): PlatformCapabilities {
   return probePlatformCapabilities();
 }
+
+// Additional exports needed by other modules
+export function detectPlatform() {
+  const buildConfig = getBuildConfig();
+  return {
+    platform: buildConfig.platform || 'web',
+    tvPlatform: buildConfig.tvPlatform,
+    capabilities: probePlatformCapabilities(),
+    displayInfo: {
+      width: window.screen?.width || 1920,
+      height: window.screen?.height || 1080,
+      screenSize: 'large' as const,
+      isTV: buildConfig.target === 'screen' && buildConfig.isTVOptimized,
+      isDesktop: buildConfig.target === 'web',
+      isMobile: buildConfig.target === 'mobile',
+      isTablet: false
+    }
+  };
+}
+
+export function isTVPlatform(platform?: string): boolean {
+  const tvPlatforms = ['samsung_tizen', 'lg_webos', 'roku', 'amazon_fire_tv', 'android_tv', 'chromecast'];
+  return platform ? tvPlatforms.includes(platform) : false;
+}
+
+export function getTVOptimizations(platform?: string) {
+  if (!isTVPlatform(platform)) return {};
+  
+  return {
+    enableHardwareAcceleration: true,
+    enableRemoteNavigation: true,
+    optimizeForTenFootUI: true,
+    spatialNavigation: true
+  };
+}
+
+export type ScreenPlatform = 'web' | 'mobile' | 'tv' | 'screen';

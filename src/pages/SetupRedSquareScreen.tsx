@@ -36,16 +36,16 @@ const SetupRedSquareScreen = () => {
   const [loading, setLoading] = useState(true);
   const [downloading, setDownloading] = useState<string | null>(null);
   const [selectedScreenType, setSelectedScreenType] = useState<ScreenType | null>(null);
-  const [detectedPlatform, setDetectedPlatform] = useState<ScreenType>('unknown');
+  const [detectedPlatform, setDetectedPlatform] = useState<ScreenType>('web');
 
   useEffect(() => {
     fetchScreenReleases();
-    detectPlatform();
+    detectPlatformInfo();
   }, []);
 
-  const detectPlatform = () => {
+  const detectPlatformInfo = () => {
     const platformInfo = detectPlatform();
-    setDetectedPlatform(platformInfo.platform);
+    setDetectedPlatform(platformInfo.platform as ScreenType);
     
     // Show additional platform information in console for debugging
     console.log('Enhanced Platform Detection:', {
@@ -395,7 +395,7 @@ const SetupRedSquareScreen = () => {
             </div>
 
             {/* Platform Detection Alert */}
-            {detectedPlatform !== 'unknown' && (
+            {detectedPlatform && detectedPlatform !== 'web' && (
               <Alert className="mb-8 border-primary/20 bg-primary/5">
                 <AlertCircle className="h-4 w-4" />
                 <AlertDescription>

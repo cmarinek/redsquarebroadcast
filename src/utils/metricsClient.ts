@@ -1,7 +1,7 @@
 // Simple metrics client for TV profiling batches.
 // Respects getBuildConfig().analyticsEnabled to avoid sending telemetry when disabled.
 
-import { getBuildConfig } from '../config/getBuildConfig';
+import { getBuildConfig } from '../config/buildConfig';
 
 interface TVProfilingBatch {
   samples: Array<any>;
@@ -25,7 +25,11 @@ async function doPost(url: string, body: any, retries = 2): Promise<Response> {
 }
 
 export async function postTVProfilingBatch(batch: TVProfilingBatch) {
-  const cfg = typeof getBuildConfig === 'function' ? getBuildConfig() : { analyticsEnabled: false };
+  const cfg = typeof getBuildConfig === 'function' ? getBuildConfig() : { 
+    analyticsEnabled: false, 
+    buildTag: undefined, 
+    version: undefined 
+  };
   if (!cfg || !cfg.analyticsEnabled) {
     // do not post when analytics disabled
     return Promise.resolve();

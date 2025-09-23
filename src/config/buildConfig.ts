@@ -6,6 +6,9 @@ export interface BuildConfig {
   platform?: string;
   tvPlatform?: TVPlatformType;
   performanceMode?: 'low' | 'medium' | 'high' | 'ultra';
+  analyticsEnabled?: boolean;
+  buildTag?: string;
+  version?: string;
 }
 
 export type TVPlatformType = 

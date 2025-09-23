@@ -51,7 +51,7 @@ export function TVDemoScreen({ className = '' }: TVDemoScreenProps) {
       }
     },
     onNavigate: (from, to) => {
-      console.log('Navigation:', { from: from?.id, to: to?.id });
+      console.log('Navigation:', { from: from, to: to });
     }
   });
 
