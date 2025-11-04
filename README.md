@@ -104,9 +104,16 @@ The platform automatically adapts based on build target and environment:
 - **Screen Apps**: Optimized UI for large displays
 
 ### Configuration Files
-- `src/config/environment.ts` - Environment detection and feature flags
-- `capacitor.config.ts` - Mobile app configuration
-- `vite.config.ts` - Build system configuration
+- `src/config/env.ts` – Validates runtime secrets injected from your platform
+- `src/config/environment.ts` – Environment detection and feature flags
+- `capacitor.config.ts` – Mobile app configuration
+- `vite.config.ts` – Build system configuration
+
+### Runtime Secrets
+- Secrets are sourced exclusively from environment variables or your secret manager at runtime.
+- Review the manifests in `docs/environments/` for development, staging, and production requirements.
+- Run `npm run validate:env` locally/CI to verify all required variables are present before building.
+- Set up local pre-commit hooks with `npm run setup:hooks` (runs `npm run verify:secrets`) to prevent `.env` artifacts or leaked keys from being committed.
 
 ## 🗄️ Database Architecture
 
@@ -134,6 +141,7 @@ The platform automatically adapts based on build target and environment:
 - Supabase Auth with email/social login
 - JWT-based session management
 - Role-based route protection
+- Secret rotation workflow documented in `docs/runbooks/supabase-key-rotation.md`
 
 ## 🚀 Deployment
 

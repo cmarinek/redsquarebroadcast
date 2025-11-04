@@ -14,8 +14,8 @@ select
     $$
     select
       net.http_post(
-        url := 'https://hqeyyutbuxhyildsasqq.functions.supabase.co/retention-job',
-        headers := '{"Content-Type": "application/json", "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhxZXl5dXRidXhoeWlsZHNhc3FxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ2ODMwMTEsImV4cCI6MjA3MDI1OTAxMX0.oSmCDrlNM_9zGuFFCB05WenFGcM7G3H-5iQIn4KcMVE"}'::jsonb,
+        url := app_config.supabase_functions_base_url() || '/retention-job',
+        headers := jsonb_build_object('Content-Type', 'application/json', 'Authorization', app_config.supabase_service_role_bearer()),
         body := '{"source": "cron", "days_old": 60}'::jsonb
       ) as request_id;
     $$
@@ -29,8 +29,8 @@ select
     $$
     select
       net.http_post(
-        url := 'https://hqeyyutbuxhyildsasqq.functions.supabase.co/perf-alerts',
-        headers := '{"Content-Type": "application/json", "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhxZXl5dXRidXhoeWlsZHNhc3FxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ2ODMwMTEsImV4cCI6MjA3MDI1OTAxMX0.oSmCDrlNM_9zGuFFCB05WenFGcM7G3H-5iQIn4KcMVE"}'::jsonb,
+        url := app_config.supabase_functions_base_url() || '/perf-alerts',
+        headers := jsonb_build_object('Content-Type', 'application/json', 'Authorization', app_config.supabase_service_role_bearer()),
         body := '{"source": "cron"}'::jsonb
       ) as request_id;
     $$

@@ -26,6 +26,21 @@ jobs:
     - name: Install dependencies
       run: npm install
 
+    - name: Run secret scanning guardrails
+      run: npm run verify:secrets
+
+    - name: Validate environment configuration
+      run: npm run validate:env
+      env:
+        VITE_SUPABASE_URL: https://example.supabase.co
+        VITE_SUPABASE_ANON_KEY: placeholder-anon-key
+        VITE_SUPABASE_PROJECT_ID: example-project
+        VITE_MAPBOX_PUBLIC_TOKEN: pk.test-mapbox-token
+        VITE_STRIPE_PUBLISHABLE_KEY: pk_test_placeholder
+        SUPABASE_SERVICE_ROLE_KEY: service-role-placeholder
+        MAPBOX_PUBLIC_TOKEN: pk.test-mapbox-token
+        STRIPE_SECRET_KEY: sk_test_example-value
+
     - name: Run tests
       run: npx vitest run
 

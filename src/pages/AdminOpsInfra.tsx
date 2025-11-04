@@ -126,7 +126,7 @@ export default function AdminOpsInfra() {
               </CardHeader>
               <CardContent className="space-y-3">
                 <label className="text-sm">Primary URL</label>
-                <Input placeholder="https://hqey...supabase.co" value={primaryUrl} onChange={e=>setPrimaryUrl(e.target.value)} />
+                <Input placeholder="https://your-project.supabase.co" value={primaryUrl} onChange={e=>setPrimaryUrl(e.target.value)} />
                 <label className="text-sm">Read Replica URLs (comma-separated)</label>
                 <Input placeholder="https://rr1..., https://rr2..." value={replicas} onChange={e=>setReplicas(e.target.value)} />
                 <label className="text-sm">Failover URLs (comma-separated)</label>

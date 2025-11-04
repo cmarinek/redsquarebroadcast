@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { env } from "@/config/env";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -512,7 +513,14 @@ const Auth = () => {
           </p>
           <p className="text-center text-xs text-muted-foreground mt-2">
             Social sign-in requires provider setup in Supabase. Verify providers at
-            <a className="underline ml-1" href="https://supabase.com/dashboard/project/hqeyyutbuxhyildsasqq/auth/providers" target="_blank" rel="noreferrer">Auth Providers</a>.
+            <a
+              className="underline ml-1"
+              href={`https://supabase.com/dashboard/project/${env.supabaseProjectId}/auth/providers`}
+              target="_blank"
+              rel="noreferrer"
+            >
+              Auth Providers
+            </a>.
           </p>
         </div>
       </div>
