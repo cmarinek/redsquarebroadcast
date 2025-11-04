@@ -17,6 +17,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
+import { env } from "@/config/env";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 interface AppRelease {
@@ -481,7 +482,7 @@ export const AppManager = () => {
         // If it's a Supabase storage URL but file_path doesn't start with https, construct the full URL
         if (!downloadUrl.startsWith('http') && config.bucket) {
           // Get Supabase URL from import
-          const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://hqeyyutbuxhyildsasqq.supabase.co';
+          const supabaseUrl = env.supabaseUrl;
           downloadUrl = `${supabaseUrl}/storage/v1/object/public/${config.bucket}/${release.file_path}`;
         }
       } else {

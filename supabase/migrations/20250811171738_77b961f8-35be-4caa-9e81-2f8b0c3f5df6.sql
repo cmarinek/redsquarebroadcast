@@ -21,7 +21,7 @@ VALUES
   -- CDN base URL not configured by default (JSON null); update this to your CDN origin when provisioned
   ('cdn_base_url', 'null'::jsonb, NULL),
   -- Primary Supabase URL for reference
-  ('primary_url', '"https://hqeyyutbuxhyildsasqq.supabase.co"'::jsonb, NULL),
+  ('primary_url', to_jsonb(app_config.supabase_base_url()), NULL),
   -- Read replicas and failover URLs are empty arrays by default; fill when provisioned
   ('read_replica_urls', '[]'::jsonb, NULL),
   ('failover_urls', '[]'::jsonb, NULL)

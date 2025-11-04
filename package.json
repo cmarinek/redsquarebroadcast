@@ -18,7 +18,10 @@
     "build:kiosk": "BUILD_TARGET=screen VITE_KIOSK_MODE=true vite build",
     "electron:build": "node scripts/electron-build.js build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "validate:env": "node scripts/validate-env.mjs",
+    "verify:secrets": "node scripts/check-secrets.mjs",
+    "setup:hooks": "node scripts/setup-hooks.mjs"
   },
   "dependencies": {
     "@capacitor/android": "^7.4.2",

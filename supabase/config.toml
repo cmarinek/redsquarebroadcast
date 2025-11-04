@@ -1,4 +1,4 @@
-project_id = "hqeyyutbuxhyildsasqq"
+project_id = "{{ SUPABASE_PROJECT_ID }}"
 
 [functions.update-build-status]
 verify_jwt = false

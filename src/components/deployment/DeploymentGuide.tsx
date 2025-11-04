@@ -3,6 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { CheckCircle, AlertCircle, ExternalLink, Copy } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
+import { env } from "@/config/env";
 
 export function DeploymentGuide() {
   const { toast } = useToast();
@@ -164,7 +165,11 @@ export function DeploymentGuide() {
 
           <div className="flex gap-2">
             <Button asChild variant="outline">
-              <a href="https://supabase.com/dashboard/project/hqeyyutbuxhyildsasqq/settings/functions" target="_blank">
+              <a
+                href={`https://supabase.com/dashboard/project/${env.supabaseProjectId}/settings/functions`}
+                target="_blank"
+                rel="noreferrer"
+              >
                 View Edge Functions <ExternalLink className="h-4 w-4 ml-1" />
               </a>
             </Button>

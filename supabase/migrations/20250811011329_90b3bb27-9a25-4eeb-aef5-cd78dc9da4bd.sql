@@ -57,8 +57,8 @@ begin
       '*/5 * * * *',
       $$
       select net.http_post(
-        url := 'https://hqeyyutbuxhyildsasqq.supabase.co/functions/v1/system-monitoring?action=health',
-        headers := '{"Content-Type":"application/json","Authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhxZXl5dXRidXhoeWlsZHNhc3FxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ2ODMwMTEsImV4cCI6MjA3MDI1OTAxMX0.oSmCDrlNM_9zGuFFCB05WenFGcM7G3H-5iQIn4KcMVE"}'::jsonb,
+        url := app_config.supabase_base_url() || '/functions/v1/system-monitoring?action=health',
+        headers := jsonb_build_object('Content-Type', 'application/json', 'Authorization', app_config.supabase_service_role_bearer()),
         body := '{}'::jsonb
       );
       $$
@@ -76,8 +76,8 @@ begin
       '0 * * * *',
       $$
       select net.http_post(
-        url := 'https://hqeyyutbuxhyildsasqq.supabase.co/functions/v1/system-monitoring?action=updateAnalytics',
-        headers := '{"Content-Type":"application/json","Authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhxZXl5dXRidXhoeWlsZHNhc3FxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ2ODMwMTEsImV4cCI6MjA3MDI1OTAxMX0.oSmCDrlNM_9zGuFFCB05WenFGcM7G3H-5iQIn4KcMVE"}'::jsonb,
+        url := app_config.supabase_base_url() || '/functions/v1/system-monitoring?action=updateAnalytics',
+        headers := jsonb_build_object('Content-Type', 'application/json', 'Authorization', app_config.supabase_service_role_bearer()),
         body := '{}'::jsonb
       );
       $$
