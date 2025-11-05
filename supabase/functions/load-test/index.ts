@@ -1,3 +1,4 @@
+import { getEnv } from "../_shared/env.ts";
 // Synthetic load test & performance probe
 // Measures read/query latencies against core tables and stores results in performance_metrics
 
@@ -15,8 +16,8 @@ async function getActorId(authHeader: string | null) {
     const token = authHeader.replace('Bearer ', '').trim();
     if (!token) return null;
 
-    const supabaseUrl = Deno.env.get('SUPABASE_URL');
-    const anonKey = Deno.env.get('SUPABASE_ANON_KEY');
+    const supabaseUrl = getEnv("SUPABASE_URL");
+    const anonKey = getEnv("SUPABASE_ANON_KEY");
     if (!supabaseUrl || !anonKey) return null;
     const sb = createClient(supabaseUrl, anonKey, { global: { headers: { Authorization: `Bearer ${token}` } } });
     const { data } = await sb.auth.getUser();
@@ -31,8 +32,8 @@ async function isAdmin(authHeader: string | null) {
     if (!authHeader) return false;
     const token = authHeader.replace('Bearer ', '').trim();
     if (!token) return false;
-    const supabaseUrl = Deno.env.get('SUPABASE_URL');
-    const anonKey = Deno.env.get('SUPABASE_ANON_KEY');
+    const supabaseUrl = getEnv("SUPABASE_URL");
+    const anonKey = getEnv("SUPABASE_ANON_KEY");
     if (!supabaseUrl || !anonKey) return false;
     const sb = createClient(supabaseUrl, anonKey, { global: { headers: { Authorization: `Bearer ${token}` } } });
     const { data, error } = await sb.rpc('is_admin');
@@ -47,8 +48,8 @@ export const handler = async (req: Request): Promise<Response> => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders });
   if (req.method !== 'POST') return new Response(JSON.stringify({ error: 'Method not allowed' }), { status: 405, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
 
-  const supabaseUrl = Deno.env.get('SUPABASE_URL');
-  const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+  const supabaseUrl = getEnv("SUPABASE_URL");
+  const serviceKey = getEnv("SUPABASE_SERVICE_ROLE_KEY");
   if (!supabaseUrl || !serviceKey) {
     return new Response(JSON.stringify({ error: 'Server misconfigured' }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
   }

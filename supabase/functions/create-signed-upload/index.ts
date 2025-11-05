@@ -1,3 +1,4 @@
+import { getEnv } from "../_shared/env.ts";
 // deno-lint-ignore-file no-explicit-any
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
@@ -36,8 +37,8 @@ const ALLOWED_TYPES = new Set([
 
 async function insertLog(details: Record<string, unknown>) {
   try {
-    const supabaseUrl = Deno.env.get('SUPABASE_URL');
-    const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+    const supabaseUrl = getEnv("SUPABASE_URL");
+    const serviceRoleKey = getEnv("SUPABASE_SERVICE_ROLE_KEY");
     if (!supabaseUrl || !serviceRoleKey) return;
     const admin = createClient(supabaseUrl, serviceRoleKey, { auth: { persistSession: false } });
     await admin.from('event_logs').insert({
@@ -84,8 +85,8 @@ Deno.serve(async (req: Request) => {
     // Note: File size validation is handled by Supabase Storage during upload
     // We don't validate size here to avoid edge function request limits
 
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabaseUrl = getEnv("SUPABASE_URL");
+    const serviceRoleKey = getEnv("SUPABASE_SERVICE_ROLE_KEY");
     const authHeader = req.headers.get('Authorization') ?? '';
 
     // Check if this is a service role request (for automated builds)

@@ -142,6 +142,7 @@ The platform automatically adapts based on build target and environment:
 - JWT-based session management
 - Role-based route protection
 - Secret rotation workflow documented in `docs/runbooks/supabase-key-rotation.md`
+- Rotation metadata must be logged in `docs/security/secret-rotation-log.md` so security/ops can audit revocations.
 
 ## 🚀 Deployment
 

@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { getEnv } from "../_shared/env.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -27,8 +28,8 @@ function rateLimit(key: string) {
 
 async function insertLog(details: Record<string, unknown>) {
   try {
-    const url = Deno.env.get("SUPABASE_URL");
-    const serviceRole = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    const url = getEnv("SUPABASE_URL");
+    const serviceRole = getEnv("SUPABASE_SERVICE_ROLE_KEY");
     if (!url || !serviceRole) return;
     const admin = createClient(url, serviceRole, { auth: { persistSession: false } });
     await admin.from("event_logs").insert({
@@ -77,9 +78,9 @@ serve(async (req) => {
       });
     }
 
-    const supabaseUrl = Deno.env.get("SUPABASE_URL");
-    const serviceRole = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
-    const anonKey = Deno.env.get("SUPABASE_ANON_KEY");
+    const supabaseUrl = getEnv("SUPABASE_URL");
+    const serviceRole = getEnv("SUPABASE_SERVICE_ROLE_KEY");
+    const anonKey = getEnv("SUPABASE_ANON_KEY");
     if (!supabaseUrl || !serviceRole || !anonKey) {
       return new Response(JSON.stringify({ error: "Server not configured" }), {
         status: 500,

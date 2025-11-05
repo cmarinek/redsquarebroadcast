@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import { getEnv } from "../_shared/env.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -11,7 +12,7 @@ serve(async (req) => {
   }
 
   try {
-    const mapboxToken = Deno.env.get("MAPBOX_PUBLIC_TOKEN");
+    const mapboxToken = getEnv("MAPBOX_PUBLIC_TOKEN");
     
     if (!mapboxToken) {
       throw new Error("Mapbox public token not configured");

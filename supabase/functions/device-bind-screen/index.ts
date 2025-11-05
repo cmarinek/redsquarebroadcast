@@ -1,3 +1,4 @@
+import { getEnv } from "../_shared/env.ts";
 // Supabase Edge Function: device-bind-screen
 // Authenticated owners bind a device to a screen_id (and optional screen_name)
 
@@ -14,9 +15,9 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
-  const supabaseUrl = Deno.env.get("SUPABASE_URL");
-  const anonKey = Deno.env.get("SUPABASE_ANON_KEY");
-  const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  const supabaseUrl = getEnv("SUPABASE_URL");
+  const anonKey = getEnv("SUPABASE_ANON_KEY");
+  const serviceKey = getEnv("SUPABASE_SERVICE_ROLE_KEY");
 
   if (!supabaseUrl || !anonKey || !serviceKey) {
     return new Response(JSON.stringify({ error: "Missing Supabase environment configuration" }), {

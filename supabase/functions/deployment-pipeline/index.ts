@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { getEnv } from "../_shared/env.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -21,8 +22,8 @@ serve(async (req) => {
 
   try {
     const supabaseService = createClient(
-      Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
+      getEnv("SUPABASE_URL"),
+      getEnv("SUPABASE_SERVICE_ROLE_KEY"),
       { auth: { persistSession: false } }
     );
 
@@ -308,10 +309,10 @@ async function getDeploymentStatus(supabase: any, config: any) {
 // Helper functions
 async function runHealthCheck(supabase: any) {
   try {
-    const response = await fetch(`${Deno.env.get('SUPABASE_URL')}/functions/v1/production-alerts?action=check_alerts`, {
+    const response = await fetch(`${getEnv("SUPABASE_URL")}/functions/v1/production-alerts?action=check_alerts`, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${Deno.env.get('SUPABASE_ANON_KEY')}`,
+        'Authorization': `Bearer ${getEnv("SUPABASE_ANON_KEY")}`,
         'Content-Type': 'application/json'
       }
     });

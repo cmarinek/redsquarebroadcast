@@ -9,8 +9,8 @@ Staging uses the same variable set as development but values must come from your
 | `VITE_SUPABASE_PROJECT_ID` | Supabase project ref | When project ref changes |
 | `VITE_MAPBOX_PUBLIC_TOKEN` | Mapbox public token | Quarterly |
 | `VITE_STRIPE_PUBLISHABLE_KEY` | Stripe publishable key | With secret key |
-| `SUPABASE_SERVICE_ROLE_KEY` | Service role key for scheduled jobs | Monthly minimum |
+| `SUPABASE_SERVICE_ROLE_KEY` | Service role key for scheduled jobs | Monthly minimum — log in `docs/security/secret-rotation-log.md` |
 | `MAPBOX_PUBLIC_TOKEN` | Mapbox token for edge functions | Quarterly |
 | `STRIPE_SECRET_KEY` | Stripe secret key | Monthly minimum |
 
-Configure CI/CD pipelines to pass these values as environment variables at deploy time. Use `npm run validate:env` within pipeline preflight checks.
+Configure CI/CD pipelines to pass these values as environment variables at deploy time. Use `npm run validate:env` within pipeline preflight checks and capture each rotation event in the security change log.
