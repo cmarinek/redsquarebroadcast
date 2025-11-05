@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@14.21.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { getEnv } from "../_shared/env.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -17,8 +18,8 @@ serve(async (req) => {
 
     // Create Supabase client
     const supabaseClient = createClient(
-      Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_ANON_KEY") ?? ""
+      getEnv("SUPABASE_URL"),
+      getEnv("SUPABASE_ANON_KEY")
     );
 
     // Get authenticated user
@@ -41,7 +42,7 @@ serve(async (req) => {
     }
 
     // Initialize Stripe
-    const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
+    const stripe = new Stripe(getEnv("STRIPE_SECRET_KEY"), {
       apiVersion: "2023-10-16",
     });
 
@@ -88,8 +89,8 @@ serve(async (req) => {
 
     // Update booking with stripe session ID
     const supabaseService = createClient(
-      Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
+      getEnv("SUPABASE_URL"),
+      getEnv("SUPABASE_SERVICE_ROLE_KEY"),
       { auth: { persistSession: false } }
     );
 

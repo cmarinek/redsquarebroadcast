@@ -1,10 +1,14 @@
 #!/usr/bin/env node
 import { execSync } from "node:child_process";
 import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
+import path from "node:path";
 
 const trackedFiles = execSync("git ls-files", { encoding: "utf8" })
   .split("\n")
   .filter(Boolean);
+
+const currentScriptPath = path.relative(process.cwd(), fileURLToPath(import.meta.url));
 
 const issues = [];
 
@@ -29,6 +33,9 @@ const forbiddenContentPatterns = [
 ];
 
 for (const file of trackedFiles) {
+  if (file === currentScriptPath) {
+    continue;
+  }
   if (forbiddenFilePattern.test(file)) {
     issues.push(`Forbidden environment file tracked in git: ${file}`);
     continue;

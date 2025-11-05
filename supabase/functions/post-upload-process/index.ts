@@ -1,3 +1,4 @@
+import { getEnv } from "../_shared/env.ts";
 // deno-lint-ignore-file no-explicit-any
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
@@ -25,8 +26,8 @@ function rateLimit(key: string) {
 
 async function logEvent(details: Record<string, unknown>) {
   try {
-    const url = Deno.env.get('SUPABASE_URL');
-    const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+    const url = getEnv("SUPABASE_URL");
+    const serviceRoleKey = getEnv("SUPABASE_SERVICE_ROLE_KEY");
     if (!url || !serviceRoleKey) return;
     const admin = createClient(url, serviceRoleKey, { auth: { persistSession: false } });
     await admin.from('event_logs').insert({
@@ -57,9 +58,9 @@ Deno.serve(async (req: Request) => {
       });
     }
 
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const anonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
+    const supabaseUrl = getEnv("SUPABASE_URL");
+    const serviceRoleKey = getEnv("SUPABASE_SERVICE_ROLE_KEY");
+    const anonKey = getEnv("SUPABASE_ANON_KEY");
 
     const authHeader = req.headers.get('Authorization') ?? '';
 

@@ -1,3 +1,4 @@
+import { getEnv } from "../_shared/env.ts";
 // Supabase Edge Function: content-sync
 // Returns the upcoming schedule and minimal screen/device info for a device or screen
 // CORS enabled, no JWT required (devices call this directly)
@@ -25,8 +26,8 @@ serve(async (req) => {
       });
     }
 
-    const supabaseUrl = Deno.env.get("SUPABASE_URL");
-    const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    const supabaseUrl = getEnv("SUPABASE_URL");
+    const serviceKey = getEnv("SUPABASE_SERVICE_ROLE_KEY");
     if (!supabaseUrl || !serviceKey) {
       return new Response(JSON.stringify({ error: "Missing Supabase environment configuration" }), {
         status: 500,

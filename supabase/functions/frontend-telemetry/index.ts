@@ -1,3 +1,4 @@
+import { getEnv } from "../_shared/env.ts";
 // Frontend telemetry receiver for Web Vitals & client performance
 // Logs incoming metrics into public.frontend_metrics
 // CORS enabled and public access (verify_jwt = false in config)
@@ -26,8 +27,8 @@ export const handler = async (req: Request): Promise<Response> => {
     return new Response(JSON.stringify({ error: 'Method not allowed' }), { status: 405, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
   }
 
-  const supabaseUrl = Deno.env.get('SUPABASE_URL');
-  const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+  const supabaseUrl = getEnv("SUPABASE_URL");
+  const serviceKey = getEnv("SUPABASE_SERVICE_ROLE_KEY");
   if (!supabaseUrl || !serviceKey) {
     return new Response(JSON.stringify({ error: 'Server misconfigured' }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
   }
