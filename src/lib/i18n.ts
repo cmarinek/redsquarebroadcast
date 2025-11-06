@@ -162,7 +162,20 @@ const resources = {
         viewAnalytics: "View Detailed Analytics",
         live: "Live",
         runningOnScreens: "Running on 15 screens",
-        summerSale: "Summer Sale Campaign"
+        summerSale: "Summer Sale Campaign",
+        metricsUnavailable: "We can't display live campaigns right now.",
+        metricsRequireAccount: "Connect an advertiser account to see campaign-specific insights.",
+        connectAccount: "Link your campaign data",
+        connectAccountDescription: "Sign in to your advertiser workspace to view live bookings and pacing.",
+        uploadCta: "Drop creatives to start ingesting campaign assets",
+        uploadsRealtimeNotice: "Upload progress will update in real time after you authenticate.",
+        uploadsRealtimeDetail: "Processing percentages come directly from ingestion jobs and will appear once you're signed in.",
+        performanceBreakdown: "Performance breakdown",
+        screenOwnerDescription: "Understand how your screens performed during the selected period.",
+        utilizationDetail: "Average utilisation across your network: {{percent}}%",
+        viewDetail: "Total verified impressions this period: {{total}}",
+        revenueGrowthDetail: "Revenue growth over the previous comparable period: {{value}}",
+        emptyState: "Platform metrics are still indexing. Check back shortly for updated KPIs."
       }
     }
   },
