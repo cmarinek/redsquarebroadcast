@@ -22,43 +22,56 @@ serve(async (req) => {
   }
 
   try {
-    const { role, userId, campaignId } = await req.json();
+    const { role, userId, campaignId, startDate, endDate } = await req.json();
     const supabaseAdmin = createAdminClient(req);
     let responseData;
 
     switch (role) {
       case 'admin': {
-        const { data, error } = await supabaseAdmin.rpc('get_platform_analytics');
+        const { data, error } = await supabaseAdmin.rpc('get_platform_analytics', {
+          p_start_date: startDate ?? null,
+          p_end_date: endDate ?? null
+        });
         if (error) throw error;
-        responseData = { summary: data, timeSeries: [] };
+        responseData = { summary: data?.summary ?? {}, timeSeries: data?.timeSeries ?? {} };
         break;
       }
 
       case 'advertiser': {
-        const { data, error } = await supabaseAdmin.rpc('get_advertiser_analytics_summary', {
+        if (!userId) {
+          throw new Error('userId is required for advertiser analytics');
+        }
+        const { data, error } = await supabaseAdmin.rpc('get_advertiser_dashboard_metrics', {
           p_user_id: userId,
+          p_start_date: startDate ?? null,
+          p_end_date: endDate ?? null,
         });
         if (error) throw error;
-        responseData = { summary: data, timeSeries: [] }; // timeSeries can be built out later
+        responseData = { summary: data?.summary ?? {}, timeSeries: data?.timeSeries ?? {} };
         break;
       }
 
       case 'broadcaster': {
-        // This is a simplified implementation. A real version would have complex aggregation.
-        const { count: totalCampaigns, error: bookingError } = await supabaseAdmin
-            .from('bookings')
-            .select('*', { count: 'exact', head: true })
-            .eq('user_id', userId);
+        if (!userId) {
+          throw new Error('userId is required for broadcaster analytics');
+        }
+        const { data, error } = await supabaseAdmin.rpc('get_screen_owner_dashboard_metrics', {
+          p_user_id: userId,
+          p_start_date: startDate ?? null,
+          p_end_date: endDate ?? null,
+        });
+        if (error) throw error;
+        responseData = { summary: data?.summary ?? {}, timeSeries: data?.timeSeries ?? {} };
+        break;
+      }
 
-        if (bookingError) throw bookingError;
-
-        // Placeholder logic for other metrics until real data is available
-        const summary = {
-            views: (totalCampaigns ?? 0) * 2500,
-            engagementRate: 12.3,
-            totalCampaigns: totalCampaigns ?? 0,
-        };
-        responseData = { summary, timeSeries: [] };
+      case 'public': {
+        const { data, error } = await supabaseAdmin.rpc('get_public_dashboard_metrics', {
+          p_start_date: startDate ?? null,
+          p_end_date: endDate ?? null,
+        });
+        if (error) throw error;
+        responseData = { summary: data?.summary ?? {}, timeSeries: data?.timeSeries ?? {} };
         break;
       }
 
