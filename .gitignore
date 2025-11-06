@@ -14,6 +14,10 @@ dist-ssr
 .env
 .env.*
 
+# Supabase generated client artifacts should never be tracked
+supabase/functions/**/supabaseClient*.ts
+supabase/functions/**/supabase-types*.ts
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

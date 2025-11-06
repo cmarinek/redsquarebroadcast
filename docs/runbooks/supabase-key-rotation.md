@@ -33,3 +33,15 @@
 - Review secret scanning output in CI for the offending commit.
 - Add regression tests or alerts if the leak vector was process-based.
 - Schedule retro with security/ops to capture follow-up improvements.
+
+## Rapid Recovery Checklist
+Follow this condensed sequence during an active compromise so operators can restore service quickly:
+
+1. **Notify Security/Ops immediately** in the `#security-incident` channel and page the on-call engineer.
+2. **Freeze deployments** by disabling GitHub environment protections until new keys are live.
+3. **Rotate Supabase and Stripe keys** (anon, service role, secret, publishable) plus any Mapbox/Resend tokens following the steps above.
+4. **Update manifests and CI secrets** with the new values, then run `npm run validate:env` and `npm run verify:secrets` to confirm they are injected correctly.
+5. **Redeploy edge functions** via `supabase functions deploy --all` to ensure runtime caches pick up the rotated credentials.
+6. **Log the event** in `docs/security/secret-rotation-log.md` with ticket number, approver, and affected environments so audits capture the revocation trail.
+
+Keep this checklist printed in the operations runbook binder so responders have an at-a-glance procedure during emergencies.

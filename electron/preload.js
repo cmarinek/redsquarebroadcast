@@ -24,6 +24,24 @@ contextBridge.exposeInMainWorld('electronAPI', {
   }
 });
 
+const allowedEnvKeys = [
+  'VITE_SUPABASE_URL',
+  'VITE_SUPABASE_ANON_KEY',
+  'VITE_SUPABASE_PROJECT_ID',
+  'VITE_MAPBOX_PUBLIC_TOKEN',
+  'VITE_STRIPE_PUBLISHABLE_KEY',
+];
+
+const runtimeEnv = allowedEnvKeys.reduce((acc, key) => {
+  const value = process.env[key];
+  if (typeof value === 'string' && value.length > 0) {
+    acc[key] = value;
+  }
+  return acc;
+}, {});
+
+contextBridge.exposeInMainWorld('__APP_ENV__', Object.freeze(runtimeEnv));
+
 // Remove the loading text when the page loads
 window.addEventListener('DOMContentLoaded', () => {
   const loadingElement = document.getElementById('loading');

@@ -10,6 +10,11 @@ const schema = z.object({
   SUPABASE_SERVICE_ROLE_KEY: z.string().min(1),
   MAPBOX_PUBLIC_TOKEN: z.string().min(1),
   STRIPE_SECRET_KEY: z.string().min(1),
+  RESEND_API_KEY: z.string().min(1),
+  HUGGING_FACE_ACCESS_TOKEN: z.string().min(1),
+  GITHUB_ACCESS_TOKEN: z.string().min(1),
+  GITHUB_REPO_OWNER: z.string().min(1),
+  GITHUB_REPO_NAME: z.string().min(1),
 });
 
 const result = schema.safeParse(process.env);

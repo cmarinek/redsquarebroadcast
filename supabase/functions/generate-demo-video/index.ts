@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { HfInference } from 'https://esm.sh/@huggingface/inference@2.3.2'
+import { getEnv } from "../_shared/env.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -22,7 +23,7 @@ serve(async (req) => {
       )
     }
 
-    const hf = new HfInference(Deno.env.get('HUGGING_FACE_ACCESS_TOKEN'))
+    const hf = new HfInference(getEnv('HUGGING_FACE_ACCESS_TOKEN'))
 
     // Generate a representative image for the video (since actual video generation is complex)
     // In a real implementation, you'd use a video generation model

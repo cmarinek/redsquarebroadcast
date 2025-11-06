@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
-import { getEnv } from "../_shared/env.ts";
+import { getEnv, getOptionalEnv } from "../_shared/env.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -157,8 +157,15 @@ async function validateDeployment(supabase: any, config: any) {
     validationResults.database_schema = !!schemaCheck;
 
     // 2. Environment variables check
-    const requiredVars = ['SUPABASE_URL', 'SUPABASE_ANON_KEY', 'RESEND_API_KEY'];
-    const missingVars = requiredVars.filter(varName => !Deno.env.get(varName));
+    const requiredVars = [
+      'SUPABASE_URL',
+      'SUPABASE_ANON_KEY',
+      'RESEND_API_KEY',
+      'GITHUB_ACCESS_TOKEN',
+      'GITHUB_REPO_OWNER',
+      'GITHUB_REPO_NAME',
+    ];
+    const missingVars = requiredVars.filter((varName) => !getOptionalEnv(varName));
     validationResults.environment_vars = missingVars.length === 0;
 
     // 3. Dependencies check
@@ -337,13 +344,9 @@ async function createDeploymentBackup(supabase: any, deploymentId: string) {
 }
 
 async function triggerGithubDeployment(config: any) {
-  const githubToken = Deno.env.get('GITHUB_ACCESS_TOKEN');
-  const repoOwner = Deno.env.get('GITHUB_REPO_OWNER');
-  const repoName = Deno.env.get('GITHUB_REPO_NAME');
-
-  if (!githubToken || !repoOwner || !repoName) {
-    throw new Error('Missing GitHub configuration');
-  }
+  const githubToken = getEnv('GITHUB_ACCESS_TOKEN');
+  const repoOwner = getEnv('GITHUB_REPO_OWNER');
+  const repoName = getEnv('GITHUB_REPO_NAME');
 
   return await fetch(`https://api.github.com/repos/${repoOwner}/${repoName}/dispatches`, {
     method: 'POST',
