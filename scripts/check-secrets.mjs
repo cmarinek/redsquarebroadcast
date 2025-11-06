@@ -30,6 +30,10 @@ const forbiddenContentPatterns = [
     regex: /supabase\.co\/(functions|auth|storage)/,
     message: "Detected hard-coded Supabase domain. Use app_config.supabase_base_url() helpers or environment variables instead.",
   },
+  {
+    regex: /https:\/\/(?!your-project)[a-zA-Z0-9-]+\.supabase\.co/,
+    message: "Detected hard-coded Supabase project reference. Remove embedded URLs and rely on runtime environment variables.",
+  },
 ];
 
 for (const file of trackedFiles) {

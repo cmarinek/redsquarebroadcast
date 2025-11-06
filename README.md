@@ -114,6 +114,7 @@ The platform automatically adapts based on build target and environment:
 - Review the manifests in `docs/environments/` for development, staging, and production requirements.
 - Run `npm run validate:env` locally/CI to verify all required variables are present before building.
 - Set up local pre-commit hooks with `npm run setup:hooks` (runs `npm run verify:secrets`) to prevent `.env` artifacts or leaked keys from being committed.
+- Edge functions and deployment automation also depend on `RESEND_API_KEY`, `HUGGING_FACE_ACCESS_TOKEN`, `GITHUB_ACCESS_TOKEN`, `GITHUB_REPO_OWNER`, and `GITHUB_REPO_NAME`; inject them through your platform secret manager so they are never written to disk.
 
 ## 🗄️ Database Architecture
 

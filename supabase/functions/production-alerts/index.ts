@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
-import { getEnv } from "../_shared/env.ts";
+import { getEnv, getOptionalEnv } from "../_shared/env.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -220,7 +220,7 @@ async function sendCriticalAlerts(supabase: any) {
     };
 
     // Send alerts via email (using Resend API)
-    const resendApiKey = Deno.env.get('RESEND_API_KEY');
+    const resendApiKey = getOptionalEnv('RESEND_API_KEY');
     if (resendApiKey) {
       const emailBody = `
         Red Square Production Alert Summary

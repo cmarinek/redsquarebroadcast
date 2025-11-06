@@ -20,9 +20,9 @@ serve(async (req) => {
     const supabaseUrl = getEnv("SUPABASE_URL");
     const anonKey = getEnv("SUPABASE_ANON_KEY");
     const serviceKey = getEnv("SUPABASE_SERVICE_ROLE_KEY");
-    const githubToken = Deno.env.get("GITHUB_ACCESS_TOKEN");
-    const githubRepoOwner = Deno.env.get("GITHUB_REPO_OWNER");
-    const githubRepoName = Deno.env.get("GITHUB_REPO_NAME");
+    const githubToken = getEnv("GITHUB_ACCESS_TOKEN");
+    const githubRepoOwner = getEnv("GITHUB_REPO_OWNER");
+    const githubRepoName = getEnv("GITHUB_REPO_NAME");
 
     console.log("Environment check:", {
       hasSupabaseUrl: !!supabaseUrl,

@@ -6,6 +6,22 @@ import { componentTagger } from "lovable-tagger";
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
+  const requiredRuntimeEnv = [
+    'VITE_SUPABASE_URL',
+    'VITE_SUPABASE_ANON_KEY',
+    'VITE_SUPABASE_PROJECT_ID',
+    'VITE_MAPBOX_PUBLIC_TOKEN',
+    'VITE_STRIPE_PUBLISHABLE_KEY',
+  ];
+
+  const missingRuntimeEnv = requiredRuntimeEnv.filter((key) => !process.env[key]);
+
+  if (missingRuntimeEnv.length > 0) {
+    throw new Error(
+      `Missing required runtime environment variables: ${missingRuntimeEnv.join(", ")}. Inject them via your platform secret manager before building.`,
+    );
+  }
+
   const buildTarget = process.env.VITE_BUILD_TARGET || process.env.BUILD_TARGET || 'web';
   const isTVOptimized = (process.env.VITE_TV_OPTIMIZED || process.env.TV_OPTIMIZED) === 'true';
   const isKioskMode = (process.env.VITE_KIOSK_MODE || process.env.KIOSK_MODE) === 'true';

@@ -12,5 +12,10 @@ Staging uses the same variable set as development but values must come from your
 | `SUPABASE_SERVICE_ROLE_KEY` | Service role key for scheduled jobs | Monthly minimum — log in `docs/security/secret-rotation-log.md` |
 | `MAPBOX_PUBLIC_TOKEN` | Mapbox token for edge functions | Quarterly |
 | `STRIPE_SECRET_KEY` | Stripe secret key | Monthly minimum |
+| `RESEND_API_KEY` | Resend API key for alerting | Monthly or on incident |
+| `HUGGING_FACE_ACCESS_TOKEN` | HuggingFace access token | Quarterly |
+| `GITHUB_ACCESS_TOKEN` | GitHub PAT for workflow dispatch | Rotate with GitHub policy |
+| `GITHUB_REPO_OWNER` | GitHub repository owner | When deployment repo changes |
+| `GITHUB_REPO_NAME` | Deployment repository name | When deployment repo changes |
 
 Configure CI/CD pipelines to pass these values as environment variables at deploy time. Use `npm run validate:env` within pipeline preflight checks and capture each rotation event in the security change log.
