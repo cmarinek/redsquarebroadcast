@@ -1,24 +1,27 @@
 # Automated Mobile Build Setup
 
-This guide explains how to set up automated mobile app builds that trigger when code is pushed to the main branch.
+This guide explains how to set up automated mobile app builds (Android & iOS) that trigger when code is pushed to the main branch.
 
 ## Overview
 
 The automated build system consists of:
 
 1. **Auto-trigger workflow** (`.github/workflows/auto-mobile-build.yml`) - Triggers on push to main
-2. **Build workflow** (`.github/workflows/screens-android-mobile-build.yml`) - Performs the actual build
-3. **Edge function** (`supabase/functions/trigger-app-build`) - Manages build records
+2. **Android build workflow** (`.github/workflows/screens-android-mobile-build.yml`) - Builds Android APK
+3. **iOS build workflow** (`.github/workflows/screens-ios-build.yml`) - Builds iOS IPA
+4. **Edge function** (`supabase/functions/trigger-app-build`) - Manages build records (for manual triggers)
 
 ## How It Works
 
 ```mermaid
 graph LR
     A[Push to Main] --> B[Auto Mobile Build Workflow]
-    B --> C[Trigger repository_dispatch]
-    C --> D[Android Mobile Build Workflow]
-    D --> E[Build APK]
-    E --> F[Upload to Supabase Storage]
+    B --> C[Trigger Android Build]
+    B --> D[Trigger iOS Build]
+    C --> E[Build Android APK]
+    D --> F[Build iOS IPA]
+    E --> G[Upload to Artifacts & Storage]
+    F --> H[Upload to Artifacts & Storage]
 ```
 
 ## Required Secrets
@@ -45,7 +48,15 @@ For the automated builds to work, you need to configure these GitHub secrets:
 - `GITHUB_REPO_NAME` - Repository name
 - `GITHUB_TOKEN` - Automatically provided by GitHub Actions
 
-### Android Signing (Optional but Recommended)
+### iOS Signing (Optional but Recommended for App Store)
+- `IOS_SIGNING_CERTIFICATE_BASE64` - Base64 encoded signing certificate
+- `IOS_PROVISIONING_PROFILE_BASE64` - Base64 encoded provisioning profile
+- `IOS_SIGNING_CERTIFICATE_PASSWORD` - Certificate password
+- `IOS_TEAM_ID` - Apple Developer Team ID
+
+**Note**: The iOS workflow is currently configured for unsigned development builds. For App Store distribution, you'll need to configure proper code signing.
+
+### Android Signing (Optional but Recommended for Play Store)
 - `ANDROID_SIGNING_KEY_BASE64` - Base64 encoded keystore file
 - `ANDROID_SIGNING_KEY_ALIAS` - Keystore alias
 - `ANDROID_SIGNING_KEY_PASSWORD` - Key password
@@ -107,9 +118,10 @@ const response = await fetch(`${SUPABASE_URL}/functions/v1/trigger-app-build`, {
 - Go to **Actions** tab in your repository
 - Click on the running workflow to see progress
 - View logs for detailed build information
+- Both Android and iOS builds run in parallel
 
 ### Supabase Dashboard
-Builds are tracked in the `app_builds` table:
+Builds are tracked in the `app_builds` table (for manual triggers only):
 ```sql
 SELECT * FROM app_builds 
 ORDER BY created_at DESC 
@@ -121,7 +133,11 @@ LIMIT 10;
 Successful builds are stored in two locations:
 
 1. **GitHub Artifacts** - Available in the workflow run for 90 days
-2. **Supabase Storage** - Permanently stored in the `apk-files` bucket
+   - Android: `screens-android-mobile-app` (APK file)
+   - iOS: `screens-ios-app` (IPA file)
+2. **Supabase Storage** - Permanently stored
+   - Android: `apk-files` bucket
+   - iOS: `ios-files` bucket
 
 ## Troubleshooting
 
@@ -135,15 +151,35 @@ Successful builds are stored in two locations:
 - Verify all required secrets are configured
 - Check that Capacitor platform is properly set up
 
-### APK Upload Failing
+### APK/IPA Upload Failing
 - Verify `SUPABASE_SERVICE_ROLE_KEY` is correct
-- Check Supabase Storage bucket `apk-files` exists
-- Ensure bucket has appropriate permissions
+- Check Supabase Storage buckets exist: `apk-files` (Android) and `ios-files` (iOS)
+- Ensure buckets have appropriate permissions
+
+### iOS Build Requires macOS Runner
+- iOS builds run on `macos-latest` runners which are more expensive
+- Ensure your GitHub account has access to macOS runners
+- For private repos, check your GitHub Actions billing limits
 
 ## Customization
 
-### Add iOS Builds
-Edit `.github/workflows/auto-mobile-build.yml` to add iOS trigger:
+### Disable iOS or Android Builds
+If you only want one platform, you can:
+
+**Option 1**: Comment out the trigger step in `.github/workflows/auto-mobile-build.yml`:
+```yaml
+# - name: Trigger iOS Build
+#   if: steps.check_changes.outputs.changes_detected == 'true'
+#   run: |
+#     ... (comment out entire step)
+```
+
+**Option 2**: Disable the workflow file:
+- Rename `.github/workflows/screens-ios-build.yml` to `.github/workflows/screens-ios-build.yml.disabled`
+
+### Add Other Mobile Platforms
+Edit `.github/workflows/auto-mobile-build.yml` to add more platforms:
+
 
 ```yaml
 - name: Trigger iOS Build
@@ -183,7 +219,9 @@ Add a notification step after the build triggers:
 2. **Use Signed Builds** - Configure signing secrets for production releases
 3. **Monitor Build Status** - Set up notifications for build failures
 4. **Version Control** - Use semantic versioning for releases
-5. **Clean Up Old Builds** - Regularly archive old APKs from storage
+5. **Clean Up Old Builds** - Regularly archive old APKs/IPAs from storage
+6. **macOS Runner Costs** - Be aware that iOS builds use macOS runners which have higher costs on GitHub Actions
+7. **Parallel Builds** - Both platforms build in parallel to save time
 
 ## Support
 

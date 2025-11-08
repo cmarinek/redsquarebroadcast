@@ -39,12 +39,22 @@ jobs:
           if [ -n "${{ github.event.client_payload.build_id }}" ]; then
             echo "build_id=${{ github.event.client_payload.build_id }}" >> $GITHUB_OUTPUT
             echo "version=${{ github.event.client_payload.version }}" >> $GITHUB_OUTPUT
+            echo "triggered_by=${{ github.event.client_payload.triggered_by }}" >> $GITHUB_OUTPUT
+            echo "commit_sha=${{ github.event.client_payload.commit_sha }}" >> $GITHUB_OUTPUT
           else
             echo "build_id=${{ github.event.inputs.build_id }}" >> $GITHUB_OUTPUT
             echo "version=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
+            echo "triggered_by=manual" >> $GITHUB_OUTPUT
+            echo "commit_sha=${{ github.sha }}" >> $GITHUB_OUTPUT
           fi
+          
+          echo "📋 Build Info:"
+          echo "  - Build ID: $(cat $GITHUB_OUTPUT | grep build_id | cut -d= -f2)"
+          echo "  - Version: $(cat $GITHUB_OUTPUT | grep version | cut -d= -f2)"
+          echo "  - Triggered by: $(cat $GITHUB_OUTPUT | grep triggered_by | cut -d= -f2)"
 
       - name: Update Build Status to 'In Progress'
+        if: "!startsWith(steps.build_info.outputs.build_id, 'auto-')"
         run: |
           curl -X POST "${{ secrets.SUPABASE_URL }}/functions/v1/update-build-status" \
             -H "Authorization: Bearer ${{ secrets.GH_ACTION_SECRET }}" \
@@ -196,7 +206,7 @@ jobs:
             --data-binary @"$FILE_PATH"
 
       - name: Update Build Status to 'Success'
-        if: success()
+        if: success() && !startsWith(steps.build_info.outputs.build_id, 'auto-')
         run: |
           curl -X POST "${{ secrets.SUPABASE_URL }}/functions/v1/update-build-status" \
             -H "Authorization: Bearer ${{ secrets.GH_ACTION_SECRET }}" \
@@ -208,7 +218,7 @@ jobs:
             }'
 
       - name: Update Build Status to 'Failed'
-        if: failure() || cancelled()
+        if: (failure() || cancelled()) && !startsWith(steps.build_info.outputs.build_id, 'auto-')
         run: |
           STATUS="failed"
           if [ "${{ job.status }}" == "cancelled" ]; then
@@ -221,3 +231,30 @@ jobs:
               "build_id": "${{ steps.build_info.outputs.build_id }}",
               "status": "'$STATUS'"
             }'
+
+      - name: Build Summary
+        if: always()
+        run: |
+          if [ "${{ job.status }}" == "success" ]; then
+            echo "## ✅ iOS Mobile Build Successful" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "**Build Details:**" >> $GITHUB_STEP_SUMMARY
+            echo "- Build ID: \`${{ steps.build_info.outputs.build_id }}\`" >> $GITHUB_STEP_SUMMARY
+            echo "- Version: \`${{ steps.build_info.outputs.version }}\`" >> $GITHUB_STEP_SUMMARY
+            echo "- Platform: iOS Mobile" >> $GITHUB_STEP_SUMMARY
+            echo "- Triggered by: ${{ steps.build_info.outputs.triggered_by }}" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "**Download IPA:**" >> $GITHUB_STEP_SUMMARY
+            echo "1. Go to the [Artifacts section](#artifacts) above" >> $GITHUB_STEP_SUMMARY
+            echo "2. Download \`screens-ios-app\`" >> $GITHUB_STEP_SUMMARY
+            echo "3. Extract and install the IPA on your iOS device (requires TestFlight or enterprise distribution)" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "## ❌ iOS Mobile Build Failed" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "**Build Details:**" >> $GITHUB_STEP_SUMMARY
+            echo "- Build ID: \`${{ steps.build_info.outputs.build_id }}\`" >> $GITHUB_STEP_SUMMARY
+            echo "- Version: \`${{ steps.build_info.outputs.version }}\`" >> $GITHUB_STEP_SUMMARY
+            echo "- Status: ${{ job.status }}" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "Check the logs above for error details." >> $GITHUB_STEP_SUMMARY
+          fi

@@ -88,6 +88,39 @@ jobs:
             echo "$RESPONSE"
           fi
 
+      - name: Trigger iOS Build
+        if: steps.check_changes.outputs.changes_detected == 'true'
+        run: |
+          echo "🍎 Triggering iOS build..."
+          
+          # Trigger repository_dispatch event for iOS build
+          RESPONSE=$(curl -s -w "\n%{http_code}" -X POST \
+            "https://api.github.com/repos/${{ github.repository }}/dispatches" \
+            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Accept: application/vnd.github+json" \
+            -H "Content-Type: application/json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            -d "{
+              \"event_type\": \"trigger-screens-ios-build\",
+              \"client_payload\": {
+                \"build_id\": \"${{ steps.create_build.outputs.build_id }}-ios\",
+                \"version\": \"${{ steps.create_build.outputs.version }}\",
+                \"commit_sha\": \"${{ github.sha }}\",
+                \"commit_message\": \"$(git log -1 --pretty=%B | head -1)\",
+                \"triggered_by\": \"auto-build\",
+                \"actor\": \"${{ github.actor }}\"
+              }
+            }")
+          
+          HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
+          
+          if [ "$HTTP_CODE" = "204" ]; then
+            echo "✅ iOS build triggered successfully!"
+          else
+            echo "⚠️ Warning: Unexpected response code: $HTTP_CODE"
+            echo "$RESPONSE"
+          fi
+
       - name: Create Build Summary
         if: always()
         run: |
@@ -99,12 +132,12 @@ jobs:
             echo "- **Triggered by**: ${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
             echo "- **Build ID**: \`${{ steps.create_build.outputs.build_id }}\`" >> $GITHUB_STEP_SUMMARY
             echo "- **Version**: \`${{ steps.create_build.outputs.version }}\`" >> $GITHUB_STEP_SUMMARY
-            echo "- **Build Type**: Android Mobile" >> $GITHUB_STEP_SUMMARY
+            echo "- **Build Types**: Android Mobile & iOS" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
             echo "### 🔍 Next Steps" >> $GITHUB_STEP_SUMMARY
             echo "1. Check the [Actions tab](https://github.com/${{ github.repository }}/actions) for build progress" >> $GITHUB_STEP_SUMMARY
-            echo "2. Look for the **Build RedSquare Screens (Android Mobile)** workflow" >> $GITHUB_STEP_SUMMARY
-            echo "3. Download the APK from the workflow artifacts once complete" >> $GITHUB_STEP_SUMMARY
+            echo "2. Look for the **Build RedSquare Screens (Android Mobile)** and **Build RedSquare Screens (iOS)** workflows" >> $GITHUB_STEP_SUMMARY
+            echo "3. Download the APK/IPA from the workflow artifacts once complete" >> $GITHUB_STEP_SUMMARY
           else
             echo "## ℹ️ No Mobile Build Needed" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
