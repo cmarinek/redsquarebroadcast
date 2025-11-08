@@ -1,4 +1,4 @@
-import { renderHook, waitFor } from "@testing-library/react";
+import { renderHook } from "@testing-library/react";
 import { vi } from "vitest";
 import { useDashboardMetrics } from "./useDashboardMetrics";
 
@@ -36,14 +36,10 @@ describe("useDashboardMetrics", () => {
 
     const { result } = renderHook(() => useDashboardMetrics({ role: "public", skipToast: true }));
 
-    await waitFor(() => {
-      expect(supabaseMock.functions.invoke).toHaveBeenCalled();
-    });
+    // Wait for async operations
+    await new Promise((resolve) => setTimeout(resolve, 100));
 
-    await waitFor(() => {
-      expect(result.current.data).not.toBeNull();
-    });
-
+    expect(supabaseMock.functions.invoke).toHaveBeenCalled();
     expect(result.current.data?.summary).toMatchObject({ totalBookings: 12 });
     expect(result.current.error).toBeNull();
   });
@@ -62,10 +58,10 @@ describe("useDashboardMetrics", () => {
 
     const { result } = renderHook(() => useDashboardMetrics({ role: "admin", skipToast: true }));
 
-    await waitFor(() => {
-      expect(result.current.qualityAlerts).toHaveLength(1);
-    });
+    // Wait for async operations
+    await new Promise((resolve) => setTimeout(resolve, 100));
 
+    expect(result.current.qualityAlerts).toHaveLength(1);
     expect(supabaseMock.from).toHaveBeenCalledWith("data_quality_alerts");
   });
 
