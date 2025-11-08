@@ -49,12 +49,19 @@ For the automated builds to work, you need to configure these GitHub secrets:
 - `GITHUB_TOKEN` - Automatically provided by GitHub Actions
 
 ### iOS Signing (Optional but Recommended for App Store)
-- `IOS_SIGNING_CERTIFICATE_BASE64` - Base64 encoded signing certificate
-- `IOS_PROVISIONING_PROFILE_BASE64` - Base64 encoded provisioning profile
-- `IOS_SIGNING_CERTIFICATE_PASSWORD` - Certificate password
-- `IOS_TEAM_ID` - Apple Developer Team ID
+Configure these secrets to enable App Store distribution. 
 
-**Note**: The iOS workflow is currently configured for unsigned development builds. For App Store distribution, you'll need to configure proper code signing.
+**📖 Quick Start**: See [`docs/QUICK_START_IOS_SIGNING.md`](./QUICK_START_IOS_SIGNING.md) for 5-minute setup  
+**📚 Full Guide**: See [`docs/IOS_CODE_SIGNING_SETUP.md`](./IOS_CODE_SIGNING_SETUP.md) for detailed instructions
+
+Required secrets:
+- `IOS_CERTIFICATE_BASE64` - Base64 encoded distribution certificate (.p12)
+- `IOS_CERTIFICATE_PASSWORD` - Password for the certificate
+- `IOS_PROVISIONING_PROFILE_BASE64` - Base64 encoded provisioning profile
+- `IOS_TEAM_ID` - Apple Developer Team ID (10 characters)
+- `IOS_BUNDLE_ID` - App Bundle Identifier (e.g., com.redsquare.screens)
+
+**Note**: Without these secrets, iOS builds will use development mode (unsigned). The IPA can still be built but cannot be submitted to the App Store.
 
 ### Android Signing (Optional but Recommended for Play Store)
 - `ANDROID_SIGNING_KEY_BASE64` - Base64 encoded keystore file
