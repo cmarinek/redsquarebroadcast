@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { FirstAdminSetup } from "./FirstAdminSetup";
 
 type UserWithRoles = {
   user_id: string;
@@ -200,9 +201,19 @@ export function AdminRoleManager() {
   ];
 
   const isBusy = profilesLoading || rolesLoading;
+  
+  const hasNoAdmins = usersWithRoles.length > 0 && !usersWithRoles.some(u => 
+    u.roles.includes('admin')
+  );
 
   return (
     <>
+      {hasNoAdmins && (
+        <div className="mb-4">
+          <FirstAdminSetup />
+        </div>
+      )}
+      
       <BaseCard
         title="User Roles"
         description="Grant or revoke multiple roles per user. Only admins can access this."
