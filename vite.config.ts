@@ -36,6 +36,11 @@ export default defineConfig(({ mode }) => {
       minify: 'esbuild',
       sourcemap: true,
       rollupOptions: {
+        external: isMobileTarget ? [
+          '@capacitor/cli',
+          '@capacitor/android',
+          '@capacitor/ios'
+        ] : [],
         output: {
           compact: true,
           generatedCode: {
