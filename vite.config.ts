@@ -30,17 +30,33 @@ export default defineConfig(({ mode }) => {
     plugins: [
       react(),
       mode === 'development' && componentTagger(),
+      // Prevent Capacitor CLI packages from being resolved/bundled
+      {
+        name: 'exclude-capacitor-packages',
+        resolveId(id: string) {
+          if (id.startsWith('@capacitor/cli') || 
+              id.startsWith('@capacitor/android') || 
+              id.startsWith('@capacitor/ios')) {
+            return { id, external: true };
+          }
+          return null;
+        }
+      }
     ].filter(Boolean),
     build: {
       target: 'esnext',
       minify: 'esbuild',
       sourcemap: true,
       rollupOptions: {
-        external: isMobileTarget ? [
-          '@capacitor/cli',
-          '@capacitor/android',
-          '@capacitor/ios'
-        ] : [],
+        external: (id: string) => {
+          // Always externalize Capacitor CLI packages (they're not meant to be bundled)
+          if (id.startsWith('@capacitor/cli') || 
+              id.startsWith('@capacitor/android') || 
+              id.startsWith('@capacitor/ios')) {
+            return true;
+          }
+          return false;
+        },
         output: {
           compact: true,
           generatedCode: {
