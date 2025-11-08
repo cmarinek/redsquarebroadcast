@@ -144,20 +144,26 @@ jobs:
             echo "No keystore provided, using debug signing"
           fi
 
-      - name: Build RedSquare Screens Android Mobile APK
+      - name: Build RedSquare Screens Android Mobile APK and AAB
         run: |
           set -e  # Exit on any error
-          echo "Building RedSquare Screens Android Mobile APK..."
+          echo "Building RedSquare Screens Android Mobile APK and AAB..."
           cd android
           
           # Clean previous builds
           ./gradlew clean
           
-          # Build with detailed output
+          # Build APK with detailed output
+          echo "Building APK..."
           ./gradlew assembleRelease --info --stacktrace
+          
+          # Build AAB (Android App Bundle) for Play Store
+          echo "Building AAB for Play Store..."
+          ./gradlew bundleRelease --info --stacktrace
           
           echo "Listing build outputs:"
           find . -name "*.apk" -type f
+          find . -name "*.aab" -type f
           
           # Validate APK was created
           if [ ! -f "app/build/outputs/apk/release/app-release.apk" ] && [ ! -f "app/build/outputs/apk/release/app-release-unsigned.apk" ]; then
@@ -165,13 +171,24 @@ jobs:
             exit 1
           fi
           
+          # Validate AAB was created
+          if [ ! -f "app/build/outputs/bundle/release/app-release.aab" ]; then
+            echo "❌ AAB file not found in expected location"
+            exit 1
+          fi
+          
           APK_PATH=$(find app/build/outputs/apk/release/ -name "*.apk" | head -1)
           APK_SIZE=$(stat -c%s "$APK_PATH" 2>/dev/null || stat -f%z "$APK_PATH")
           APK_SIZE_MB=$((APK_SIZE / 1024 / 1024))
           
-          echo "✅ Android Mobile APK built successfully (${APK_SIZE_MB}MB)"
+          AAB_PATH="app/build/outputs/bundle/release/app-release.aab"
+          AAB_SIZE=$(stat -c%s "$AAB_PATH" 2>/dev/null || stat -f%z "$AAB_PATH")
+          AAB_SIZE_MB=$((AAB_SIZE / 1024 / 1024))
           
-          # Validate APK size (should be reasonable for mobile app)
+          echo "✅ Android Mobile APK built successfully (${APK_SIZE_MB}MB)"
+          echo "✅ Android Mobile AAB built successfully (${AAB_SIZE_MB}MB)"
+          
+          # Validate sizes
           if [ $APK_SIZE_MB -gt 200 ]; then
             echo "⚠️ Warning: APK size is quite large (${APK_SIZE_MB}MB)"
           fi
@@ -183,8 +200,14 @@ jobs:
       - name: Upload APK as Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: screens-android-mobile-app
+          name: screens-android-mobile-apk
           path: android/app/build/outputs/apk/release/*.apk
+
+      - name: Upload AAB as Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: screens-android-mobile-aab
+          path: android/app/build/outputs/bundle/release/*.aab
 
       - name: Upload APK to Supabase Storage
         id: upload_apk
@@ -207,6 +230,161 @@ jobs:
             -H "Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" \
             -H "Content-Type: application/vnd.android.package-archive" \
             --data-binary @"$FILE_PATH"
+
+      - name: Setup Google Play Service Account
+        if: env.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON != '' && env.ANDROID_SIGNING_KEY_BASE64 != ''
+        env:
+          GOOGLE_PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
+        run: |
+          echo "Setting up Google Play Console API credentials..."
+          
+          # Save service account JSON to file
+          echo "$GOOGLE_PLAY_SERVICE_ACCOUNT_JSON" > service-account.json
+          
+          echo "✅ Google Play service account configured"
+
+      - name: Upload to Google Play Internal Testing
+        if: env.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON != '' && env.ANDROID_SIGNING_KEY_BASE64 != ''
+        env:
+          GOOGLE_PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
+          GOOGLE_PLAY_PACKAGE_NAME: ${{ secrets.GOOGLE_PLAY_PACKAGE_NAME }}
+          GOOGLE_PLAY_TRACK: ${{ secrets.GOOGLE_PLAY_TRACK || 'internal' }}
+        run: |
+          set -e  # Exit on any error
+          echo "📤 Uploading AAB to Google Play Console..."
+          
+          AAB_PATH="android/app/build/outputs/bundle/release/app-release.aab"
+          TRACK="${GOOGLE_PLAY_TRACK}"
+          
+          if [ ! -f "$AAB_PATH" ]; then
+            echo "❌ AAB file not found: $AAB_PATH"
+            exit 1
+          fi
+          
+          echo "Uploading to track: $TRACK"
+          
+          # Install Python dependencies for API fallback
+          pip3 install --quiet PyJWT requests cryptography
+          
+          # Use Play Developer API directly via Python
+          python3 << 'PYTHON_SCRIPT'
+          import json
+          import jwt
+          import time
+          import requests
+          import os
+          import sys
+          
+          # Load service account
+          with open('service-account.json') as f:
+              sa = json.load(f)
+          
+          # Generate JWT token
+          now = int(time.time())
+          payload = {
+              'iss': sa['client_email'],
+              'sub': sa['client_email'],
+              'aud': 'https://oauth2.googleapis.com/token',
+              'iat': now,
+              'exp': now + 3600,
+              'scope': 'https://www.googleapis.com/auth/androidpublisher'
+          }
+          
+          token = jwt.encode(payload, sa['private_key'], algorithm='RS256')
+          
+          # Get access token
+          response = requests.post('https://oauth2.googleapis.com/token', data={
+              'grant_type': 'urn:ietf:params:oauth:grant-type:jwt-bearer',
+              'assertion': token
+          })
+          
+          if response.status_code != 200:
+              print(f"❌ Failed to get access token: {response.text}")
+              sys.exit(1)
+          
+          access_token = response.json()['access_token']
+          print("✅ Access token obtained")
+          
+          # Create edit
+          package_name = os.environ['GOOGLE_PLAY_PACKAGE_NAME']
+          headers = {
+              'Authorization': f'Bearer {access_token}',
+              'Content-Type': 'application/json'
+          }
+          
+          response = requests.post(
+              f'https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{package_name}/edits',
+              headers=headers
+          )
+          
+          if response.status_code != 200:
+              print(f"❌ Failed to create edit: {response.text}")
+              sys.exit(1)
+          
+          edit_id = response.json()['id']
+          print(f"✅ Created edit: {edit_id}")
+          
+          # Upload bundle
+          aab_path = 'android/app/build/outputs/bundle/release/app-release.aab'
+          with open(aab_path, 'rb') as f:
+              aab_data = f.read()
+          
+          response = requests.post(
+              f'https://androidpublisher.googleapis.com/upload/androidpublisher/v3/applications/{package_name}/edits/{edit_id}/bundles?uploadType=media',
+              headers={'Authorization': f'Bearer {access_token}', 'Content-Type': 'application/octet-stream'},
+              data=aab_data
+          )
+          
+          if response.status_code not in [200, 201]:
+              print(f"❌ Failed to upload bundle: {response.text}")
+              sys.exit(1)
+          
+          version_code = response.json().get('versionCode')
+          print(f"✅ Uploaded bundle with version code: {version_code}")
+          
+          # Assign to track
+          track = os.environ['GOOGLE_PLAY_TRACK']
+          track_data = {
+              'releases': [{
+                  'versionCodes': [str(version_code)],
+                  'status': 'completed'
+              }]
+          }
+          
+          response = requests.put(
+              f'https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{package_name}/edits/{edit_id}/tracks/{track}',
+              headers=headers,
+              json=track_data
+          )
+          
+          if response.status_code != 200:
+              print(f"❌ Failed to assign to track: {response.text}")
+              sys.exit(1)
+          
+          print(f"✅ Assigned to {track} track")
+          
+          # Commit edit
+          response = requests.post(
+              f'https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{package_name}/edits/{edit_id}:commit',
+              headers=headers
+          )
+          
+          if response.status_code != 200:
+              print(f"❌ Failed to commit edit: {response.text}")
+              sys.exit(1)
+          
+          print("✅ Edit committed successfully")
+          PYTHON_SCRIPT
+          
+          echo ""
+          echo "✅ Successfully uploaded to Google Play $TRACK track!"
+          echo "📱 The build will appear in Play Console within a few minutes."
+          echo "🧪 Once processed, you can distribute to testers."
+          
+          # Set output for build summary
+          echo "play_store_uploaded=true" >> $GITHUB_OUTPUT
+          echo "play_store_track=$TRACK" >> $GITHUB_OUTPUT
+        id: play_store_upload
 
       - name: Update Build Status to 'Success'
         if: success() && !startsWith(steps.build_info.outputs.build_id, 'auto-')
@@ -239,7 +417,7 @@ jobs:
         if: always()
         run: |
           if [ "${{ job.status }}" == "success" ]; then
-            echo "## ✅ Mobile Build Successful" >> $GITHUB_STEP_SUMMARY
+            echo "## ✅ Android Mobile Build Successful" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
             echo "**Build Details:**" >> $GITHUB_STEP_SUMMARY
             echo "- Build ID: \`${{ steps.build_info.outputs.build_id }}\`" >> $GITHUB_STEP_SUMMARY
@@ -247,12 +425,22 @@ jobs:
             echo "- Platform: Android Mobile" >> $GITHUB_STEP_SUMMARY
             echo "- Triggered by: ${{ steps.build_info.outputs.triggered_by }}" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
-            echo "**Download APK:**" >> $GITHUB_STEP_SUMMARY
+            
+            if [ "${{ steps.play_store_upload.outputs.play_store_uploaded }}" == "true" ]; then
+              echo "**🚀 Google Play Deployment:**" >> $GITHUB_STEP_SUMMARY
+              echo "- ✅ Uploaded to Google Play \`${{ steps.play_store_upload.outputs.play_store_track }}\` track successfully" >> $GITHUB_STEP_SUMMARY
+              echo "- 📱 Build will be available in Play Console within a few minutes" >> $GITHUB_STEP_SUMMARY
+              echo "- 🧪 Once processed, distribute to testers in [Play Console](https://play.google.com/console)" >> $GITHUB_STEP_SUMMARY
+              echo "" >> $GITHUB_STEP_SUMMARY
+            fi
+            
+            echo "**Download Builds:**" >> $GITHUB_STEP_SUMMARY
             echo "1. Go to the [Artifacts section](#artifacts) above" >> $GITHUB_STEP_SUMMARY
-            echo "2. Download \`screens-android-mobile-app\`" >> $GITHUB_STEP_SUMMARY
-            echo "3. Extract and install the APK on your Android device" >> $GITHUB_STEP_SUMMARY
+            echo "2. Download \`screens-android-mobile-apk\` (APK for direct install)" >> $GITHUB_STEP_SUMMARY
+            echo "3. Download \`screens-android-mobile-aab\` (AAB for Play Store)" >> $GITHUB_STEP_SUMMARY
+            echo "4. Extract and install on your Android device" >> $GITHUB_STEP_SUMMARY
           else
-            echo "## ❌ Mobile Build Failed" >> $GITHUB_STEP_SUMMARY
+            echo "## ❌ Android Mobile Build Failed" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
             echo "**Build Details:**" >> $GITHUB_STEP_SUMMARY
             echo "- Build ID: \`${{ steps.build_info.outputs.build_id }}\`" >> $GITHUB_STEP_SUMMARY
@@ -261,3 +449,9 @@ jobs:
             echo "" >> $GITHUB_STEP_SUMMARY
             echo "Check the logs above for error details." >> $GITHUB_STEP_SUMMARY
           fi
+
+      - name: Cleanup
+        if: always()
+        run: |
+          # Remove sensitive files
+          rm -f service-account.json android/app/release.keystore

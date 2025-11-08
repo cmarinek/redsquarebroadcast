@@ -349,6 +349,19 @@ Before going to production:
 - [Capacitor Android Documentation](https://capacitorjs.com/docs/android)
 - [GitHub Actions: Encrypted secrets](https://docs.github.com/en/actions/security-guides/encrypted-secrets)
 
+## Google Play Automatic Publishing
+
+Want your builds to automatically upload to Google Play Store for testing?
+
+See our comprehensive guide:
+- 🤖 [Google Play Automatic Publishing Setup](./GOOGLE_PLAY_SETUP.md) - Complete walkthrough
+
+This allows you to:
+- Automatically upload signed builds to Play Console
+- Distribute to testers immediately after builds complete
+- Skip manual AAB uploads and streamline your release workflow
+- Deploy to internal testing, alpha, beta, or production tracks
+
 ## Next Steps
 
 After setup:
@@ -356,9 +369,10 @@ After setup:
 1. ✅ Generate keystore
 2. ✅ Add secrets to GitHub
 3. ✅ Test automated builds
-4. ✅ Create Play Store listing
-5. ✅ Upload first release
-6. 🚀 Launch your app!
+4. ✅ Set up Google Play auto-publishing (optional but recommended)
+5. ✅ Create Play Store listing
+6. ✅ Upload first release
+7. 🚀 Launch your app!
 
 ---
 

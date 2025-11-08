@@ -34,6 +34,13 @@ These secrets must be configured in your GitHub repository settings (`Settings >
 
 **Setup Guide**: See [Android Code Signing Setup](./ANDROID_CODE_SIGNING_SETUP.md) for detailed instructions.
 
+### Google Play Automatic Publishing (Optional, for automated distribution)
+- `GOOGLE_PLAY_SERVICE_ACCOUNT_JSON` - Full JSON contents of Google Play service account key
+- `GOOGLE_PLAY_PACKAGE_NAME` - App package name (e.g., `com.redsquare.screens`)
+- `GOOGLE_PLAY_TRACK` - Target track: `internal`, `alpha`, `beta`, or `production` (default: `internal`)
+
+**Setup Guide**: See [Google Play Publishing Setup](./GOOGLE_PLAY_SETUP.md) for detailed instructions.
+
 ### iOS Signing (Optional, for App Store distribution)
 - `IOS_CERTIFICATE_BASE64` - Base64-encoded iOS distribution certificate (.p12)
 - `IOS_CERTIFICATE_PASSWORD` - Password for the certificate

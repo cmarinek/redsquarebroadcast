@@ -89,6 +89,18 @@ Required secrets:
 
 **Note**: Without these secrets, Android builds will be unsigned and cannot be submitted to Google Play Store.
 
+### Google Play Automatic Publishing (Optional but Recommended)
+Configure these secrets to enable automatic Google Play Console uploads after successful Android builds.
+
+**📚 Full Guide**: See [`docs/GOOGLE_PLAY_SETUP.md`](./GOOGLE_PLAY_SETUP.md) for detailed instructions
+
+Required secrets (in addition to Android signing secrets):
+- `GOOGLE_PLAY_SERVICE_ACCOUNT_JSON` - Full JSON contents of service account key
+- `GOOGLE_PLAY_PACKAGE_NAME` - App package name (e.g., `com.redsquare.screens`)
+- `GOOGLE_PLAY_TRACK` - Target track: `internal`, `alpha`, `beta`, `production` (default: `internal`)
+
+**Note**: Play Store publishing requires Android code signing to be configured first. Without these secrets, builds will not auto-upload to Play Console.
+
 ## Setting Up GitHub Secrets
 
 1. Go to your GitHub repository
