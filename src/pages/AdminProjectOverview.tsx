@@ -201,10 +201,18 @@ const AdminProjectOverview = () => {
                     )}
                   </div>
                   <div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 flex-wrap">
                       <Link to="/production-plan">
                         <Button size="sm" variant="secondary">View full Production Plan</Button>
                       </Link>
+                      <a 
+                        href="/docs/FEATURE_VERIFICATION_CHECKLIST.md" 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="inline-block"
+                      >
+                        <Button size="sm" variant="default">📋 Feature Verification Checklist</Button>
+                      </a>
                       <Button
                         size="sm"
                         variant="outline"
