@@ -1,0 +1,114 @@
+name: Auto Mobile Builds on Main
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'src/**'
+      - 'public/**'
+      - 'capacitor.config.js'
+      - 'vite.config.ts'
+      - 'package.json'
+      - '.github/workflows/screens-android-mobile-build.yml'
+
+env:
+  VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+  VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+  VITE_SUPABASE_PROJECT_ID: ${{ secrets.VITE_SUPABASE_PROJECT_ID }}
+
+jobs:
+  check-and-trigger:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Check if mobile build needed
+        id: check_changes
+        run: |
+          # Check if changes affect mobile build
+          MOBILE_CHANGES=$(git diff HEAD^ HEAD -- src/ public/ capacitor.config.js vite.config.ts package.json | wc -l)
+          
+          if [ "$MOBILE_CHANGES" -gt 0 ]; then
+            echo "changes_detected=true" >> $GITHUB_OUTPUT
+            echo "✅ Mobile-related changes detected"
+          else
+            echo "changes_detected=false" >> $GITHUB_OUTPUT
+            echo "ℹ️ No mobile-related changes detected"
+          fi
+
+      - name: Create Build Record in Database
+        if: steps.check_changes.outputs.changes_detected == 'true'
+        id: create_build
+        run: |
+          echo "📝 Creating build record..."
+          
+          # Generate version based on timestamp
+          VERSION="1.0.$(date +%s)"
+          
+          # Create build record via edge function
+          # Note: This requires an admin user token, so we'll skip this step
+          # and let the workflow create the build record instead
+          echo "build_id=auto-$(date +%s)" >> $GITHUB_OUTPUT
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Trigger Android Mobile Build
+        if: steps.check_changes.outputs.changes_detected == 'true'
+        run: |
+          echo "🚀 Triggering Android Mobile build..."
+          
+          # Trigger repository_dispatch event for Android mobile build
+          RESPONSE=$(curl -s -w "\n%{http_code}" -X POST \
+            "https://api.github.com/repos/${{ github.repository }}/dispatches" \
+            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Accept: application/vnd.github+json" \
+            -H "Content-Type: application/json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            -d "{
+              \"event_type\": \"trigger-screens-android-mobile-build\",
+              \"client_payload\": {
+                \"build_id\": \"${{ steps.create_build.outputs.build_id }}\",
+                \"version\": \"${{ steps.create_build.outputs.version }}\",
+                \"commit_sha\": \"${{ github.sha }}\",
+                \"commit_message\": \"$(git log -1 --pretty=%B | head -1)\",
+                \"triggered_by\": \"auto-build\",
+                \"actor\": \"${{ github.actor }}\"
+              }
+            }")
+          
+          HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
+          
+          if [ "$HTTP_CODE" = "204" ]; then
+            echo "✅ Android Mobile build triggered successfully!"
+          else
+            echo "⚠️ Warning: Unexpected response code: $HTTP_CODE"
+            echo "$RESPONSE"
+          fi
+
+      - name: Create Build Summary
+        if: always()
+        run: |
+          if [ "${{ steps.check_changes.outputs.changes_detected }}" = "true" ]; then
+            echo "## 📱 Automated Mobile Build Triggered" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "- **Commit**: \`${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
+            echo "- **Branch**: \`${{ github.ref_name }}\`" >> $GITHUB_STEP_SUMMARY
+            echo "- **Triggered by**: ${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
+            echo "- **Build ID**: \`${{ steps.create_build.outputs.build_id }}\`" >> $GITHUB_STEP_SUMMARY
+            echo "- **Version**: \`${{ steps.create_build.outputs.version }}\`" >> $GITHUB_STEP_SUMMARY
+            echo "- **Build Type**: Android Mobile" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "### 🔍 Next Steps" >> $GITHUB_STEP_SUMMARY
+            echo "1. Check the [Actions tab](https://github.com/${{ github.repository }}/actions) for build progress" >> $GITHUB_STEP_SUMMARY
+            echo "2. Look for the **Build RedSquare Screens (Android Mobile)** workflow" >> $GITHUB_STEP_SUMMARY
+            echo "3. Download the APK from the workflow artifacts once complete" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "## ℹ️ No Mobile Build Needed" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "No changes detected that require a mobile build." >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "**Commit**: \`${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
+          fi
