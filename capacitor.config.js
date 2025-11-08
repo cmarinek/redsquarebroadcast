@@ -1,6 +1,4 @@
-import { CapacitorConfig } from '@capacitor/cli';
-
-const config: CapacitorConfig = {
+const config = {
   appId: 'com.redsquare.screens',
   appName: 'RedSquare Screens',
   webDir: 'dist',
@@ -29,4 +27,4 @@ const config: CapacitorConfig = {
   },
 };
 
-export default config;
+module.exports = config;

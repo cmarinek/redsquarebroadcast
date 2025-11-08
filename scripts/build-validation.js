@@ -206,8 +206,8 @@ function validateSourceMaps(distPath, warnings) {
 function validateCapacitorConfig(warnings) {
   log('📱 Checking Capacitor configuration...', 'info');
   
-  if (!fs.existsSync('capacitor.config.ts')) {
-    warnings.push('Missing capacitor.config.ts file');
+  if (!fs.existsSync('capacitor.config.js') && !fs.existsSync('capacitor.config.ts')) {
+    warnings.push('Missing capacitor.config.js or capacitor.config.ts file');
   }
   
   const platforms = ['android', 'ios'];

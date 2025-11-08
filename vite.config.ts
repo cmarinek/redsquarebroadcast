@@ -92,5 +92,12 @@ export default defineConfig(({ mode }) => {
         "@": path.resolve(__dirname, "./src"),
       },
     },
+    optimizeDeps: {
+      exclude: isMobileTarget ? [
+        '@capacitor/cli',
+        '@capacitor/android', 
+        '@capacitor/ios'
+      ] : [],
+    },
   };
 });
