@@ -6,6 +6,7 @@ import { SystemHealthWidget } from "@/components/admin/SystemHealthWidget";
 import { AppManager } from "@/components/admin/AppManager";
 import { AutomatedBuilds } from "@/components/admin/AutomatedBuilds";
 import { ProductionMonitoringDashboard } from "@/components/admin/ProductionMonitoringDashboard";
+import { SecurityValidationPanel } from "@/components/admin/SecurityValidationPanel";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -888,6 +889,10 @@ const AdminDashboard = () => {
                       <Activity className="h-4 w-4 mr-2" />
                       Monitoring
                     </TabsTrigger>
+                    <TabsTrigger value="security" className="py-4 whitespace-nowrap data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-sm">
+                      <Shield className="h-4 w-4 mr-2" />
+                      Security
+                    </TabsTrigger>
                  </TabsList>
               </div>
 
@@ -1381,6 +1386,10 @@ const AdminDashboard = () => {
 
               <TabsContent value="monitoring" className="mt-0 p-6">
                 <ProductionMonitoringDashboard />
+              </TabsContent>
+
+              <TabsContent value="security" className="mt-0 p-6">
+                <SecurityValidationPanel />
               </TabsContent>
 
             </Tabs>

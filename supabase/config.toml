@@ -8,3 +8,6 @@ verify_jwt = false
 
 [functions.deployment-pipeline]
 verify_jwt = false
+
+[functions.security-validation]
+verify_jwt = true
