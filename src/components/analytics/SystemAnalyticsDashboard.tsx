@@ -57,12 +57,12 @@ export const SystemAnalyticsDashboard = () => {
     const loadAlerts = async () => {
       const [{ data: alerts, error: alertsError }, { data: health, error: healthError }] = await Promise.all([
         supabase
-          .from<SecurityAlert>("admin_security_alerts")
+          .from("admin_security_alerts")
           .select("id, title, message, severity, created_at")
           .order("created_at", { ascending: false })
           .limit(5),
         supabase
-          .from<HealthSample>("admin_system_health")
+          .from("admin_system_health")
           .select("service_name, status, response_time_ms, created_at")
           .order("created_at", { ascending: false })
           .limit(50),

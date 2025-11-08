@@ -191,7 +191,7 @@ export type Database = {
           admin_user_id: string
           created_at: string
           id: string
-          ip_address: unknown | null
+          ip_address: unknown
           new_values: Json | null
           old_values: Json | null
           target_id: string | null
@@ -203,7 +203,7 @@ export type Database = {
           admin_user_id: string
           created_at?: string
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           new_values?: Json | null
           old_values?: Json | null
           target_id?: string | null
@@ -215,7 +215,7 @@ export type Database = {
           admin_user_id?: string
           created_at?: string
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           new_values?: Json | null
           old_values?: Json | null
           target_id?: string | null
@@ -230,7 +230,7 @@ export type Database = {
           alert_type: string
           created_at: string
           id: string
-          ip_address: unknown | null
+          ip_address: unknown
           message: string
           metadata: Json | null
           resolved_at: string | null
@@ -245,7 +245,7 @@ export type Database = {
           alert_type: string
           created_at?: string
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           message: string
           metadata?: Json | null
           resolved_at?: string | null
@@ -260,7 +260,7 @@ export type Database = {
           alert_type?: string
           created_at?: string
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           message?: string
           metadata?: Json | null
           resolved_at?: string | null
@@ -2187,18 +2187,12 @@ export type Database = {
       }
     }
     Functions: {
-      archive_old_bookings: {
-        Args: { days_old?: number }
-        Returns: number
-      }
+      archive_old_bookings: { Args: { days_old?: number }; Returns: number }
       check_rate_limit: {
         Args: { _key: string; _limit: number; _window_seconds: number }
         Returns: boolean
       }
-      check_system_integrity: {
-        Args: Record<PropertyKey, never>
-        Returns: boolean
-      }
+      check_system_integrity: { Args: never; Returns: boolean }
       create_production_alert: {
         Args: {
           p_alert_type: string
@@ -2209,9 +2203,9 @@ export type Database = {
         }
         Returns: string
       }
-      create_security_alert: {
-        Args:
-          | {
+      create_security_alert:
+        | {
+            Args: {
               affected_user_id?: string
               alert_type: string
               ip_address?: unknown
@@ -2221,31 +2215,25 @@ export type Database = {
               title: string
               user_agent?: string
             }
-          | {
+            Returns: string
+          }
+        | {
+            Args: {
               p_alert_type: string
               p_message?: string
               p_metadata?: Json
               p_severity: string
               p_title: string
             }
-        Returns: string
-      }
+            Returns: string
+          }
       create_system_backup: {
         Args: { p_backup_type: string; p_file_path?: string; p_metadata?: Json }
         Returns: string
       }
-      generate_device_provisioning_token: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
-      get_my_claim: {
-        Args: { claim: string }
-        Returns: Json
-      }
-      get_platform_analytics: {
-        Args: Record<PropertyKey, never>
-        Returns: Json
-      }
+      generate_device_provisioning_token: { Args: never; Returns: string }
+      get_my_claim: { Args: { claim: string }; Returns: Json }
+      get_platform_analytics: { Args: never; Returns: Json }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -2257,10 +2245,7 @@ export type Database = {
         Args: { release_id: string }
         Returns: undefined
       }
-      is_admin: {
-        Args: Record<PropertyKey, never>
-        Returns: boolean
-      }
+      is_admin: { Args: never; Returns: boolean }
       log_admin_action: {
         Args: {
           action: string
@@ -2274,29 +2259,26 @@ export type Database = {
         }
         Returns: string
       }
-      purge_frontend_metrics: {
-        Args: { days_old?: number }
-        Returns: number
-      }
-      purge_old_event_logs: {
-        Args: { days_old?: number }
-        Returns: number
-      }
+      purge_frontend_metrics: { Args: { days_old?: number }; Returns: number }
+      purge_old_event_logs: { Args: { days_old?: number }; Returns: number }
       purge_performance_metrics: {
         Args: { days_old?: number }
         Returns: number
       }
-      record_analytics_metric: {
-        Args:
-          | {
+      record_analytics_metric:
+        | {
+            Args: { p_metadata?: Json; p_metric_name: string; p_value: number }
+            Returns: string
+          }
+        | {
+            Args: {
               metadata?: Json
               metric_date?: string
               metric_name: string
               metric_value: number
             }
-          | { p_metadata?: Json; p_metric_name: string; p_value: number }
-        Returns: string
-      }
+            Returns: undefined
+          }
       record_production_health: {
         Args: {
           p_check_name: string
@@ -2306,35 +2288,32 @@ export type Database = {
         }
         Returns: string
       }
-      record_system_health: {
-        Args:
-          | {
+      record_system_health:
+        | {
+            Args: {
               error_message?: string
               metadata?: Json
               response_time_ms: number
               service_name: string
               status: string
             }
-          | {
+            Returns: string
+          }
+        | {
+            Args: {
               p_details?: Json
               p_response_time_ms?: number
               p_service_name: string
               p_status: string
             }
-        Returns: string
-      }
-      refresh_mv_screen_activity: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
+            Returns: string
+          }
+      refresh_mv_screen_activity: { Args: never; Returns: undefined }
       resolve_security_alert: {
         Args: { alert_id: string; resolved_by_user_id?: string }
         Returns: undefined
       }
-      validate_schema_integrity: {
-        Args: Record<PropertyKey, never>
-        Returns: boolean
-      }
+      validate_schema_integrity: { Args: never; Returns: boolean }
     }
     Enums: {
       app_role:

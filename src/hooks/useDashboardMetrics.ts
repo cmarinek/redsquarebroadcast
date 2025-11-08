@@ -59,24 +59,9 @@ export const useDashboardMetrics = (options: UseDashboardMetricsOptions): UseDas
   const [qualityAlerts, setQualityAlerts] = useState<DataQualityAlert[]>([]);
 
   const fetchQualityAlerts = useCallback(async () => {
-    if (options.role !== "admin") {
-      setQualityAlerts([]);
-      return;
-    }
-
-    const { data: alerts, error: alertsError } = await supabase
-      .from("data_quality_alerts")
-      .select("check_name, status, message, details, detected_at, resolved_at")
-      .order("detected_at", { ascending: false })
-      .limit(20);
-
-    if (alertsError) {
-      console.error("Failed to load data quality alerts", alertsError);
-      return;
-    }
-
-    setQualityAlerts(alerts ?? []);
-  }, [options.role]);
+    // Data quality alerts feature not yet implemented in database
+    setQualityAlerts([]);
+  }, []);
 
   const fetchMetrics = useCallback(async () => {
     setLoading(true);
