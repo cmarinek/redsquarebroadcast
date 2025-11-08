@@ -330,6 +330,62 @@ EOF
             -H "Content-Type: application/octet-stream" \
             --data-binary @"$FILE_PATH"
 
+      - name: Setup App Store Connect API Key
+        if: env.APP_STORE_CONNECT_API_KEY_BASE64 != '' && env.IOS_CERTIFICATE_BASE64 != ''
+        env:
+          APP_STORE_CONNECT_API_KEY_BASE64: ${{ secrets.APP_STORE_CONNECT_API_KEY_BASE64 }}
+        run: |
+          echo "Setting up App Store Connect API key for TestFlight upload..."
+          
+          # Create private_keys directory
+          mkdir -p ~/private_keys
+          
+          # Decode and save the API key
+          echo "$APP_STORE_CONNECT_API_KEY_BASE64" | base64 --decode > ~/private_keys/AuthKey_${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}.p8
+          
+          echo "✅ App Store Connect API key configured"
+
+      - name: Upload to TestFlight
+        if: env.APP_STORE_CONNECT_API_KEY_BASE64 != '' && env.IOS_CERTIFICATE_BASE64 != ''
+        env:
+          APP_STORE_CONNECT_API_KEY_BASE64: ${{ secrets.APP_STORE_CONNECT_API_KEY_BASE64 }}
+          APP_STORE_CONNECT_API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
+          APP_STORE_CONNECT_API_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
+        run: |
+          set -e  # Exit on any error
+          echo "📤 Uploading IPA to TestFlight..."
+          
+          IPA_PATH="ios/App/Export/App.ipa"
+          
+          # Validate TestFlight upload using xcrun altool
+          echo "Validating IPA for App Store submission..."
+          xcrun altool --validate-app \
+            --type ios \
+            --file "$IPA_PATH" \
+            --apiKey "$APP_STORE_CONNECT_API_KEY_ID" \
+            --apiIssuer "$APP_STORE_CONNECT_API_ISSUER_ID" \
+            --verbose
+          
+          echo "✅ Validation successful"
+          
+          # Upload to TestFlight
+          echo "Uploading to TestFlight..."
+          xcrun altool --upload-app \
+            --type ios \
+            --file "$IPA_PATH" \
+            --apiKey "$APP_STORE_CONNECT_API_KEY_ID" \
+            --apiIssuer "$APP_STORE_CONNECT_API_ISSUER_ID" \
+            --verbose
+          
+          echo "✅ Successfully uploaded to TestFlight!"
+          echo ""
+          echo "📱 The build will appear in App Store Connect within 5-10 minutes."
+          echo "🧪 Once processed, you can distribute to testers via TestFlight."
+          
+          # Set output for build summary
+          echo "testflight_uploaded=true" >> $GITHUB_OUTPUT
+        id: testflight_upload
+
       - name: Update Build Status to 'Success'
         if: success() && !startsWith(steps.build_info.outputs.build_id, 'auto-')
         run: |
@@ -369,10 +425,19 @@ EOF
             echo "- Platform: iOS Mobile" >> $GITHUB_STEP_SUMMARY
             echo "- Triggered by: ${{ steps.build_info.outputs.triggered_by }}" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
+            
+            if [ "${{ steps.testflight_upload.outputs.testflight_uploaded }}" == "true" ]; then
+              echo "**🚀 TestFlight Deployment:**" >> $GITHUB_STEP_SUMMARY
+              echo "- ✅ Uploaded to TestFlight successfully" >> $GITHUB_STEP_SUMMARY
+              echo "- 📱 Build will be available in App Store Connect within 5-10 minutes" >> $GITHUB_STEP_SUMMARY
+              echo "- 🧪 Once processed, distribute to testers in [App Store Connect](https://appstoreconnect.apple.com)" >> $GITHUB_STEP_SUMMARY
+              echo "" >> $GITHUB_STEP_SUMMARY
+            fi
+            
             echo "**Download IPA:**" >> $GITHUB_STEP_SUMMARY
             echo "1. Go to the [Artifacts section](#artifacts) above" >> $GITHUB_STEP_SUMMARY
             echo "2. Download \`screens-ios-app\`" >> $GITHUB_STEP_SUMMARY
-            echo "3. Extract and install the IPA on your iOS device (requires TestFlight or enterprise distribution)" >> $GITHUB_STEP_SUMMARY
+            echo "3. Extract and install the IPA on your iOS device" >> $GITHUB_STEP_SUMMARY
           else
             echo "## ❌ iOS Mobile Build Failed" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY

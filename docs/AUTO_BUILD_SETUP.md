@@ -63,6 +63,18 @@ Required secrets:
 
 **Note**: Without these secrets, iOS builds will use development mode (unsigned). The IPA can still be built but cannot be submitted to the App Store.
 
+### TestFlight Automatic Deployment (Optional but Recommended)
+Configure these secrets to enable automatic TestFlight uploads after successful iOS builds.
+
+**📚 Full Guide**: See [`docs/TESTFLIGHT_SETUP.md`](./TESTFLIGHT_SETUP.md) for detailed instructions
+
+Required secrets (in addition to iOS signing secrets):
+- `APP_STORE_CONNECT_API_KEY_BASE64` - Base64 encoded App Store Connect API key (.p8)
+- `APP_STORE_CONNECT_API_KEY_ID` - API Key ID (10 characters)
+- `APP_STORE_CONNECT_API_ISSUER_ID` - Issuer ID (UUID format)
+
+**Note**: TestFlight deployment requires iOS code signing to be configured first. Without these secrets, builds will not auto-upload to TestFlight.
+
 ### Android Signing (Optional but Recommended for Play Store)
 Configure these secrets to enable Google Play Store distribution. 
 

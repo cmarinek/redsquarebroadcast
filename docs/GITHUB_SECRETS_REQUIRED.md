@@ -42,6 +42,13 @@ These secrets must be configured in your GitHub repository settings (`Settings >
 
 **Setup Guide**: See [iOS Code Signing Setup](./IOS_CODE_SIGNING_SETUP.md) for detailed instructions.
 
+### TestFlight Automatic Deployment (Optional, for beta testing)
+- `APP_STORE_CONNECT_API_KEY_BASE64` - Base64-encoded App Store Connect API key (.p8)
+- `APP_STORE_CONNECT_API_KEY_ID` - App Store Connect API Key ID (10 characters)
+- `APP_STORE_CONNECT_API_ISSUER_ID` - App Store Connect Issuer ID (UUID)
+
+**Setup Guide**: See [TestFlight Setup](./TESTFLIGHT_SETUP.md) for detailed instructions.
+
 ## How to Configure Secrets
 
 1. Go to your GitHub repository

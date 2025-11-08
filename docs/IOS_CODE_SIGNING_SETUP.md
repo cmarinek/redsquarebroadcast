@@ -209,8 +209,21 @@ If you prefer not to use GitHub Actions for code signing:
 After successful build:
 
 1. **Test IPA**: Download from GitHub Actions artifacts
-2. **Upload to TestFlight**: Use Xcode or Transporter app
-3. **Submit for Review**: Complete App Store submission in App Store Connect
+2. **Set up TestFlight Auto-Deploy**: See [TestFlight Setup Guide](./TESTFLIGHT_SETUP.md) to automatically push builds to beta testers
+3. **Manual TestFlight Upload** (if not using auto-deploy): Use Xcode or Transporter app
+4. **Submit for Review**: Complete App Store submission in App Store Connect
+
+## TestFlight Automatic Deployment
+
+Want your builds to automatically upload to TestFlight for beta testing?
+
+See our comprehensive guide:
+- 🧪 [TestFlight Automatic Deployment Setup](./TESTFLIGHT_SETUP.md) - Complete walkthrough
+
+This allows you to:
+- Automatically upload signed builds to TestFlight
+- Distribute to beta testers immediately after builds complete
+- Skip manual IPA uploads and streamline your testing workflow
 
 ## Resources
 
