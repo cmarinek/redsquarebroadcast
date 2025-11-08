@@ -26,11 +26,21 @@ These secrets must be configured in your GitHub repository settings (`Settings >
 ### Build System Secrets
 - `GH_ACTION_SECRET` - Secret token for updating build status (Supabase function auth)
 
-### Android/iOS Signing (Optional, for signed builds)
+### Android Signing (Optional, for Play Store distribution)
 - `ANDROID_SIGNING_KEY_BASE64` - Base64-encoded Android keystore file
-- `ANDROID_SIGNING_KEY_ALIAS` - Android keystore alias
+- `ANDROID_SIGNING_KEY_ALIAS` - Android keystore alias (e.g., `redsquare`)
 - `ANDROID_SIGNING_KEY_PASSWORD` - Android keystore key password
 - `ANDROID_SIGNING_STORE_PASSWORD` - Android keystore store password
+
+**Setup Guide**: See [Android Code Signing Setup](./ANDROID_CODE_SIGNING_SETUP.md) for detailed instructions.
+
+### iOS Signing (Optional, for App Store distribution)
+- `IOS_CERTIFICATE_BASE64` - Base64-encoded iOS distribution certificate (.p12)
+- `IOS_CERTIFICATE_PASSWORD` - Password for the certificate
+- `IOS_PROVISIONING_PROFILE_BASE64` - Base64-encoded provisioning profile
+- `IOS_TEAM_ID` - Apple Developer Team ID
+
+**Setup Guide**: See [iOS Code Signing Setup](./IOS_CODE_SIGNING_SETUP.md) for detailed instructions.
 
 ## How to Configure Secrets
 

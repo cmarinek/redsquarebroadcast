@@ -64,10 +64,18 @@ Required secrets:
 **Note**: Without these secrets, iOS builds will use development mode (unsigned). The IPA can still be built but cannot be submitted to the App Store.
 
 ### Android Signing (Optional but Recommended for Play Store)
+Configure these secrets to enable Google Play Store distribution. 
+
+**📖 Quick Start**: See [`docs/QUICK_START_ANDROID_SIGNING.md`](./QUICK_START_ANDROID_SIGNING.md) for 5-minute setup  
+**📚 Full Guide**: See [`docs/ANDROID_CODE_SIGNING_SETUP.md`](./ANDROID_CODE_SIGNING_SETUP.md) for detailed instructions
+
+Required secrets:
 - `ANDROID_SIGNING_KEY_BASE64` - Base64 encoded keystore file
-- `ANDROID_SIGNING_KEY_ALIAS` - Keystore alias
+- `ANDROID_SIGNING_KEY_ALIAS` - Keystore alias (e.g., `redsquare`)
 - `ANDROID_SIGNING_KEY_PASSWORD` - Key password
 - `ANDROID_SIGNING_STORE_PASSWORD` - Keystore password
+
+**Note**: Without these secrets, Android builds will be unsigned and cannot be submitted to Google Play Store.
 
 ## Setting Up GitHub Secrets
 
