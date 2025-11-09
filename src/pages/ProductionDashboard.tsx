@@ -1,6 +1,8 @@
 import { AuthGuard } from '@/components/auth/AuthGuard';
 import { ProductionHealthMonitor } from '@/components/production/ProductionHealthMonitor';
 import { ProductionReadinessChecker } from '@/components/production/ProductionReadinessChecker';
+import { ProductionMonitoringDashboard } from '@/components/production/ProductionMonitoringDashboard';
+import { DeviceMonitoringPanel } from '@/components/shared/DeviceMonitoringPanel';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import SEO from '@/components/SEO';
@@ -25,45 +27,28 @@ export default function ProductionDashboard() {
         </header>
 
         <main className="container mx-auto px-4 py-8">
-          <Tabs defaultValue="health" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-3">
+          <Tabs defaultValue="monitoring" className="space-y-6">
+            <TabsList className="grid w-full grid-cols-4">
+              <TabsTrigger value="monitoring">Live Monitoring</TabsTrigger>
               <TabsTrigger value="health">Health Monitor</TabsTrigger>
-              <TabsTrigger value="readiness">Readiness Check</TabsTrigger>
-              <TabsTrigger value="metrics">System Metrics</TabsTrigger>
+              <TabsTrigger value="devices">Devices</TabsTrigger>
+              <TabsTrigger value="readiness">Readiness</TabsTrigger>
             </TabsList>
+
+            <TabsContent value="monitoring">
+              <ProductionMonitoringDashboard />
+            </TabsContent>
 
             <TabsContent value="health">
               <ProductionHealthMonitor />
             </TabsContent>
 
-            <TabsContent value="readiness">
-              <ProductionReadinessChecker />
+            <TabsContent value="devices">
+              <DeviceMonitoringPanel />
             </TabsContent>
 
-            <TabsContent value="metrics">
-              <div className="grid gap-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>System Performance</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-center text-muted-foreground">
-                      Advanced metrics dashboard will be available after full deployment.
-                    </div>
-                  </CardContent>
-                </Card>
-                
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Resource Usage</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-center text-muted-foreground">
-                      Resource monitoring will be enabled in production environment.
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
+            <TabsContent value="readiness">
+              <ProductionReadinessChecker />
             </TabsContent>
           </Tabs>
         </main>

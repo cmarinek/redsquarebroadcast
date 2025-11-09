@@ -33,6 +33,8 @@ import { ScreenNetworkManagement } from "@/components/screen-owner/ScreenNetwork
 import { ContentApprovalWorkflows } from "@/components/screen-owner/ContentApprovalWorkflows";
 import { PayoutManagement } from "@/components/screen-owner/PayoutManagement";
 import { AvailabilityManager } from "@/components/screen-owner/AvailabilityManager";
+import { ContentApprovalPanel } from "@/components/screen-owner/ContentApprovalPanel";
+import { DeviceMonitoringPanel } from "@/components/shared/DeviceMonitoringPanel";
 import { useUserRoles } from "@/hooks/useUserRoles";
 import AdminRoleManager from "@/components/admin/AdminRoleManager";
 import ScreenOwnerSetupGuide from "@/components/screen-owner/ScreenOwnerSetupGuide";
@@ -411,12 +413,20 @@ const ScreenOwnerDashboard = () => {
           </TabsContent>
 
           <TabsContent value="content">
-            <ContentApprovalWorkflows screens={screens as any} />
+            <ContentApprovalPanel />
+            <div className="mt-6">
+              <ContentApprovalWorkflows screens={screens as any} />
+            </div>
           </TabsContent>
 
           <TabsContent value="availability">
             {screens.length > 0 ? (
-              <AvailabilityManager screenId={screens[0].id} />
+              <>
+                <AvailabilityManager screenId={screens[0].id} />
+                <div className="mt-6">
+                  <DeviceMonitoringPanel screenId={screens[0].id} />
+                </div>
+              </>
             ) : (
               <Card>
                 <CardContent className="p-6 text-center">

@@ -689,6 +689,8 @@ export type Database = {
           id: string
           moderation_notes: string | null
           moderation_status: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
           screen_id: string | null
           updated_at: string
           user_id: string
@@ -702,6 +704,8 @@ export type Database = {
           id?: string
           moderation_notes?: string | null
           moderation_status?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
           screen_id?: string | null
           updated_at?: string
           user_id: string
@@ -715,6 +719,8 @@ export type Database = {
           id?: string
           moderation_notes?: string | null
           moderation_status?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
           screen_id?: string | null
           updated_at?: string
           user_id?: string
@@ -1046,8 +1052,11 @@ export type Database = {
         Row: {
           created_at: string
           current_booking_id: string | null
+          current_content: string | null
           device_id: string | null
+          firmware_version: string | null
           id: string
+          last_heartbeat: string | null
           last_seen: string
           screen_id: string
           status: string
@@ -1056,8 +1065,11 @@ export type Database = {
         Insert: {
           created_at?: string
           current_booking_id?: string | null
+          current_content?: string | null
           device_id?: string | null
+          firmware_version?: string | null
           id?: string
+          last_heartbeat?: string | null
           last_seen?: string
           screen_id: string
           status?: string
@@ -1066,8 +1078,11 @@ export type Database = {
         Update: {
           created_at?: string
           current_booking_id?: string | null
+          current_content?: string | null
           device_id?: string | null
+          firmware_version?: string | null
           id?: string
+          last_heartbeat?: string | null
           last_seen?: string
           screen_id?: string
           status?: string
