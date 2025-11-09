@@ -34,6 +34,7 @@ import { ContentApprovalWorkflows } from "@/components/screen-owner/ContentAppro
 import { PayoutManagement } from "@/components/screen-owner/PayoutManagement";
 import { AvailabilityManager } from "@/components/screen-owner/AvailabilityManager";
 import { ContentApprovalPanel } from "@/components/screen-owner/ContentApprovalPanel";
+import { RevenueAnalytics } from "@/components/screen-owner/RevenueAnalytics";
 import { DeviceMonitoringPanel } from "@/components/shared/DeviceMonitoringPanel";
 import { useUserRoles } from "@/hooks/useUserRoles";
 import AdminRoleManager from "@/components/admin/AdminRoleManager";
@@ -326,6 +327,7 @@ const ScreenOwnerDashboard = () => {
               <TabsTrigger value="overview" className="whitespace-nowrap">Overview</TabsTrigger>
               <TabsTrigger value="setup-guide" className="whitespace-nowrap">Setup Guide</TabsTrigger>
               <TabsTrigger value="downloads" className="whitespace-nowrap">Downloads</TabsTrigger>
+              <TabsTrigger value="analytics" className="whitespace-nowrap">Analytics</TabsTrigger>
               <TabsTrigger value="revenue" className="whitespace-nowrap">Revenue</TabsTrigger>
               <TabsTrigger value="monitoring" className="whitespace-nowrap">Monitoring</TabsTrigger>
               <TabsTrigger value="network" className="whitespace-nowrap">Network</TabsTrigger>
@@ -398,6 +400,10 @@ const ScreenOwnerDashboard = () => {
 
           <TabsContent value="downloads">
             <ScreenOwnerDownloads screenCount={stats.totalScreens} />
+          </TabsContent>
+
+          <TabsContent value="analytics">
+            <RevenueAnalytics />
           </TabsContent>
 
           <TabsContent value="revenue">

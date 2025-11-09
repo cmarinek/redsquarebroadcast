@@ -2,6 +2,7 @@ import { AuthGuard } from '@/components/auth/AuthGuard';
 import { ProductionHealthMonitor } from '@/components/production/ProductionHealthMonitor';
 import { ProductionReadinessChecker } from '@/components/production/ProductionReadinessChecker';
 import { ProductionMonitoringDashboard } from '@/components/production/ProductionMonitoringDashboard';
+import { ProductionReadinessScorecard } from '@/components/admin/ProductionReadinessScorecard';
 import { DeviceMonitoringPanel } from '@/components/shared/DeviceMonitoringPanel';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -27,13 +28,18 @@ export default function ProductionDashboard() {
         </header>
 
         <main className="container mx-auto px-4 py-8">
-          <Tabs defaultValue="monitoring" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-4">
+          <Tabs defaultValue="scorecard" className="space-y-6">
+            <TabsList className="grid w-full grid-cols-5">
+              <TabsTrigger value="scorecard">Scorecard</TabsTrigger>
               <TabsTrigger value="monitoring">Live Monitoring</TabsTrigger>
               <TabsTrigger value="health">Health Monitor</TabsTrigger>
               <TabsTrigger value="devices">Devices</TabsTrigger>
               <TabsTrigger value="readiness">Readiness</TabsTrigger>
             </TabsList>
+
+            <TabsContent value="scorecard">
+              <ProductionReadinessScorecard />
+            </TabsContent>
 
             <TabsContent value="monitoring">
               <ProductionMonitoringDashboard />
