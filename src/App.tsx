@@ -43,6 +43,8 @@ const Cookies = lazy(() => import("./pages/Cookies"));
 const Learn = lazy(() => import("./pages/Learn"));
 const AdminDocumentation = lazy(() => import("./pages/AdminDocumentation"));
 const AdminUsers = lazy(() => import("./pages/AdminUsers"));
+const AdminFinancials = lazy(() => import("./pages/AdminFinancials"));
+const AdminContentModeration = lazy(() => import("./pages/AdminContentModeration"));
 const BroadcasterDashboard = lazy(() => import("./pages/BroadcasterDashboard"));
 const DownloadApp = lazy(() => import("./pages/DownloadApp"));
 const ScreenOwnerMobile = lazy(() => import("./pages/ScreenOwnerMobile"));
@@ -102,9 +104,10 @@ const App = () => {
               <Route path="/admin/performance" element={<AdminRoute><AdminPerformance /></AdminRoute>} />
               <Route path="/admin/monetization" element={<AdminRoute><AdminMonetization /></AdminRoute>} />
               <Route path="/admin/ops-infra" element={<AdminRoute><AdminOpsInfra /></AdminRoute>} />
-              <Route path="/admin/documentation" element={<AdminRoute><AdminDocumentation /></AdminRoute>} />
-              <Route path="/admin-users" element={<AdminRoute><AdminUsers /></AdminRoute>} />
-              <Route path="/admin-dashboard" element={<AdminDashboard />} />
+            <Route path="/admin/users" element={<AdminRoute><AdminUsers /></AdminRoute>} />
+            <Route path="/admin/financials" element={<AdminRoute><AdminFinancials /></AdminRoute>} />
+            <Route path="/admin/content-moderation" element={<AdminRoute><AdminContentModeration /></AdminRoute>} />
+            <Route path="/admin/dashboard" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
               <Route path="/admin-operations" element={<AdminOperations />} />
               <Route path="/admin-monetization" element={<AdminMonetization />} />
               <Route path="/admin-ops-infra" element={<AdminOpsInfra />} />

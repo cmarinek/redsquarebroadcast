@@ -18,6 +18,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { DataExportTools } from "@/components/shared/DataExportTools";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -56,6 +57,8 @@ interface DashboardStats {
   averageBookingValue: number;
   favoriteScreens: number;
 }
+
+import { DataExportTools } from "@/components/shared/DataExportTools";
 
 export default function BroadcasterDashboard() {
   const navigate = useNavigate();
