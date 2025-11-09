@@ -36,7 +36,6 @@ import { ContentApprovalWorkflows } from "@/components/screen-owner/ContentAppro
 import { PayoutManagement } from "@/components/screen-owner/PayoutManagement";
 import { AvailabilityManager } from "@/components/screen-owner/AvailabilityManager";
 import { ContentApprovalPanel } from "@/components/screen-owner/ContentApprovalPanel";
-import { RevenueAnalytics } from "@/components/screen-owner/RevenueAnalytics";
 import { DeviceMonitoringPanel } from "@/components/shared/DeviceMonitoringPanel";
 import { useUserRoles } from "@/hooks/useUserRoles";
 import AdminRoleManager from "@/components/admin/AdminRoleManager";

@@ -2249,6 +2249,14 @@ export type Database = {
       generate_device_provisioning_token: { Args: never; Returns: string }
       get_my_claim: { Args: { claim: string }; Returns: Json }
       get_platform_analytics: { Args: never; Returns: Json }
+      get_public_dashboard_metrics: {
+        Args: { p_end_date: string; p_start_date: string }
+        Returns: Json
+      }
+      get_screen_performance_metrics: {
+        Args: { p_end_date: string; p_screen_id: string; p_start_date: string }
+        Returns: Json
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

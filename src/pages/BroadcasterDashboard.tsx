@@ -58,8 +58,6 @@ interface DashboardStats {
   favoriteScreens: number;
 }
 
-import { DataExportTools } from "@/components/shared/DataExportTools";
-
 export default function BroadcasterDashboard() {
   const navigate = useNavigate();
   const { toast } = useToast();
