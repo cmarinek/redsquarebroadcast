@@ -13,6 +13,7 @@ import { phases, getCurrentPhase, getRemainingTasks } from "@/data/productionPla
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ProductionReadinessScorecard } from "@/components/admin/ProductionReadinessScorecard";
+import { LoadTestingDashboard } from "@/components/admin/LoadTestingDashboard";
 
 const setMetaTag = (name: string, content: string) => {
   let tag = document.querySelector<HTMLMetaElement>(`meta[name="${name}"]`);
@@ -378,6 +379,7 @@ const AdminProjectOverview = () => {
 
           <TabsContent value="readiness" className="space-y-6">
             <ProductionReadinessScorecard />
+            <LoadTestingDashboard />
           </TabsContent>
 
           <TabsContent value="checklist" className="space-y-6">

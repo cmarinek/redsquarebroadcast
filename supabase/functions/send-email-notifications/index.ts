@@ -11,7 +11,7 @@ const corsHeaders = {
 };
 
 interface EmailRequest {
-  type: 'booking_confirmed' | 'payment_success' | 'screen_registered' | 'content_approved' | 'content_rejected' | 'welcome';
+  type: 'booking_confirmed' | 'payment_success' | 'screen_registered' | 'content_approved' | 'content_rejected' | 'welcome' | 'payout_processed' | 'screen_booking';
   to: string;
   data: Record<string, any>;
 }
@@ -100,6 +100,42 @@ const emailTemplates = {
         <li>Register your own screens (if you're a screen owner)</li>
       </ul>
       <p>Get started by exploring nearby screens!</p>
+      <p>Best regards,<br>Red Square Team</p>
+    `
+  }),
+
+  payout_processed: (data: any) => ({
+    subject: '💰 Payout Processed - Red Square',
+    html: `
+      <h1>Payout Processed</h1>
+      <p>Hi ${data.userName},</p>
+      <p>Your payout has been processed and is on its way to your account.</p>
+      <p><strong>Payout Details:</strong></p>
+      <ul>
+        <li>Amount: $${(data.amount / 100).toFixed(2)}</li>
+        <li>Period: ${data.periodStart} - ${data.periodEnd}</li>
+        <li>Total Bookings: ${data.totalBookings}</li>
+        <li>Expected Arrival: ${data.expectedArrival}</li>
+      </ul>
+      <p>Thank you for being a Red Square screen owner!</p>
+      <p>Best regards,<br>Red Square Team</p>
+    `
+  }),
+
+  screen_booking: (data: any) => ({
+    subject: '🔔 New Booking for Your Screen',
+    html: `
+      <h1>New Booking!</h1>
+      <p>Hi ${data.userName},</p>
+      <p>You have a new booking for your screen.</p>
+      <p><strong>Booking Details:</strong></p>
+      <ul>
+        <li>Screen: ${data.screenName}</li>
+        <li>Date: ${data.date}</li>
+        <li>Time: ${data.startTime} - ${data.endTime}</li>
+        <li>Your Earnings: $${(data.earnings / 100).toFixed(2)}</li>
+      </ul>
+      <p>The content will automatically broadcast at the scheduled time.</p>
       <p>Best regards,<br>Red Square Team</p>
     `
   })
