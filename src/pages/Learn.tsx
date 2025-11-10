@@ -9,6 +9,7 @@ import { CheckCircle2, Monitor, Upload, Calendar, CreditCard, BarChart3, ShieldC
 import heroImg from "@/assets/hero-redsquare.jpg";
 import screenImg from "@/assets/hero-screen.jpg";
 import { Link } from "react-router-dom";
+import { assets } from "@/utils/assets";
 
 const broadcasterFeatures = [
   { icon: Upload, title: "Multi-format Uploads", desc: "Images, MP4 video, and GIF with instant validation and preview." },
@@ -51,7 +52,7 @@ const Learn = () => {
     "@type": "Organization",
     name: "Red Square",
     url: typeof window !== "undefined" ? window.location.origin : "",
-    logo: typeof window !== "undefined" ? `${window.location.origin}/lovable-uploads/901ca0b5-a900-440e-b16d-bdd30112cc94.png` : "",
+    logo: typeof window !== "undefined" ? new URL(assets.logo192, window.location.origin).href : "",
   };
 
   const appJsonLd = {

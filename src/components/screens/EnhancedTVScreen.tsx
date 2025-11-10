@@ -22,6 +22,9 @@ import {
 import { useTVRemoteNavigation } from '@/hooks/useTVRemoteNavigation';
 import { useTVStyling } from '@/hooks/useTVStyling';
 import SEO from '@/components/SEO';
+import heroRedSquare from '@/assets/hero-redsquare.jpg';
+import heroScreen from '@/assets/hero-screen.jpg';
+import { assets } from '@/utils/assets';
 
 interface ContentItem {
   id: string;
@@ -63,7 +66,7 @@ export function EnhancedTVScreen() {
       id: '1',
       title: 'Welcome to RedSquare',
       description: 'Introduction to the RedSquare broadcast platform',
-      thumbnail: '/assets/hero-redsquare.jpg',
+      thumbnail: heroRedSquare,
       duration: '2:30',
       type: 'video'
     },
@@ -71,7 +74,7 @@ export function EnhancedTVScreen() {
       id: '2',
       title: 'Digital Signage Best Practices',
       description: 'Learn how to create effective digital signage content',
-      thumbnail: '/assets/hero-screen.jpg',
+      thumbnail: heroScreen,
       duration: '5:45',
       type: 'video'
     },
@@ -79,7 +82,7 @@ export function EnhancedTVScreen() {
       id: '3',
       title: 'RedSquare Logo',
       description: 'Official RedSquare branding assets',
-      thumbnail: '/assets/logo192.png',
+      thumbnail: assets.logo192,
       duration: '∞',
       type: 'image'
     }
