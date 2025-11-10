@@ -20,9 +20,9 @@ serve(async (req) => {
     const supabaseUrl = getEnv("SUPABASE_URL");
     const anonKey = getEnv("SUPABASE_ANON_KEY");
     const serviceKey = getEnv("SUPABASE_SERVICE_ROLE_KEY");
-    const githubToken = getEnv("GITHUB_ACCESS_TOKEN");
-    const githubRepoOwner = getEnv("GITHUB_REPO_OWNER");
-    const githubRepoName = getEnv("GITHUB_REPO_NAME");
+    const githubToken = getEnv("GH_ACCESS_TOKEN");
+    const githubRepoOwner = getEnv("GH_REPO_OWNER");
+    const githubRepoName = getEnv("GH_REPO_NAME");
 
     console.log("Environment check:", {
       hasSupabaseUrl: !!supabaseUrl,
@@ -41,7 +41,7 @@ serve(async (req) => {
     if (!githubToken || !githubRepoOwner || !githubRepoName) {
       console.error("❌ Missing GitHub configuration");
       return new Response(JSON.stringify({
-        error: "Configuration Error: The following environment variables must be set in your Supabase project's settings (Settings > Configuration > Environment Variables): GITHUB_REPO_OWNER, GITHUB_REPO_NAME, GITHUB_ACCESS_TOKEN."
+        error: "Configuration Error: The following environment variables must be set in your Supabase project's settings (Settings > Configuration > Environment Variables): GH_REPO_OWNER, GH_REPO_NAME, GH_ACCESS_TOKEN."
       }), {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" }
