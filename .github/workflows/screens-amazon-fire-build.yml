@@ -67,6 +67,13 @@ jobs:
       - name: Install Dependencies
         run: npm install
 
+      - name: Setup Android Platform
+        run: |
+          if [ ! -d "android" ]; then
+            npx cap add android
+          fi
+          npx cap sync android
+
       - name: Build Web App
         run: npx vite build
 

@@ -71,6 +71,13 @@ jobs:
       - name: Install Dependencies
         run: npm install
 
+      - name: Setup iOS Platform
+        run: |
+          if [ ! -d "ios" ]; then
+            npx cap add ios
+          fi
+          npx cap sync ios
+
       - name: Build Web App
         run: npx vite build
         env:
