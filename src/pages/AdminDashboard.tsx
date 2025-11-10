@@ -7,6 +7,7 @@ import { AppManager } from "@/components/admin/AppManager";
 import { AutomatedBuilds } from "@/components/admin/AutomatedBuilds";
 import { ProductionMonitoringDashboard } from "@/components/admin/ProductionMonitoringDashboard";
 import { SecurityValidationPanel } from "@/components/admin/SecurityValidationPanel";
+import { EmailTestingPanel } from "@/components/admin/EmailTestingPanel";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -997,6 +998,10 @@ const AdminDashboard = () => {
                       </div>
                     </CardContent>
                   </Card>
+                </div>
+                
+                <div className="mt-6">
+                  <EmailTestingPanel />
                 </div>
               </TabsContent>
 
