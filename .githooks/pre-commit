@@ -1,4 +1,14 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+echo "🔍 Running pre-commit checks..."
+
+# Verify secrets
+echo "  → Verifying secrets..."
 npm run verify:secrets --silent
+
+# Validate SSOT configuration
+echo "  → Validating SSOT consistency..."
+node scripts/ssot-validator.js
+
+echo "✅ All pre-commit checks passed!"
