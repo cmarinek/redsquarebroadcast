@@ -1,7 +1,7 @@
 {
-  "appId": "com.redsquare.screens",
-  "productName": "RedSquare Screens",
-  "copyright": "Copyright © 2024 RedSquare",
+  "appId": "app.redsquare.screens",
+  "productName": "Red Square Screens",
+  "copyright": "Copyright © 2024-2025 Red Square",
   "directories": {
     "output": "dist-electron",
     "assets": "assets"
@@ -49,7 +49,7 @@
         "arch": ["x64", "arm64"]
       }
     ],
-    "icon": "assets/dmg-background.png",
+    "icon": "assets/icon.png",
     "category": "public.app-category.business",
     "artifactName": "${productName}-${version}-${os}-${arch}.${ext}",
     "hardenedRuntime": true,
@@ -75,8 +75,8 @@
     "category": "Office",
     "artifactName": "${productName}-${version}-${os}-${arch}.${ext}",
     "desktop": {
-      "Name": "RedSquare Screens",
-      "Comment": "Digital signage and screen management application",
+      "Name": "Red Square Screens",
+      "Comment": "Turn your screen into revenue with digital advertising",
       "Categories": "Office;Presentation;AudioVideo;",
       "Keywords": "digital;signage;display;screen;broadcast;"
     }
@@ -127,7 +127,7 @@
   },
   "publish": {
     "provider": "generic",
-    "url": "https://releases.redsquare.com/"
+    "url": "https://releases.redsquare.app/"
   },
   "compression": "maximum",
   "buildVersion": "1.0.0"

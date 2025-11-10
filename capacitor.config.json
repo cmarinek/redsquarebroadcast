@@ -1,6 +1,6 @@
 {
-  "appId": "app.redsquare.broadcast",
-  "appName": "RedSquare",
+  "appId": "app.redsquare.platform",
+  "appName": "Red Square",
   "webDir": "dist",
   "server": {
     "androidScheme": "https"
