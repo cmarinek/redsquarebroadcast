@@ -10,18 +10,14 @@
 
 ### ⚠️ Configuration Issues Found
 
-**Critical Naming Mismatches:**
-1. ❌ `GH_ACCESS_TOKEN` → Must be renamed to `GITHUB_ACCESS_TOKEN`
-2. ❌ `GH_REPO_OWNER` → Must be renamed to `GITHUB_REPO_OWNER`
-3. ❌ `GH_REPO_NAME` → Must be renamed to `GITHUB_REPO_NAME`
-
 **Missing Secrets:**
-4. ❌ `RESEND_API_KEY` - Required by all workflows (get from Supabase Edge Function secrets)
+1. ❌ `RESEND_API_KEY` - Required by all workflows (get from Supabase Edge Function secrets)
 
 **Correctly Configured:**
 - ✅ All Supabase secrets (VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY, VITE_SUPABASE_PROJECT_ID, SUPABASE_SERVICE_ROLE_KEY)
 - ✅ Mapbox tokens (VITE_MAPBOX_PUBLIC_TOKEN, MAPBOX_PUBLIC_TOKEN)
 - ✅ Stripe keys (VITE_STRIPE_PUBLISHABLE_KEY, STRIPE_SECRET_KEY)
+- ✅ GitHub secrets (GH_ACCESS_TOKEN, GH_REPO_OWNER, GH_REPO_NAME)
 - ✅ GH_ACTION_SECRET
 - ✅ Android signing credentials
 - ✅ Hugging Face token
@@ -34,15 +30,10 @@
 
 ### 🎯 Immediate Action Required
 
-1. **Rename GitHub Secrets** (in GitHub Repository Settings → Secrets and variables → Actions):
-   - Rename `GH_ACCESS_TOKEN` to `GITHUB_ACCESS_TOKEN`
-   - Rename `GH_REPO_OWNER` to `GITHUB_REPO_OWNER`
-   - Rename `GH_REPO_NAME` to `GITHUB_REPO_NAME`
-
-2. **Add Missing Secret**:
+1. **Add Missing Secret** (in GitHub Repository Settings → Secrets and variables → Actions):
    - Add `RESEND_API_KEY` (get value from your Supabase Edge Function secrets)
 
-3. **Test After Configuration**:
+2. **Test After Configuration**:
    - Go to Admin Dashboard → Build Manager
    - Trigger a new test build for any platform
    - Monitor the build in GitHub Actions tab

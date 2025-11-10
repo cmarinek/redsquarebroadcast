@@ -25,9 +25,9 @@ env:
   STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
   RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
   HUGGING_FACE_ACCESS_TOKEN: ${{ secrets.HUGGING_FACE_ACCESS_TOKEN }}
-  GITHUB_ACCESS_TOKEN: ${{ secrets.GITHUB_ACCESS_TOKEN }}
-  GITHUB_REPO_OWNER: ${{ secrets.GITHUB_REPO_OWNER }}
-  GITHUB_REPO_NAME: ${{ secrets.GITHUB_REPO_NAME }}
+  GH_ACCESS_TOKEN: ${{ secrets.GH_ACCESS_TOKEN }}
+  GH_REPO_OWNER: ${{ secrets.GH_REPO_OWNER }}
+  GH_REPO_NAME: ${{ secrets.GH_REPO_NAME }}
 
 jobs:
   build-screens-macos:

@@ -84,9 +84,9 @@ Value: [Your Hugging Face token - starts with hf_]
 
 ---
 
-### 6. GITHUB_ACCESS_TOKEN
+### 6. GH_ACCESS_TOKEN
 ```
-Name: GITHUB_ACCESS_TOKEN
+Name: GH_ACCESS_TOKEN
 Value: [Your GitHub Personal Access Token]
 ```
 **How to create:**
@@ -95,21 +95,25 @@ Value: [Your GitHub Personal Access Token]
 3. Generate token
 4. Copy the token value
 
+**Note:** GitHub restricts the `GITHUB_` prefix for secrets, so we use `GH_` instead.
+
 ---
 
 ## 🔑 GitHub Configuration
 
 ```
-Name: GITHUB_REPO_OWNER
+Name: GH_REPO_OWNER
 Value: [Your GitHub username or organization name]
 Example: john-doe
 ```
 
 ```
-Name: GITHUB_REPO_NAME
+Name: GH_REPO_NAME
 Value: [Your repository name]
 Example: red-square-platform
 ```
+
+**Note:** GitHub restricts the `GITHUB_` prefix for secrets, so we use `GH_` instead.
 
 ---
 
@@ -164,10 +168,10 @@ Copy this checklist and mark each as you add them to GitHub:
 - [ ] RESEND_API_KEY
 - [ ] HUGGING_FACE_ACCESS_TOKEN
 
-### GitHub Config (2 secrets)
-- [ ] GITHUB_ACCESS_TOKEN
-- [ ] GITHUB_REPO_OWNER
-- [ ] GITHUB_REPO_NAME
+### GitHub Config (3 secrets)
+- [ ] GH_ACCESS_TOKEN
+- [ ] GH_REPO_OWNER
+- [ ] GH_REPO_NAME
 
 ### Critical (1 secret)
 - [ ] GH_ACTION_SECRET (GitHub)
