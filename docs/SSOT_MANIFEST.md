@@ -1,13 +1,23 @@
 # Red Square - Single Source of Truth (SSOT) Manifest
 
 **Last Updated**: 2025-01-08  
-**Status**: Phase 1 - Critical Fixes In Progress
+**Status**: ✅ SSOT Architecture Implemented
+
+---
+
+## ⚠️ IMPORTANT: This Document is Now a Reference Only
+
+**The actual SSOT is now:** `ssot.config.json` (machine-readable)
+
+This document explains the SSOT principles and provides human-readable documentation. For making actual configuration changes, always edit `ssot.config.json` and regenerate configs.
+
+See **[SSOT_ARCHITECTURE.md](./SSOT_ARCHITECTURE.md)** for complete usage guide.
 
 ---
 
 ## Overview
 
-This document defines the authoritative source for every configuration, constant, and shared value in the Red Square platform. When conflicts arise, THIS document determines which source is correct.
+Red Square uses a strict Single Source of Truth architecture where all configuration values have exactly one authoritative source. This prevents configuration drift, reduces errors, and improves maintainability.
 
 ---
 

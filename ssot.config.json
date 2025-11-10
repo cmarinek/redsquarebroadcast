@@ -1,0 +1,217 @@
+{
+  "$schema": "./ssot.schema.json",
+  "version": "1.0.0",
+  "lastUpdated": "2025-01-08",
+  
+  "project": {
+    "name": "Red Square",
+    "description": "Democratizing screen-based advertising through a global broadcast network",
+    "tagline": "Your screen. Your earnings. Your platform.",
+    "copyright": "Copyright © 2024-2025 Red Square",
+    "vendor": "Red Square Inc.",
+    "website": "https://redsquare.app",
+    "support": {
+      "email": "support@redsquare.app",
+      "website": "https://redsquare.app/support"
+    }
+  },
+
+  "applications": {
+    "platform": {
+      "name": "Red Square",
+      "shortName": "Red Square",
+      "description": "Book and broadcast to screens worldwide",
+      "bundleId": "app.redsquare.platform",
+      "urlScheme": "redsquare",
+      "version": "1.0.0",
+      "buildNumber": 1,
+      "target": "mobile-web"
+    },
+    "screens": {
+      "name": "Red Square Screens",
+      "shortName": "RS Screens",
+      "description": "Turn your screen into revenue with digital advertising",
+      "bundleId": "app.redsquare.screens",
+      "urlScheme": "redsquare-screen",
+      "version": "1.0.0",
+      "buildNumber": 1,
+      "target": "screen-tv-kiosk"
+    }
+  },
+
+  "domains": {
+    "production": "redsquare.app",
+    "staging": "staging.redsquare.app",
+    "development": "localhost:8080",
+    "cdnBase": "https://cdn.redsquare.app"
+  },
+
+  "backend": {
+    "supabase": {
+      "projectId": "hqeyyutbuxhyildsasqq",
+      "url": "https://hqeyyutbuxhyildsasqq.supabase.co",
+      "anonKeyPlaceholder": "VITE_SUPABASE_ANON_KEY",
+      "region": "us-east-1"
+    }
+  },
+
+  "integrations": {
+    "stripe": {
+      "publishableKeyPlaceholder": "VITE_STRIPE_PUBLISHABLE_KEY",
+      "secretKeyPlaceholder": "STRIPE_SECRET_KEY",
+      "platformFeePercent": 15,
+      "currency": "USD"
+    },
+    "mapbox": {
+      "publicTokenPlaceholder": "VITE_MAPBOX_PUBLIC_TOKEN",
+      "secretTokenPlaceholder": "MAPBOX_SECRET_TOKEN",
+      "defaultCenter": [-98.5795, 39.8283],
+      "defaultZoom": 4
+    },
+    "resend": {
+      "apiKeyPlaceholder": "RESEND_API_KEY",
+      "fromEmail": "notifications@redsquare.app",
+      "fromName": "Red Square"
+    },
+    "huggingface": {
+      "tokenPlaceholder": "HUGGING_FACE_ACCESS_TOKEN",
+      "defaultModel": "stabilityai/stable-diffusion-xl-base-1.0"
+    }
+  },
+
+  "github": {
+    "repoOwnerPlaceholder": "GH_REPO_OWNER",
+    "repoNamePlaceholder": "GH_REPO_NAME",
+    "accessTokenPlaceholder": "GH_ACCESS_TOKEN",
+    "actionSecretPlaceholder": "GH_ACTION_SECRET"
+  },
+
+  "buildTargets": {
+    "web": {
+      "enabled": true,
+      "outputDir": "dist",
+      "platforms": ["browser"]
+    },
+    "mobile": {
+      "enabled": true,
+      "outputDir": "dist",
+      "platforms": ["ios", "android"]
+    },
+    "desktop": {
+      "enabled": true,
+      "outputDir": "dist-electron",
+      "platforms": ["windows", "macos", "linux"]
+    },
+    "tv": {
+      "enabled": true,
+      "outputDir": "dist",
+      "platforms": ["androidtv", "firetv", "roku", "tizen", "webos"],
+      "optimizations": {
+        "largeTargets": true,
+        "simplifiedNav": true,
+        "performanceMode": "balanced"
+      }
+    },
+    "kiosk": {
+      "enabled": true,
+      "outputDir": "dist",
+      "platforms": ["electron", "web"],
+      "features": {
+        "lockdown": true,
+        "adminAccess": "keyboard-shortcut"
+      }
+    }
+  },
+
+  "features": {
+    "screenRegistration": true,
+    "screenDiscovery": true,
+    "contentUpload": true,
+    "scheduling": true,
+    "payments": true,
+    "authentication": true,
+    "adminPanel": true,
+    "analytics": true,
+    "notifications": true,
+    "aiGeneration": true,
+    "multiLanguage": false,
+    "darkMode": true
+  },
+
+  "roles": {
+    "enum": "app_role",
+    "values": ["admin", "screen_owner", "advertiser", "broadcaster", "support"],
+    "defaultRole": "broadcaster",
+    "table": "user_roles",
+    "function": "has_role"
+  },
+
+  "security": {
+    "enableRLS": true,
+    "requireEmailVerification": false,
+    "sessionTimeout": 86400,
+    "maxLoginAttempts": 5,
+    "passwordMinLength": 8,
+    "requireStrongPassword": true
+  },
+
+  "monetization": {
+    "platformFeePercent": 15,
+    "payoutMinimum": 50,
+    "currency": "USD",
+    "paymentProcessors": ["stripe"],
+    "subscriptionPlans": [
+      {
+        "id": "free",
+        "name": "Free",
+        "price": 0,
+        "features": ["basic_scheduling", "1_screen"]
+      },
+      {
+        "id": "pro",
+        "name": "Professional",
+        "price": 29,
+        "features": ["advanced_scheduling", "5_screens", "analytics"]
+      },
+      {
+        "id": "enterprise",
+        "name": "Enterprise",
+        "price": 99,
+        "features": ["unlimited_screens", "priority_support", "api_access"]
+      }
+    ]
+  },
+
+  "assets": {
+    "icons": {
+      "web": "public/icon-512x512.png",
+      "android": "android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png",
+      "ios": "ios/App/App/Assets.xcassets/AppIcon.appiconset/icon.png",
+      "desktop": "assets/icon.png"
+    },
+    "splash": {
+      "backgroundColor": "#0a0a0a",
+      "spinnerColor": "#ffffff"
+    },
+    "brand": {
+      "primaryColor": "#dc2626",
+      "secondaryColor": "#1a1a1a",
+      "accentColor": "#fbbf24"
+    }
+  },
+
+  "validation": {
+    "strictMode": true,
+    "enforceOnBuild": true,
+    "enforceOnCommit": false,
+    "checkDuplicates": true,
+    "checkMissingRefs": true
+  },
+
+  "metadata": {
+    "maintainer": "Red Square DevOps Team",
+    "lastAudit": "2025-01-08",
+    "nextReview": "2025-02-08",
+    "changeLog": "CHANGELOG.md"
+  }
+}
