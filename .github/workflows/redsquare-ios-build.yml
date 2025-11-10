@@ -73,6 +73,9 @@ jobs:
 
       - name: Build Web App
         run: npx vite build
+        env:
+          VITE_BUILD_TARGET: mobile
+          CAPACITOR: true
 
       - name: Set up Xcode
         uses: maxim-lobanov/setup-xcode@v1
