@@ -1,4 +1,4 @@
-const config = {
+module.exports = {
   appId: 'com.redsquare.screens',
   appName: 'RedSquare Screens',
   webDir: 'dist',
@@ -26,5 +26,3 @@ const config = {
     },
   },
 };
-
-export default config;
