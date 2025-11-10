@@ -1,6 +1,8 @@
 import { Monitor, Mail, Phone, MapPin } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useTranslation } from 'react-i18next';
+import { assets } from "@/utils/assets";
+
 export const Footer = () => {
   const { t } = useTranslation();
   
@@ -11,7 +13,7 @@ export const Footer = () => {
           <div className="space-y-4">
             <div className="flex items-center space-x-2">
               <img 
-                src="/lovable-uploads/901ca0b5-a900-440e-b16d-bdd30112cc94.png" 
+                src={assets.logo192}
                 alt="Red Square Logo" 
                 className="w-8 h-8 rounded-lg"
               />

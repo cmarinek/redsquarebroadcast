@@ -105,6 +105,7 @@ function validateBuildOutput(target, distPath = 'dist') {
 
   if (rules.checkCapacitorConfig) {
     validateCapacitorConfig(warnings);
+    validateCapacitorAssetPaths(distPath, errors);
   }
 
   if (rules.checkElectronPackage) {
@@ -214,6 +215,45 @@ function validateCapacitorConfig(warnings) {
   platforms.forEach(platform => {
     if (!fs.existsSync(platform)) {
       warnings.push(`Missing ${platform} platform directory`);
+    }
+  });
+}
+
+function validateCapacitorAssetPaths(distPath, errors) {
+  log('🔗 Checking for absolute asset paths in Capacitor build...', 'info');
+  
+  const indexPath = path.join(distPath, 'index.html');
+  if (fs.existsSync(indexPath)) {
+    const indexContent = fs.readFileSync(indexPath, 'utf8');
+    
+    // Check for absolute paths that should be relative
+    const absolutePathPatterns = [
+      /src=["']\/assets\//g,
+      /href=["']\/assets\//g,
+      /src=["']\/lovable-uploads\//g,
+      /href=["']\/lovable-uploads\//g,
+    ];
+    
+    let foundAbsolutePaths = false;
+    absolutePathPatterns.forEach(pattern => {
+      if (pattern.test(indexContent)) {
+        foundAbsolutePaths = true;
+      }
+    });
+    
+    if (foundAbsolutePaths) {
+      errors.push('Found absolute /assets paths in build - this will cause issues in Capacitor apps');
+      log('❌ Found absolute /assets paths in build - this will cause issues in Capacitor apps', 'error');
+      log('Build artifacts should use relative paths for compatibility', 'error');
+    }
+  }
+  
+  // Check JS files for absolute paths
+  const jsFiles = findFilesByExtension(distPath, '.js');
+  jsFiles.forEach(file => {
+    const content = fs.readFileSync(file, 'utf8');
+    if (content.includes('"/assets/') || content.includes('"/lovable-uploads/')) {
+      errors.push(`Found absolute asset paths in ${path.relative(distPath, file)}`);
     }
   });
 }

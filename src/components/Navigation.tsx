@@ -11,6 +11,7 @@ import { ScreenOwnerOnboarding } from "@/components/onboarding/ScreenOwnerOnboar
 import { RegionalSelector } from "@/components/RegionalSelector";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useTranslation } from "react-i18next";
+import { assets } from "@/utils/assets";
 export const Navigation = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showAdvertiserOnboarding, setShowAdvertiserOnboarding] = useState(false);
@@ -42,7 +43,7 @@ export const Navigation = () => {
           <div className="flex items-center space-x-4">
             <Link to="/" className="flex items-center space-x-2 hover:opacity-80 transition-opacity">
               <img 
-                src="/lovable-uploads/901ca0b5-a900-440e-b16d-bdd30112cc94.png" 
+                src={assets.logo192}
                 alt="Red Square Logo" 
                 className="w-8 h-8 rounded-lg"
               />
