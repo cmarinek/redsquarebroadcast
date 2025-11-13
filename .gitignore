@@ -18,6 +18,11 @@ dist-ssr
 supabase/functions/**/supabaseClient*.ts
 supabase/functions/**/supabase-types*.ts
 
+# Test results and reports
+playwright-report/
+test-results/
+coverage/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
