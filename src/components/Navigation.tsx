@@ -5,7 +5,7 @@ import { Menu, X, Monitor, Upload, User, LogOut, Settings, BarChart3, Shield, He
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserRoles } from "@/hooks/useUserRoles";
 import { useOnboarding } from "@/hooks/useOnboarding";
-import { RealTimeNotifications } from "@/components/RealTimeNotifications";
+import { NotificationBell } from "@/components/NotificationBell";
 import { AdvertiserOnboarding } from "@/components/onboarding/AdvertiserOnboarding";
 import { ScreenOwnerOnboarding } from "@/components/onboarding/ScreenOwnerOnboarding";
 import { RegionalSelector } from "@/components/RegionalSelector";
@@ -106,8 +106,8 @@ export const Navigation = () => {
                   </DropdownMenu>
                 )}
 
-                <RealTimeNotifications />
-                
+                <NotificationBell />
+
                 {/* Account Menu */}
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
