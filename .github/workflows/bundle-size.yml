@@ -1,0 +1,128 @@
+name: Bundle Size Check
+
+on:
+  pull_request:
+    branches: [main, develop]
+  push:
+    branches: [main]
+
+jobs:
+  check-bundle-size:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build production bundle
+        run: npm run build
+        env:
+          NODE_ENV: production
+
+      - name: Check bundle sizes
+        run: |
+          echo "## Bundle Size Report" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          # Total dist size
+          TOTAL_SIZE=$(du -sh dist | awk '{print $1}')
+          echo "**Total Bundle Size:** $TOTAL_SIZE" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          # JavaScript bundles
+          echo "### JavaScript Bundles" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          find dist/assets -name '*.js' -exec du -h {} \; | sort -h | awk '{print "- " $2 ": " $1}' >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          # CSS bundles
+          echo "### CSS Bundles" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          find dist/assets -name '*.css' -exec du -h {} \; | sort -h | awk '{print "- " $2 ": " $1}' >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          # Check if bundle size exceeds limits
+          DIST_SIZE_KB=$(du -sk dist | awk '{print $1}')
+          if [ "$DIST_SIZE_KB" -gt 2048 ]; then
+            echo "❌ **Warning:** Bundle size exceeds 2MB limit!" >> $GITHUB_STEP_SUMMARY
+            echo "::warning::Bundle size ($TOTAL_SIZE) exceeds 2MB limit"
+          else
+            echo "✅ **Bundle size is within limits**" >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Generate bundle visualization
+        run: npx vite-bundle-visualizer --template sunburst -o dist/bundle-report.html
+
+      - name: Upload bundle report
+        uses: actions/upload-artifact@v4
+        with:
+          name: bundle-report
+          path: dist/bundle-report.html
+          retention-days: 30
+
+      - name: Comment PR with bundle size
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const distSize = require('child_process').execSync('du -sh dist').toString().split('\t')[0];
+
+            const comment = `
+            ## 📦 Bundle Size Report
+
+            **Total Size:** ${distSize}
+
+            View the detailed [bundle report](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}) for more information.
+
+            <details>
+            <summary>Bundle Details</summary>
+
+            \`\`\`
+            ${require('child_process').execSync('find dist/assets -name "*.js" -exec du -h {} \\; | sort -h').toString()}
+            \`\`\`
+            </details>
+            `;
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });
+
+  lighthouse:
+    runs-on: ubuntu-latest
+    needs: check-bundle-size
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build for preview
+        run: npm run build
+
+      - name: Run Lighthouse CI
+        run: |
+          npm install -g @lhci/cli
+          lhci autorun --upload.target=temporary-public-storage || echo "Lighthouse CI failed, but continuing..."
+        env:
+          LHCI_GITHUB_APP_TOKEN: ${{ secrets.LHCI_GITHUB_APP_TOKEN }}

@@ -45,13 +45,30 @@ export default defineConfig(({ mode }) => {
     ].filter(Boolean),
     build: {
       target: 'esnext',
-      minify: 'esbuild',
-      sourcemap: true,
+      minify: mode === 'production' ? 'terser' : 'esbuild',
+      sourcemap: mode === 'production',
+      // Bundle size warning threshold (KB)
+      chunkSizeWarningLimit: 500,
+      // CSS code splitting for better caching
+      cssCodeSplit: true,
+      // Terser options for production
+      ...(mode === 'production' && {
+        terserOptions: {
+          compress: {
+            drop_console: true,
+            drop_debugger: true,
+            pure_funcs: ['console.log', 'console.info', 'console.debug'],
+          },
+          mangle: {
+            safari10: true,
+          },
+        },
+      }),
       rollupOptions: {
         external: (id: string) => {
           // Always externalize Capacitor CLI packages (they're not meant to be bundled)
-          if (id.startsWith('@capacitor/cli') || 
-              id.startsWith('@capacitor/android') || 
+          if (id.startsWith('@capacitor/cli') ||
+              id.startsWith('@capacitor/android') ||
               id.startsWith('@capacitor/ios')) {
             return true;
           }
@@ -64,15 +81,47 @@ export default defineConfig(({ mode }) => {
             constBindings: true,
             objectShorthand: true,
           },
-          // Separate chunks for different build targets
-          manualChunks: {
-            vendor: ['react', 'react-dom', 'react-router-dom'],
-            ui: ['@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu', '@radix-ui/react-tabs'],
-            supabase: ['@supabase/supabase-js'],
-            ...(isScreenTarget && {
-              screens: ['leaflet', 'react-leaflet', 'mapbox-gl'],
-              player: ['dashjs', 'hls.js']
-            }),
+          // Optimized chunk splitting strategy
+          manualChunks: (id) => {
+            // Core React libraries
+            if (id.includes('node_modules/react/') || id.includes('node_modules/react-dom/')) {
+              return 'vendor-react';
+            }
+            // React Router
+            if (id.includes('node_modules/react-router')) {
+              return 'vendor-router';
+            }
+            // Radix UI components
+            if (id.includes('node_modules/@radix-ui')) {
+              return 'vendor-ui';
+            }
+            // Supabase
+            if (id.includes('node_modules/@supabase')) {
+              return 'vendor-supabase';
+            }
+            // TanStack Query
+            if (id.includes('node_modules/@tanstack/react-query')) {
+              return 'vendor-query';
+            }
+            // Lucide icons
+            if (id.includes('node_modules/lucide-react')) {
+              return 'vendor-icons';
+            }
+            // Screen-specific dependencies
+            if (isScreenTarget) {
+              if (id.includes('leaflet') || id.includes('mapbox')) {
+                return 'feature-maps';
+              }
+              if (id.includes('dashjs') || id.includes('hls.js')) {
+                return 'feature-player';
+              }
+            }
+            // Admin pages (lazy loaded)
+            if (id.includes('/src/pages/Admin')) {
+              return 'page-admin';
+            }
+            // Other large features can be split as needed
+            return undefined;
           },
           // Screen-specific optimizations
           ...(isScreenTarget && {
@@ -94,9 +143,9 @@ export default defineConfig(({ mode }) => {
       treeshake: {
         preset: 'recommended',
         moduleSideEffects: false,
+        propertyReadSideEffects: false,
       },
     },
-    chunkSizeWarningLimit: 1000,
     test: {
       globals: true,
       environment: 'jsdom',
@@ -109,9 +158,16 @@ export default defineConfig(({ mode }) => {
       },
     },
     optimizeDeps: {
+      include: [
+        'react',
+        'react-dom',
+        'react-router-dom',
+        '@supabase/supabase-js',
+        '@tanstack/react-query',
+      ],
       exclude: isMobileTarget ? [
         '@capacitor/cli',
-        '@capacitor/android', 
+        '@capacitor/android',
         '@capacitor/ios'
       ] : [],
     },
