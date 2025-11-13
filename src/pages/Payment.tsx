@@ -10,6 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Navigation } from "@/components/Navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { format } from "date-fns";
+import { BookingFlowBreadcrumb } from "@/components/shared/BookingFlowBreadcrumb";
 
 interface BookingDetails {
   id: string;
@@ -172,7 +173,8 @@ export default function Payment() {
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
-      
+      <BookingFlowBreadcrumb currentStep="payment" />
+
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-2xl mx-auto">
           <div className="mb-8">
