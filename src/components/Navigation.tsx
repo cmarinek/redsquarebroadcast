@@ -8,6 +8,8 @@ import { useOnboarding } from "@/hooks/useOnboarding";
 import { NotificationBell } from "@/components/NotificationBell";
 import { AdvertiserOnboarding } from "@/components/onboarding/AdvertiserOnboarding";
 import { ScreenOwnerOnboarding } from "@/components/onboarding/ScreenOwnerOnboarding";
+import { FirstTimeWelcome } from "@/components/onboarding/FirstTimeWelcome";
+import { ProfileCompletionPrompt } from "@/components/ProfileCompletionPrompt";
 import { RegionalSelector } from "@/components/RegionalSelector";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useTranslation } from "react-i18next";
@@ -29,9 +31,11 @@ export const Navigation = () => {
     loading: rolesLoading
   } = useUserRoles();
   const {
+    shouldShowFirstTimeWelcome,
     shouldShowAdvertiserOnboarding,
     shouldShowBroadcasterOnboarding, // Legacy compatibility
     shouldShowScreenOwnerOnboarding,
+    markFirstTimeWelcomeComplete,
     markAdvertiserOnboardingComplete,
     markBroadcasterOnboardingComplete, // Legacy compatibility
     markScreenOwnerOnboardingComplete
@@ -329,14 +333,22 @@ export const Navigation = () => {
     </nav>
     
     {/* Onboarding Modals */}
-                    <AdvertiserOnboarding isOpen={showAdvertiserOnboarding || shouldShowAdvertiserOnboarding()} onClose={() => {
+    <FirstTimeWelcome
+      isOpen={shouldShowFirstTimeWelcome()}
+      onComplete={markFirstTimeWelcomeComplete}
+    />
+
+    <AdvertiserOnboarding isOpen={showAdvertiserOnboarding || shouldShowAdvertiserOnboarding()} onClose={() => {
       setShowAdvertiserOnboarding(false);
       markAdvertiserOnboardingComplete();
     }} onComplete={markAdvertiserOnboardingComplete} />
-    
+
     <ScreenOwnerOnboarding isOpen={showScreenOwnerOnboarding || shouldShowScreenOwnerOnboarding()} onClose={() => {
       setShowScreenOwnerOnboarding(false);
       markScreenOwnerOnboardingComplete();
     }} onComplete={markScreenOwnerOnboardingComplete} />
+
+    {/* Profile Completion Prompt */}
+    {user && <ProfileCompletionPrompt />}
   </>;
 };

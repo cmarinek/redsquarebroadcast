@@ -206,12 +206,37 @@ export const useOnboarding = () => {
     );
   };
 
+  const shouldShowFirstTimeWelcome = () => {
+    if (!user) return false;
+    const param = new URLSearchParams(window.location.search).get('welcome');
+    if (param === 'force') return true;
+
+    // Show if user hasn't completed any onboarding
+    return (
+      onboardingStatus &&
+      !onboardingStatus.has_completed_advertiser_onboarding &&
+      !onboardingStatus.has_completed_broadcaster_onboarding &&
+      !onboardingStatus.has_completed_screen_owner_onboarding &&
+      (roles?.length ?? 0) === 0
+    );
+  };
+
+  const markFirstTimeWelcomeComplete = () => {
+    // This just ensures we don't show welcome again for users with no roles yet
+    // Once they select a role, the role-specific onboarding will trigger
+    if (!user) return;
+    const key = `first_time_welcome_${user.id}`;
+    localStorage.setItem(key, 'true');
+  };
+
   return {
     onboardingStatus,
     loading,
+    shouldShowFirstTimeWelcome,
     shouldShowAdvertiserOnboarding,
     shouldShowBroadcasterOnboarding, // Legacy compatibility
     shouldShowScreenOwnerOnboarding,
+    markFirstTimeWelcomeComplete,
     markAdvertiserOnboardingComplete,
     markBroadcasterOnboardingComplete, // Legacy compatibility
     markScreenOwnerOnboardingComplete,
