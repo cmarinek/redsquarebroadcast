@@ -7,6 +7,7 @@ import { Footer } from "@/components/Footer";
 import { Navigation } from "@/components/Navigation";
 import { StatusIndicator } from "@/components/StatusIndicator";
 import { ContextualNavigation } from "@/features/shared";
+import { CommandPalette } from "@/components/CommandPalette";
 
 import { assets } from "@/utils/assets";
 
@@ -91,7 +92,8 @@ const App = () => {
           <Navigation />
           <ContextualNavigation />
           <StatusIndicator />
-          <main className="pt-16">
+          <CommandPalette />
+          <main id="main-content" className="pt-16">
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/demo" element={<Demo />} />
