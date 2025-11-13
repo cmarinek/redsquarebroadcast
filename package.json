@@ -19,6 +19,9 @@
     "electron:build": "node scripts/electron-build.js build",
     "lint": "eslint .",
     "preview": "vite preview",
+    "analyze": "vite build --mode production && npx vite-bundle-visualizer",
+    "analyze:dev": "vite build --mode development && npx vite-bundle-visualizer",
+    "size": "npm run build && du -sh dist && find dist/assets -name '*.js' -exec du -sh {} \\; | sort -h",
     "validate:env": "node scripts/validate-env.mjs",
     "verify:secrets": "node scripts/check-secrets.mjs",
     "setup:hooks": "node scripts/setup-hooks.mjs"
