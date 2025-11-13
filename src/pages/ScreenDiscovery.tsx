@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { MapPin, Search, QrCode, Star, Clock, DollarSign, HelpCircle, Zap, Users, Eye, Smartphone } from "lucide-react";
+import { MapPin, Search, QrCode, Clock, DollarSign, HelpCircle, Zap, Users, Eye, Smartphone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -14,6 +14,7 @@ import MapboxMap from "@/components/maps/MapboxMap";
 import { QrScanner } from "@yudiel/react-qr-scanner";
 import SEO from "@/components/SEO";
 import { useToast } from "@/hooks/use-toast";
+import { Rating, NoRating } from "@/components/ui/rating";
 
 interface Screen {
   id: string;
@@ -23,6 +24,10 @@ interface Screen {
   status: string;
   latitude: number | null;
   longitude: number | null;
+  average_rating: number | null;
+  total_ratings: number | null;
+  availability_start: string | null;
+  availability_end: string | null;
 }
 
 export default function ScreenDiscovery() {
@@ -55,7 +60,7 @@ export default function ScreenDiscovery() {
     try {
       let supabaseQuery = supabase
         .from("screens")
-        .select("id, screen_name, location, pricing_cents, status, latitude, longitude")
+        .select("id, screen_name, location, pricing_cents, status, latitude, longitude, average_rating, total_ratings, availability_start, availability_end")
         .eq("status", "active")
         .limit(50);
 
@@ -434,22 +439,32 @@ export default function ScreenDiscovery() {
                                   )}
                                 </CardDescription>
                               </div>
-                              <Badge variant="secondary" className="flex items-center gap-1">
-                                <Star className="h-3 w-3 text-yellow-500" />
-                                4.8
-                              </Badge>
+                              {screen.average_rating && screen.total_ratings > 0 ? (
+                                <Rating
+                                  value={screen.average_rating}
+                                  showValue
+                                  totalRatings={screen.total_ratings}
+                                  size="sm"
+                                />
+                              ) : (
+                                <NoRating size="sm" />
+                              )}
                             </div>
                           </CardHeader>
                           <CardContent className="space-y-4">
                             <div className="flex items-center justify-between text-sm text-muted-foreground">
                               <div className="flex items-center gap-2">
                                 <Clock className="h-4 w-4" />
-                                Available 24/7
+                                {screen.availability_start && screen.availability_end
+                                  ? `${screen.availability_start} - ${screen.availability_end}`
+                                  : "Check availability"}
                               </div>
-                              <div className="flex items-center gap-2">
-                                <Users className="h-4 w-4" />
-                                High traffic
-                              </div>
+                              {screen.total_ratings && screen.total_ratings >= 10 && (
+                                <div className="flex items-center gap-2">
+                                  <Users className="h-4 w-4" />
+                                  Popular
+                                </div>
+                              )}
                             </div>
                             
                             <div className="flex items-center justify-between">
