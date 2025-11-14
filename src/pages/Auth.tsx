@@ -12,6 +12,7 @@ import { Loader2, Eye, EyeOff, Monitor, User } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Navigation } from "@/components/Navigation";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useRateLimit } from "@/hooks/useRateLimit";
 
 const Auth = () => {
   const [loading, setLoading] = useState(false);
@@ -24,6 +25,7 @@ const Auth = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { toast } = useToast();
+  const { checkRateLimit, incrementRateLimit } = useRateLimit();
 
   useEffect(() => {
     // Check if user is already logged in
@@ -55,12 +57,32 @@ const Auth = () => {
     setError("");
 
     try {
+      // Check rate limit before sign in attempt
+      const canSignIn = await checkRateLimit({
+        endpoint: 'auth_signin',
+        identifier: email,
+        showToast: true
+      });
+
+      if (!canSignIn) {
+        setLoading(false);
+        setError("Too many sign-in attempts. Please try again later.");
+        return;
+      }
+
       const { error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
       if (error) {
+        // Increment rate limit even on failure to prevent brute force
+        await incrementRateLimit({
+          endpoint: 'auth_signin',
+          identifier: email,
+          showToast: false
+        });
+
         if (error.message.includes("Invalid login credentials")) {
           setError("Invalid email or password. Please check your credentials and try again.");
         } else if (error.message.includes("Email not confirmed")) {
@@ -68,6 +90,13 @@ const Auth = () => {
         } else {
           setError(error.message);
         }
+      } else {
+        // Increment rate limit on successful sign in
+        await incrementRateLimit({
+          endpoint: 'auth_signin',
+          identifier: email,
+          showToast: false
+        });
       }
     } catch (err) {
       setError("An unexpected error occurred. Please try again.");
@@ -88,8 +117,21 @@ const Auth = () => {
     }
 
     try {
+      // Check rate limit before sign up attempt
+      const canSignUp = await checkRateLimit({
+        endpoint: 'auth_signup',
+        identifier: email,
+        showToast: true
+      });
+
+      if (!canSignUp) {
+        setLoading(false);
+        setError("Too many sign-up attempts. Please try again later.");
+        return;
+      }
+
       const redirectUrl = `${window.location.origin}/`;
-      
+
       const { error } = await supabase.auth.signUp({
         email,
         password,
@@ -103,12 +145,26 @@ const Auth = () => {
       });
 
       if (error) {
+        // Increment rate limit even on failure to prevent abuse
+        await incrementRateLimit({
+          endpoint: 'auth_signup',
+          identifier: email,
+          showToast: false
+        });
+
         if (error.message.includes("User already registered")) {
           setError("An account with this email already exists. Please try signing in instead.");
         } else {
           setError(error.message);
         }
       } else {
+        // Increment rate limit on successful sign up
+        await incrementRateLimit({
+          endpoint: 'auth_signup',
+          identifier: email,
+          showToast: false
+        });
+
         toast({
           title: "Account created!",
           description: "Please check your email for a confirmation link.",
@@ -210,10 +266,31 @@ const Auth = () => {
     setLoading(true);
     setError("");
     try {
+      // Check rate limit before password reset attempt
+      const canReset = await checkRateLimit({
+        endpoint: 'auth_reset',
+        identifier: email,
+        showToast: true
+      });
+
+      if (!canReset) {
+        setLoading(false);
+        setError("Too many password reset attempts. Please try again later.");
+        return;
+      }
+
       const redirectUrl = `${window.location.origin}/auth`;
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: redirectUrl,
       });
+
+      // Increment rate limit after attempt (success or failure)
+      await incrementRateLimit({
+        endpoint: 'auth_reset',
+        identifier: email,
+        showToast: false
+      });
+
       if (error) setError(error.message);
       else {
         toast({ title: "Reset email sent", description: "Check your inbox to continue." });

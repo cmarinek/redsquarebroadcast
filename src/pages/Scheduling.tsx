@@ -14,6 +14,7 @@ import { format, addDays, isSameDay } from "date-fns";
 import { AvailabilityCalendar } from "@/components/booking/AvailabilityCalendar";
 import { useAvailability } from "@/hooks/useAvailability";
 import { BookingFlowBreadcrumb } from "@/components/shared/BookingFlowBreadcrumb";
+import { useRateLimit } from "@/hooks/useRateLimit";
 
 interface Screen {
   id: string;
@@ -34,7 +35,8 @@ export default function Scheduling() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { toast } = useToast();
-  
+  const { checkRateLimit, incrementRateLimit } = useRateLimit();
+
   const contentId = searchParams.get('contentId');
   const [screen, setScreen] = useState<Screen | null>(null);
   const [content, setContent] = useState<ContentUpload | null>(null);
@@ -164,6 +166,17 @@ export default function Scheduling() {
         return;
       }
 
+      // Check rate limit before creating booking
+      const canCreateBooking = await checkRateLimit({
+        endpoint: 'booking_create',
+        identifier: user.id,
+        showToast: true
+      });
+
+      if (!canCreateBooking) {
+        return;
+      }
+
       // Create booking record
       const { data: booking, error: bookingError } = await supabase
         .from('bookings')
@@ -182,6 +195,13 @@ export default function Scheduling() {
         .single();
 
       if (bookingError) throw bookingError;
+
+      // Increment rate limit after successful booking creation
+      await incrementRateLimit({
+        endpoint: 'booking_create',
+        identifier: user.id,
+        showToast: false
+      });
 
       // Navigate to payment with booking ID
       navigate(`/book/${screenId}/payment?bookingId=${booking.id}`);

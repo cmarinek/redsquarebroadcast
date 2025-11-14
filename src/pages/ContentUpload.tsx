@@ -15,6 +15,7 @@ import { contentUploadSchema, moderationChecks } from "@/utils/validation";
 import { z } from "zod";
 import { useTranslation } from 'react-i18next';
 import { BookingFlowBreadcrumb } from "@/components/shared/BookingFlowBreadcrumb";
+import { useRateLimit } from "@/hooks/useRateLimit";
 
 interface UploadedFile {
   file: File;
@@ -28,15 +29,16 @@ export default function ContentUpload() {
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { t } = useTranslation();
-  
+
   const [uploadedFile, setUploadedFile] = useState<UploadedFile | null>(null);
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [videoPlaying, setVideoPlaying] = useState(false);
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
   const videoRef = useRef<HTMLVideoElement>(null);
-  
+
   const { validateForm } = useFormValidation(contentUploadSchema);
+  const { checkRateLimit, incrementRateLimit, isChecking } = useRateLimit();
 
   const validateFile = (file: File): string[] => {
     const errors: string[] = [];
@@ -117,7 +119,7 @@ export default function ContentUpload() {
 
     setUploading(true);
     setUploadProgress(0);
-    
+
     let progressInterval: NodeJS.Timeout | null = null;
 
     try {
@@ -128,6 +130,19 @@ export default function ContentUpload() {
           description: t('pages.contentUpload.authenticationRequiredDescription'),
           variant: "destructive"
         });
+        setUploading(false);
+        return;
+      }
+
+      // Check rate limit before upload
+      const canUpload = await checkRateLimit({
+        endpoint: 'content_upload',
+        identifier: user.id,
+        showToast: true
+      });
+
+      if (!canUpload) {
+        setUploading(false);
         return;
       }
 
@@ -181,6 +196,13 @@ export default function ContentUpload() {
         .single();
 
       if (contentError) throw contentError;
+
+      // Increment rate limit after successful upload
+      await incrementRateLimit({
+        endpoint: 'content_upload',
+        identifier: user.id,
+        showToast: false
+      });
 
       // Kick off post-upload processing (moderation, thumbnails/transcode)
       const { data: moderationResult, error: moderationError } = await supabase.functions.invoke('content-moderation', {
