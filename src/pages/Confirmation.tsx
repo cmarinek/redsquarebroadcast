@@ -167,7 +167,7 @@ export default function Confirmation() {
     const start = new Date(booking!.start_time);
     const end = new Date(start.getTime() + (booking!.duration_minutes || 0) * 60000);
     const shareText = `I've booked a screen broadcast on Red Square! 🎬\n\nScreen: ${booking!.screen?.screen_name}\nDate: ${format(start, 'EEEE, MMMM d, yyyy')}\nTime: ${start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - ${end.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
-    
+
     if (navigator.share) {
       navigator.share({
         title: 'Red Square Booking Confirmation',
@@ -178,6 +178,60 @@ export default function Confirmation() {
       toast({
         title: "Copied to clipboard!",
         description: "Booking details copied to clipboard."
+      });
+    }
+  };
+
+  const downloadInvoice = async () => {
+    if (!booking) return;
+
+    toast({
+      title: "Generating invoice...",
+      description: "Your invoice will download shortly.",
+    });
+
+    try {
+      const { data: envData } = await supabase.from('_env').select('*').limit(1);
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+      const response = await fetch(
+        `${supabaseUrl}/functions/v1/generate-invoice`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${supabaseAnonKey}`,
+          },
+          body: JSON.stringify({
+            bookingId: booking.id,
+            sendEmail: false,
+          }),
+        }
+      );
+
+      if (!response.ok) throw new Error('Failed to generate invoice');
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `invoice-${booking.id.slice(0, 8)}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+
+      toast({
+        title: "Invoice downloaded!",
+        description: "Your invoice has been saved to your downloads folder.",
+      });
+    } catch (error) {
+      console.error('Invoice generation error:', error);
+      toast({
+        title: "Failed to generate invoice",
+        description: "Please try again or contact support.",
+        variant: "destructive",
       });
     }
   };
@@ -308,22 +362,30 @@ export default function Confirmation() {
 
           {/* Action Buttons */}
           <div className="mt-8 flex flex-col sm:flex-row gap-4">
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
+              onClick={downloadInvoice}
+              className="flex-1"
+            >
+              <Download className="h-4 w-4 mr-2" />
+              Download Invoice
+            </Button>
+            <Button
+              variant="outline"
               onClick={shareBooking}
               className="flex-1"
             >
               <Share2 className="h-4 w-4 mr-2" />
               Share Booking
             </Button>
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               onClick={() => navigate("/discover")}
               className="flex-1"
             >
               Book Another Screen
             </Button>
-            <Button 
+            <Button
               onClick={() => navigate("/")}
               className="flex-1"
             >

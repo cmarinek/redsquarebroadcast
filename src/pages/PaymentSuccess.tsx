@@ -131,13 +131,63 @@ export default function PaymentSuccess() {
   };
 
   const downloadInvoice = async () => {
+    if (!booking) return;
+
     toast({
       title: "Generating invoice...",
       description: "Your invoice will download shortly.",
     });
 
-    // TODO: Implement invoice generation
-    // This would call an edge function to generate a PDF invoice
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-invoice', {
+        body: {
+          bookingId: booking.id,
+          sendEmail: false, // Set to true if you also want to email the invoice
+        },
+      });
+
+      if (error) throw error;
+
+      // Convert the response to a blob and trigger download
+      const response = await fetch(
+        `${supabase.supabaseUrl}/functions/v1/generate-invoice`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${supabase.supabaseKey}`,
+          },
+          body: JSON.stringify({
+            bookingId: booking.id,
+            sendEmail: false,
+          }),
+        }
+      );
+
+      if (!response.ok) throw new Error('Failed to generate invoice');
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `invoice-${booking.id.slice(0, 8)}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+
+      toast({
+        title: "Invoice downloaded!",
+        description: "Your invoice has been saved to your downloads folder.",
+      });
+    } catch (error) {
+      console.error('Invoice generation error:', error);
+      toast({
+        title: "Failed to generate invoice",
+        description: "Please try again or contact support.",
+        variant: "destructive",
+      });
+    }
   };
 
   if (loading) {

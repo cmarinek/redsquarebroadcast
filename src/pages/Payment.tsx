@@ -11,6 +11,7 @@ import { Navigation } from "@/components/Navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { format } from "date-fns";
 import { BookingFlowBreadcrumb } from "@/components/shared/BookingFlowBreadcrumb";
+import { useRateLimit } from "@/hooks/useRateLimit";
 
 interface BookingDetails {
   id: string;
@@ -39,6 +40,7 @@ export default function Payment() {
   const [searchParams] = useSearchParams();
   const { toast } = useToast();
   const { user } = useAuth();
+  const { checkRateLimit, incrementRateLimit } = useRateLimit();
   const [platformFeeFraction, setPlatformFeeFraction] = useState<number>(0.10);
   const bookingId = searchParams.get('bookingId');
   const [booking, setBooking] = useState<BookingDetails | null>(null);
@@ -108,6 +110,18 @@ export default function Payment() {
     setProcessing(true);
 
     try {
+      // Check rate limit before processing payment
+      const canProceed = await checkRateLimit({
+        endpoint: 'payment_create',
+        identifier: user.id,
+        showToast: true
+      });
+
+      if (!canProceed) {
+        setProcessing(false);
+        return;
+      }
+
       // Create Stripe checkout session
       const { data, error } = await supabase.functions.invoke('create-payment', {
         body: {
@@ -120,6 +134,13 @@ export default function Payment() {
       if (error) throw error;
 
       if (data?.url) {
+        // Increment rate limit after successful payment initiation
+        await incrementRateLimit({
+          endpoint: 'payment_create',
+          identifier: user.id,
+          showToast: false
+        });
+
         // Open Stripe Checkout in a new tab (recommended)
         window.open(data.url, '_blank');
       } else {

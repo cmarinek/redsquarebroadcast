@@ -34,6 +34,9 @@ export default function ScreenDiscovery() {
   const [screens, setScreens] = useState<Screen[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+  const [lastId, setLastId] = useState<string | null>(null);
   const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [showScanner, setShowScanner] = useState(false);
   const [locationPermissionAsked, setLocationPermissionAsked] = useState(false);
@@ -41,6 +44,8 @@ export default function ScreenDiscovery() {
   const watchIdRef = useRef<number | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  const PAGE_SIZE = 50;
 
   useEffect(() => {
     fetchScreens("");
@@ -55,14 +60,28 @@ export default function ScreenDiscovery() {
     return () => clearTimeout(handle);
   }, [searchQuery]);
 
-  const fetchScreens = async (query: string) => {
-    setLoading(true);
+  const fetchScreens = async (query: string, reset: boolean = true) => {
+    if (reset) {
+      setLoading(true);
+      setScreens([]);
+      setLastId(null);
+      setHasMore(true);
+    } else {
+      setLoadingMore(true);
+    }
+
     try {
       let supabaseQuery = supabase
         .from("screens")
         .select("id, screen_name, location, pricing_cents, status, latitude, longitude, average_rating, total_ratings, availability_start, availability_end")
         .eq("status", "active")
-        .limit(50);
+        .order("id", { ascending: true })
+        .limit(PAGE_SIZE + 1); // Fetch one extra to check if there are more
+
+      // Cursor-based pagination
+      if (!reset && lastId) {
+        supabaseQuery = supabaseQuery.gt("id", lastId);
+      }
 
       if (query) {
         const searchPattern = `%${query}%`;
@@ -73,7 +92,21 @@ export default function ScreenDiscovery() {
 
       const { data, error } = await supabaseQuery;
       if (error) throw error;
-      setScreens((data as Screen[]) || []);
+
+      const results = (data as Screen[]) || [];
+      const hasMoreResults = results.length > PAGE_SIZE;
+      const screensToAdd = hasMoreResults ? results.slice(0, PAGE_SIZE) : results;
+
+      if (reset) {
+        setScreens(screensToAdd);
+      } else {
+        setScreens((prev) => [...prev, ...screensToAdd]);
+      }
+
+      setHasMore(hasMoreResults);
+      if (screensToAdd.length > 0) {
+        setLastId(screensToAdd[screensToAdd.length - 1].id);
+      }
     } catch (error) {
       console.error("Error loading screens:", error);
       toast({
@@ -83,6 +116,13 @@ export default function ScreenDiscovery() {
       });
     } finally {
       setLoading(false);
+      setLoadingMore(false);
+    }
+  };
+
+  const loadMore = () => {
+    if (!loadingMore && hasMore && !loading) {
+      fetchScreens(searchQuery.trim(), false);
     }
   };
 
@@ -489,6 +529,35 @@ export default function ScreenDiscovery() {
                         </Card>
                       );
                     })}
+                  </div>
+                )}
+
+                {/* Load More Button */}
+                {!loading && screens.length > 0 && hasMore && (
+                  <div className="flex justify-center mt-8">
+                    <Button
+                      onClick={loadMore}
+                      disabled={loadingMore}
+                      size="lg"
+                      variant="outline"
+                      className="min-w-[200px]"
+                    >
+                      {loadingMore ? (
+                        <>
+                          <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                          Loading...
+                        </>
+                      ) : (
+                        `Load More Screens`
+                      )}
+                    </Button>
+                  </div>
+                )}
+
+                {/* No more results message */}
+                {!loading && screens.length > 0 && !hasMore && (
+                  <div className="text-center mt-8 text-muted-foreground">
+                    <p>You've seen all available screens matching your search.</p>
                   </div>
                 )}
               </div>
