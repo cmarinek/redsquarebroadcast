@@ -56,6 +56,7 @@ const SetupRedSquareScreen = lazy(() => import("./pages/SetupRedSquareScreen"));
 const TVScreenDemo = lazy(() => import("./pages/TVScreenDemo"));
 const Support = lazy(() => import("./pages/Support"));
 import AdminRoute from "@/components/routing/AdminRoute";
+import ProtectedRoute from "@/components/routing/ProtectedRoute";
 
 const App = () => {
   const navigate = useNavigate();
@@ -99,7 +100,7 @@ const App = () => {
               <Route path="/demo" element={<Demo />} />
               <Route path="/auth" element={<Auth />} />
               <Route path="/role-selection" element={<RoleSelection />} />
-              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
               <Route path="/admin" element={<AdminDashboard />} />
               <Route path="/admin/overview" element={<AdminProjectOverview />} />
               <Route path="/admin/operations" element={<AdminRoute><AdminOperations /></AdminRoute>} />
@@ -116,30 +117,30 @@ const App = () => {
               <Route path="/admin-performance" element={<AdminPerformance />} />
               <Route path="/admin-project-overview" element={<AdminProjectOverview />} />
               <Route path="/admin-documentation" element={<AdminDocumentation />} />
-              <Route path="/broadcaster-dashboard" element={<BroadcasterDashboard />} />
+              <Route path="/broadcaster-dashboard" element={<ProtectedRoute><BroadcasterDashboard /></ProtectedRoute>} />
               <Route path="/support" element={<Support />} />
-              <Route path="/my-campaigns" element={<AdvertiserDashboard />} />
-              <Route path="/my-screens" element={<ScreenOwnerDashboard />} />
-              <Route path="/profile" element={<Profile />} />
-              <Route path="/register-screen" element={<ScreenRegistration />} />
+              <Route path="/my-campaigns" element={<ProtectedRoute><AdvertiserDashboard /></ProtectedRoute>} />
+              <Route path="/my-screens" element={<ProtectedRoute><ScreenOwnerDashboard /></ProtectedRoute>} />
+              <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+              <Route path="/register-screen" element={<ProtectedRoute><ScreenRegistration /></ProtectedRoute>} />
               <Route path="/how-it-works" element={<HowItWorksDetailed />} />
               <Route path="/production-plan" element={<ProductionPlan />} />
               <Route path="/discover" element={<ScreenDiscovery />} />
               <Route path="/screen/:screenId" element={<ScreenDetails />} />
-              <Route path="/book/:screenId/upload" element={<ContentUpload />} />
-              <Route path="/book/:screenId/schedule" element={<Scheduling />} />
-              <Route path="/book/:screenId/payment" element={<Payment />} />
-              <Route path="/confirmation/:bookingId" element={<Confirmation />} />
-              <Route path="/device-setup" element={<DeviceSetup />} />
-              <Route path="/subscription" element={<Subscription />} />
+              <Route path="/book/:screenId/upload" element={<ProtectedRoute><ContentUpload /></ProtectedRoute>} />
+              <Route path="/book/:screenId/schedule" element={<ProtectedRoute><Scheduling /></ProtectedRoute>} />
+              <Route path="/book/:screenId/payment" element={<ProtectedRoute><Payment /></ProtectedRoute>} />
+              <Route path="/confirmation/:bookingId" element={<ProtectedRoute><Confirmation /></ProtectedRoute>} />
+              <Route path="/device-setup" element={<ProtectedRoute><DeviceSetup /></ProtectedRoute>} />
+              <Route path="/subscription" element={<ProtectedRoute><Subscription /></ProtectedRoute>} />
               <Route path="/privacy" element={<Privacy />} />
               <Route path="/terms" element={<Terms />} />
               <Route path="/cookies" element={<Cookies />} />
               <Route path="/learn" element={<Learn />} />
               <Route path="/setup-guide" element={<SetupGuide />} />
               <Route path="/download" element={<DownloadApp />} />
-              <Route path="/screen-owner-mobile" element={<ScreenOwnerMobile />} />
-              <Route path="/mobile-app" element={<ScreenOwnerMobile />} /> {/* Legacy redirect */}
+              <Route path="/screen-owner-mobile" element={<ProtectedRoute><ScreenOwnerMobile /></ProtectedRoute>} />
+              <Route path="/mobile-app" element={<ProtectedRoute><ScreenOwnerMobile /></ProtectedRoute>} /> {/* Legacy redirect */}
               <Route path="/regional-settings" element={<RegionalSettings />} />
               <Route path="/redsquare-screens" element={<RedSquareScreens />} />
               <Route path="/setup-redsquare-screen" element={<SetupRedSquareScreen />} />
