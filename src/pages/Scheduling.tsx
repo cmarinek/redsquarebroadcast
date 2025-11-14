@@ -13,6 +13,7 @@ import { Navigation } from "@/components/Navigation";
 import { format, addDays, isSameDay } from "date-fns";
 import { AvailabilityCalendar } from "@/components/booking/AvailabilityCalendar";
 import { useAvailability } from "@/hooks/useAvailability";
+import { BookingFlowBreadcrumb } from "@/components/shared/BookingFlowBreadcrumb";
 
 interface Screen {
   id: string;
@@ -233,7 +234,8 @@ export default function Scheduling() {
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
-      
+      <BookingFlowBreadcrumb currentStep="schedule" />
+
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto">
           <div className="mb-8">

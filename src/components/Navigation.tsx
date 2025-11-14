@@ -41,15 +41,31 @@ export const Navigation = () => {
     markScreenOwnerOnboardingComplete
   } = useOnboarding();
   return <>
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md border-b border-border">
+    {/* Skip to main content link for keyboard users */}
+    <a
+      href="#main-content"
+      className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-primary focus:text-primary-foreground focus:rounded-md focus:shadow-lg"
+    >
+      Skip to main content
+    </a>
+
+    <nav
+      className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md border-b border-border"
+      aria-label="Main navigation"
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16 items-center">
           <div className="flex items-center space-x-4">
-            <Link to="/" className="flex items-center space-x-2 hover:opacity-80 transition-opacity">
-              <img 
+            <Link
+              to="/"
+              className="flex items-center space-x-2 hover:opacity-80 transition-opacity"
+              aria-label="RedSquare home"
+            >
+              <img
                 src={assets.logo192}
-                alt="Red Square Logo" 
+                alt=""
                 className="w-8 h-8 rounded-lg"
+                aria-hidden="true"
               />
               <span className="text-xl font-bold text-foreground">RedSquare</span>
             </Link>
@@ -80,12 +96,12 @@ export const Navigation = () => {
                 {isAdmin() && (
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button variant="outline">
-                        <Shield className="w-4 h-4 mr-2" />
+                      <Button variant="outline" aria-label="Admin panel menu">
+                        <Shield className="w-4 h-4 mr-2" aria-hidden="true" />
                         Admin
                       </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="bg-background">
+                    <DropdownMenuContent align="end" className="bg-background" aria-label="Admin panel options">
                       <DropdownMenuLabel>Admin Panel</DropdownMenuLabel>
                       <DropdownMenuSeparator />
                       <DropdownMenuItem asChild>
@@ -115,12 +131,12 @@ export const Navigation = () => {
                 {/* Account Menu */}
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="sm" className="flex items-center space-x-2">
-                      <User className="w-4 h-4" />
+                    <Button variant="ghost" size="sm" className="flex items-center space-x-2" aria-label="Account menu">
+                      <User className="w-4 h-4" aria-hidden="true" />
                       <span className="hidden sm:inline">Account</span>
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="bg-background">
+                  <DropdownMenuContent align="end" className="bg-background" aria-label="Account options">
                     <DropdownMenuLabel>My Account</DropdownMenuLabel>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem asChild>
@@ -177,12 +193,12 @@ export const Navigation = () => {
                 {/* Public navigation - simplified */}
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="outline">
-                      <BookOpen className="w-4 h-4 mr-2" />
+                    <Button variant="outline" aria-label="Learning resources menu">
+                      <BookOpen className="w-4 h-4 mr-2" aria-hidden="true" />
                       Learn
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="bg-background">
+                  <DropdownMenuContent align="end" className="bg-background" aria-label="Learning resources">
                     <DropdownMenuItem asChild>
                       <Link to="/how-it-works" className="flex items-center">
                         <HelpCircle className="w-4 h-4 mr-2" />
@@ -197,15 +213,15 @@ export const Navigation = () => {
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
-                
+
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="outline">
-                      <Download className="w-4 h-4 mr-2" />
+                    <Button variant="outline" aria-label="Download application menu">
+                      <Download className="w-4 h-4 mr-2" aria-hidden="true" />
                       Get App
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="bg-background">
+                  <DropdownMenuContent align="end" className="bg-background" aria-label="Download options">
                     <DropdownMenuItem asChild>
                       <Link to="/download" className="flex items-center">
                         <Smartphone className="w-4 h-4 mr-2" />
@@ -235,14 +251,21 @@ export const Navigation = () => {
 
           {/* Mobile menu button */}
           <div className="md:hidden">
-            <Button variant="ghost" size="icon" onClick={() => setIsMenuOpen(!isMenuOpen)}>
-              {isMenuOpen ? <X /> : <Menu />}
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              aria-label={isMenuOpen ? "Close menu" : "Open menu"}
+              aria-expanded={isMenuOpen}
+              aria-controls="mobile-navigation"
+            >
+              {isMenuOpen ? <X aria-hidden="true" /> : <Menu aria-hidden="true" />}
             </Button>
           </div>
         </div>
 
         {/* Mobile Navigation */}
-        {isMenuOpen && <div className="md:hidden pb-4">
+        {isMenuOpen && <div id="mobile-navigation" className="md:hidden pb-4" role="navigation" aria-label="Mobile menu">
             <div className="flex flex-col space-y-3">
               {user ? <>
                  {/* Primary actions */}

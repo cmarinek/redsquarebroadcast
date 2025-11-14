@@ -14,6 +14,7 @@ import { useFormValidation } from "@/hooks/useFormValidation";
 import { contentUploadSchema, moderationChecks } from "@/utils/validation";
 import { z } from "zod";
 import { useTranslation } from 'react-i18next';
+import { BookingFlowBreadcrumb } from "@/components/shared/BookingFlowBreadcrumb";
 
 interface UploadedFile {
   file: File;
@@ -236,6 +237,7 @@ export default function ContentUpload() {
 
   return (
     <Layout>
+      <BookingFlowBreadcrumb currentStep="upload" />
       <LoadingOverlay isLoading={uploading} loadingText={t('pages.contentUpload.uploadingAndProcessing')}>
         <div className="container mx-auto px-4 py-8">
           <div className="max-w-2xl mx-auto">
