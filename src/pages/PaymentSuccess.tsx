@@ -139,23 +139,21 @@ export default function PaymentSuccess() {
     });
 
     try {
-      const { data, error } = await supabase.functions.invoke('generate-invoice', {
-        body: {
-          bookingId: booking.id,
-          sendEmail: false, // Set to true if you also want to email the invoice
-        },
-      });
+      // Get user's session token for authorization
+      const { data: { session } } = await supabase.auth.getSession();
 
-      if (error) throw error;
+      if (!session) {
+        throw new Error('You must be logged in to download invoices');
+      }
 
       // Convert the response to a blob and trigger download
       const response = await fetch(
-        `${supabase.supabaseUrl}/functions/v1/generate-invoice`,
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-invoice`,
         {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${supabase.supabaseKey}`,
+            'Authorization': `Bearer ${session.access_token}`,
           },
           body: JSON.stringify({
             bookingId: booking.id,

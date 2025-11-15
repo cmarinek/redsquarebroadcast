@@ -50,11 +50,31 @@ serve(async (req) => {
       );
     }
 
+    // Create client with user's auth token for authorization
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader) {
+      return new Response(
+        JSON.stringify({ error: "Authentication required" }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 401 }
+      );
+    }
+
     const supabase = createClient(
       getEnv("SUPABASE_URL"),
       getEnv("SUPABASE_SERVICE_ROLE_KEY"),
       { auth: { persistSession: false } }
     );
+
+    // Get authenticated user
+    const token = authHeader.replace("Bearer ", "");
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+
+    if (authError || !user) {
+      return new Response(
+        JSON.stringify({ error: "Invalid authentication token" }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 401 }
+      );
+    }
 
     // Fetch booking details with related data
     const { data: booking, error: bookingError } = await supabase
@@ -64,10 +84,22 @@ serve(async (req) => {
       .single();
 
     if (bookingError || !booking) {
-      throw new Error("Booking not found");
+      return new Response(
+        JSON.stringify({ error: "Booking not found" }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 404 }
+      );
     }
 
     const bookingData = booking as BookingData;
+
+    // CRITICAL SECURITY CHECK: Verify user owns this booking
+    if (bookingData.user_id !== user.id) {
+      console.warn(`Unauthorized invoice access attempt: user ${user.id} tried to access booking ${bookingId} owned by ${bookingData.user_id}`);
+      return new Response(
+        JSON.stringify({ error: "You are not authorized to access this invoice" }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 403 }
+      );
+    }
 
     // Fetch screen details
     const { data: screen } = await supabase

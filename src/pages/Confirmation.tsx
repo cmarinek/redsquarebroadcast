@@ -191,17 +191,20 @@ export default function Confirmation() {
     });
 
     try {
-      const { data: envData } = await supabase.from('_env').select('*').limit(1);
-      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-      const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+      // Get user's session token for authorization
+      const { data: { session } } = await supabase.auth.getSession();
+
+      if (!session) {
+        throw new Error('You must be logged in to download invoices');
+      }
 
       const response = await fetch(
-        `${supabaseUrl}/functions/v1/generate-invoice`,
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-invoice`,
         {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${supabaseAnonKey}`,
+            'Authorization': `Bearer ${session.access_token}`,
           },
           body: JSON.stringify({
             bookingId: booking.id,
