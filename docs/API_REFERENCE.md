@@ -12,6 +12,14 @@ Complete reference documentation for all RedSquare edge functions and APIs.
 
 - [Authentication & Users](#authentication--users)
 - [Payment Processing](#payment-processing)
+  - [Create Checkout Session](#create-checkout-session)
+  - [Create Payment](#create-payment)
+  - [Verify Payment](#verify-payment)
+  - [Generate Invoice](#generate-invoice) ⭐ NEW
+  - [Create Payout](#create-payout)
+  - [Stripe Webhook](#stripe-webhook)
+  - [Customer Portal](#customer-portal)
+  - [Owner Earnings](#owner-earnings)
 - [Device Management](#device-management)
 - [Content Management](#content-management)
 - [Admin & Monitoring](#admin--monitoring)
@@ -151,6 +159,174 @@ Complete reference documentation for all RedSquare edge functions and APIs.
   "currency": "string"
 }
 ```
+
+---
+
+### Generate Invoice
+
+**Endpoint**: `POST /generate-invoice`
+
+**Description**: Generates and returns a PDF invoice for a completed booking. Includes authorization checks to ensure users can only access their own invoices.
+
+**Authentication**: Required
+
+**Security**:
+- Users can only generate invoices for their own bookings
+- Returns 403 Forbidden if attempting to access another user's invoice
+- Unauthorized access attempts are logged for security monitoring
+
+**Request Body**:
+```json
+{
+  "bookingId": "string (uuid, required)",
+  "sendEmail": "boolean (optional, default: false)"
+}
+```
+
+**Request Headers**:
+```
+Authorization: Bearer [user_access_token]
+Content-Type: application/json
+```
+
+**Response** (200):
+- **Content-Type**: `application/pdf`
+- **Content-Disposition**: `attachment; filename="invoice-XXXXXXXX.pdf"`
+- **Body**: Binary PDF data
+
+**Response** (400 Bad Request):
+```json
+{
+  "error": "bookingId is required"
+}
+```
+
+**Response** (401 Unauthorized):
+```json
+{
+  "error": "Authentication required"
+}
+```
+
+OR
+
+```json
+{
+  "error": "Invalid authentication token"
+}
+```
+
+**Response** (403 Forbidden):
+```json
+{
+  "error": "You are not authorized to access this invoice"
+}
+```
+
+**Response** (404 Not Found):
+```json
+{
+  "error": "Booking not found"
+}
+```
+
+**Response** (500 Internal Server Error):
+```json
+{
+  "error": "string (error message)"
+}
+```
+
+**Invoice Contents**:
+The generated PDF includes:
+- Invoice number (INV-XXXXXXXX format)
+- Invoice date and payment status
+- Company information (RedSquare)
+- Customer details (name, email)
+- Booking details (screen name, location, start time, duration)
+- Itemized pricing:
+  - Screen Booking Fee
+  - Platform Fee (10%)
+  - Total amount
+- Payment method and transaction ID
+- Footer with support contact
+
+**Email Delivery** (optional):
+When `sendEmail: true`:
+- Invoice is sent to user's registered email
+- Email includes booking summary
+- PDF attached to email
+- Email failures don't prevent PDF generation (fail gracefully)
+
+**Usage Example**:
+
+**Client-Side (TypeScript/JavaScript)**:
+```typescript
+const downloadInvoice = async (bookingId: string) => {
+  // Get user's session token
+  const { data: { session } } = await supabase.auth.getSession();
+
+  if (!session) {
+    throw new Error('Authentication required');
+  }
+
+  // Request invoice PDF
+  const response = await fetch(
+    `${SUPABASE_URL}/functions/v1/generate-invoice`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${session.access_token}`,
+      },
+      body: JSON.stringify({
+        bookingId: bookingId,
+        sendEmail: false,
+      }),
+    }
+  );
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error || 'Failed to generate invoice');
+  }
+
+  // Download PDF
+  const blob = await response.blob();
+  const url = window.URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `invoice-${bookingId.slice(0, 8)}.pdf`;
+  document.body.appendChild(a);
+  a.click();
+  window.URL.revokeObjectURL(url);
+  document.body.removeChild(a);
+};
+```
+
+**cURL Example**:
+```bash
+curl -X POST https://[project-ref].supabase.co/functions/v1/generate-invoice \
+  -H "Authorization: Bearer [your-access-token]" \
+  -H "Content-Type: application/json" \
+  -d '{"bookingId": "123e4567-e89b-12d3-a456-426614174000"}' \
+  --output invoice.pdf
+```
+
+**Rate Limiting**: Inherits from general API rate limits (100 requests per 60 minutes)
+
+**Performance**:
+- Average response time: 2-5 seconds
+- PDF generation is synchronous
+- Timeout: 10 seconds (edge function limit)
+
+**Known Limitations**:
+- jsPDF library may have Deno compatibility issues in some edge runtime versions
+- Large invoices (complex formatting) may approach timeout limits
+- Special characters in screen names should be tested
+
+**Testing**:
+See `TESTING_GUIDE.md` section 2 for comprehensive invoice generation tests
 
 ---
 
